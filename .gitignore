@@ -8,3 +8,4 @@
 *.out
 go.work
 packs
+out.bin

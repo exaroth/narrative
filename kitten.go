@@ -36,7 +36,11 @@ func (k *Kitten) createTensors(sentence []int64) (
 	speed *ort.Tensor[float32],
 	err error,
 ) {
-	inputShape := ort.NewShape(1, 24)
+	sentence = append([]int64{0}, sentence...)
+	sentence = append(sentence, 10)
+	sentence = append(sentence, 0)
+
+	inputShape := ort.NewShape(1, int64(len(sentence)))
 	inputTensor, err := ort.NewTensor(inputShape, sentence)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("Error creating input tensor: %+v\n, %w", sentence, err)
@@ -68,22 +72,28 @@ func (k *Kitten) RunInference(sentence []int64) ([]float32, error) {
 	defer voiceTensor.Destroy()
 	defer speedTensor.Destroy()
 
-	outputShape := ort.NewShape(78000)
-	outputTensor, err := ort.NewEmptyTensor[float32](outputShape)
-	if err != nil {
-		return nil, fmt.Errorf("Error creating output tensor: %w", err)
-
-	}
-	defer outputTensor.Destroy()
-
+	outputs := []ort.Value{nil, nil}
+	defer func() {
+		for _, o := range outputs {
+			o.Destroy()
+		}
+	}()
 	err = k.session.Run(
 		[]ort.Value{inputTensor, voiceTensor, speedTensor},
-		[]ort.Value{outputTensor},
+		outputs,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("Error running inference: %w", err)
 	}
-	return outputTensor.GetData(), nil
+	var waveform []float32
+
+	for i, o := range outputs {
+		fmt.Println(i)
+		if i == 0 {
+			waveform = o.(*ort.Tensor[float32]).GetData()
+		}
+	}
+	return waveform, nil
 }
 
 func NewKitten() *Kitten {
@@ -112,7 +122,7 @@ func NewKitten() *Kitten {
 	session, err := ort.NewDynamicAdvancedSession(
 		"./kitten/kitten.onnx",
 		[]string{"input_ids", "style", "speed"},
-		[]string{"waveform"},
+		[]string{"waveform", "duration"},
 		nil,
 	)
 	if err != nil {
