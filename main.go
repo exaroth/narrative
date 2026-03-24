@@ -3,17 +3,29 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
-	"log"
 	"math"
 	"os"
 
 	"github.com/exaroth/narrative/phonemizer"
 	"github.com/sbinet/npyio/npz"
+	log "github.com/sirupsen/logrus"
 	ort "github.com/yalue/onnxruntime_go"
 )
 
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	log.SetLevel(log.WarnLevel)
+}
+
 const (
-	pad = "$"
+	pad = '$'
 )
 
 var chars_punctuation = []rune{';', ':', ',', '.', '!', '?', '¡', '¿', '—', '…', '"', '«', '»', '"', '"', ' '}
@@ -31,9 +43,45 @@ func (v *vMat) Load(flat []float32) {
 	for i := range 400 {
 		v[i] = ([256]float32)(flat[i*256 : (i+1)*256])
 	}
+
+}
+
+type TokenMap map[rune]int64
+
+func (t TokenMap) tokenize(char rune) int64 {
+	if val, ok := t[char]; ok {
+		return val
+	}
+	fmt.Printf("char %s not found in token map", string(char))
+	return -1
+}
+
+func (t TokenMap) TokenizeWord(word string) []int64 {
+	result := []int64{}
+	for _, char := range word {
+		result = append(result, t.tokenize(char))
+	}
+	return result
+}
+
+func buildTokenMap() TokenMap {
+	token_arr := []rune{pad}
+	token_arr = append(token_arr, chars_punctuation...)
+	token_arr = append(token_arr, chars_letter...)
+	token_arr = append(token_arr, chars_ipa...)
+
+	var result = make(map[rune]int64)
+	for idx, c := range token_arr {
+		result[c] = int64(idx)
+	}
+	return result
 }
 
 func main() {
+
+	token_map := buildTokenMap()
+
+	fmt.Println(token_map.TokenizeWord("1"))
 
 	phonemizer, err := phonemizer.NewPhonemizer()
 	if err != nil {

@@ -1,4 +1,4 @@
-package main
+package phonemizer
 
 import (
 	"bytes"
@@ -17,15 +17,6 @@ import (
 
 	dict "github.com/exaroth/narrative/dictionary"
 )
-
-func main() {
-	fmt.Println("depro")
-	pho := NewHashtronPhonemizer(nil, false)
-	err := pho.LoadLanguage()
-	fmt.Println(err)
-	phone, err := pho.PhonemizeWord("deprofundis")
-	fmt.Println(phone)
-}
 
 func hashtronHash(str string) uint32 {
 	return hash.StringHash(0, str)
@@ -168,7 +159,7 @@ outer:
 
 				predicted += pred
 
-				fmt.Printf("Model predicted: %v %v %v -> %d\n", srcaR, dstaR, option, pred)
+				// fmt.Printf("Model predicted: %v %v %v -> %d\n", srcaR, dstaR, option, pred)
 			}
 
 			if (!multiword && predicted == 1) || (multiword && 2*predicted > len(srcaR)) {
@@ -310,44 +301,6 @@ func (l *language) letters() {
 		}
 	}
 }
-
-// func (l *language) src(word []rune) (o []string) {
-// outer:
-// 	for i := 0; i < len(word); i++ {
-// 		for j := l.mapSrcMultiLen; j > 0; j-- {
-// 			for multi := range l.mapSrcMulti {
-// 				if len(multi) != j {
-// 					continue
-// 				}
-// 				if strings.HasPrefix(string(word[i:]), multi) {
-// 					o = append(o, multi)
-// 					i += len([]rune(multi)) - 1
-// 					if i >= len(word) {
-// 						return
-// 					}
-// 					continue outer
-// 				}
-// 			}
-// 		}
-// 		for j := l.mapSrcMultiSufLen; j > 0; j-- {
-// 			for multi := range l.mapSrcMultiSuffix {
-// 				if len(multi) != j {
-// 					continue
-// 				}
-// 				if len(o) > 0 && strings.HasPrefix(string(word[i:]), multi) {
-// 					o[len(o)-1] += multi
-// 					i += len([]rune(multi)) - 1
-// 					if i >= len(word) {
-// 						return
-// 					}
-// 					continue outer
-// 				}
-// 			}
-// 		}
-// 		o = append(o, string(word[i]))
-// 	}
-// 	return o
-// }
 
 func isCombining(r uint32) bool {
 	return unicode.Is(unicode.Mn, rune(r)) || unicode.Is(unicode.Mc, rune(r))
