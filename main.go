@@ -17,25 +17,28 @@ func init() {
 	log.SetLevel(log.WarnLevel)
 }
 
-const testText = "When I first tackled this, I made the mistake of not aligning the library versions, which caused unexpected runtime errors. So let’s get it right from the start."
-
 func main() {
+
+	input := ""
+	if len(os.Args) > 1 {
+		input = os.Args[1]
+	}
+	fmt.Println("input", input)
 
 	token_map := buildTokenMap()
 	phonemizer, err := phonemizer.NewPhonemizer()
 	if err != nil {
 		panic(err)
 	}
-	word := "unexpected"
+	word := "mighty"
 	r, _ := phonemizer.Phonemize(word)
+
 	i := r[0]
-	fmt.Println(i)
 	var w string
 	for k, v := range i {
 		if v == 0 {
 			continue
 		}
-		fmt.Println("k: ", k)
 		w = k
 	}
 
@@ -45,7 +48,7 @@ func main() {
 	fmt.Println("err")
 	fmt.Println(err)
 
-	kitten := NewKitten()
+	kitten := NewKitten(nil)
 
 	defer kitten.Deinit()
 
@@ -56,7 +59,7 @@ func main() {
 
 	fname := "out.bin"
 	file, _ := os.Create(fname)
-	// decayfac := math.Pow(end/start, 1.0/float64(nsamps))
+
 	for _, sample := range outputData {
 		var buf [8]byte
 		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))

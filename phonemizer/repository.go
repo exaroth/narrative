@@ -14,7 +14,7 @@ import (
 	"github.com/neurlang/classifier/hash"
 )
 
-const missing_f_name = "missing.all.zlib"
+const MISSING_F_NAME = "missing.all.zlib"
 
 type PhonemizerRepository struct {
 	reverse    bool
@@ -32,7 +32,7 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 	r.mut.Lock()
 	defer r.mut.Unlock()
 
-	f_contents, err := dict.Language.ReadFile(missing_f_name)
+	f_contents, err := dict.Language.ReadFile(MISSING_F_NAME)
 	if err != nil {
 		return err
 	}

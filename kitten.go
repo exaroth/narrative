@@ -8,6 +8,19 @@ import (
 	ort "github.com/yalue/onnxruntime_go"
 )
 
+var VOICE_MAP map[string]string = map[string]string{
+	"Bella":  "expr-voice-2-f.npy",
+	"Jasper": "expr-voice-2-m.npy",
+	"Luna":   "expr-voice-3-f.npy",
+	"Bruno":  "expr-voice-3-m.npy",
+	"Rosie":  "expr-voice-4-f.npy",
+	"Hugo":   "expr-voice-4-m.npy",
+	"Kiki":   "expr-voice-5-f.npy",
+	"Leo":    "expr-voice-5-m.npy",
+}
+
+const DEFAULT_VOICE = "Jasper"
+
 type vMat [400][256]float32
 
 func (v *vMat) Load(flat []float32) {
@@ -46,7 +59,6 @@ func (k *Kitten) createTensors(sentence []int64) (
 		return nil, nil, nil, fmt.Errorf("Error creating input tensor: %+v\n, %w", sentence, err)
 	}
 	voiceData := k.voice[24][:]
-	// fmt.Println(voiceData)
 
 	voiceShape := ort.NewShape(1, 256)
 	voiceTensor, err := ort.NewTensor(voiceShape, voiceData)
@@ -85,23 +97,26 @@ func (k *Kitten) RunInference(sentence []int64) ([]float32, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error running inference: %w", err)
 	}
-	var waveform []float32
-
-	for i, o := range outputs {
-		fmt.Println(i)
-		if i == 0 {
-			waveform = o.(*ort.Tensor[float32]).GetData()
-		}
-	}
+	waveform := outputs[0].(*ort.Tensor[float32]).GetData()
 	return waveform, nil
 }
 
-func NewKitten() *Kitten {
+func NewKitten(voice_name *string) *Kitten {
 	ort.SetSharedLibraryPath("/home/exaroth/Projects/narrative/onnx_libs/lib/libonnxruntime.so")
 
 	err := ort.InitializeEnvironment()
 	if err != nil {
 		log.Fatalf("Could intialize onnx runtime: %+v", err)
+	}
+	var voice_dtf string
+	if voice_name != nil {
+		v, ok := VOICE_MAP[*voice_name]
+		if !ok {
+			log.Fatalf("Invalid voice id %s provided", voice_name)
+		}
+		voice_dtf = v
+	} else {
+		voice_dtf = VOICE_MAP[DEFAULT_VOICE]
 	}
 
 	f, err := npz.Open("./kitten/voices.npz")
@@ -112,7 +127,7 @@ func NewKitten() *Kitten {
 
 	var f0 []float32
 
-	err = f.Read("expr-voice-2-m.npy", &f0)
+	err = f.Read(voice_dtf, &f0)
 	if err != nil {
 		log.Fatalf("Could not read value from npz file: %+v", err)
 	}
