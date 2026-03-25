@@ -21,10 +21,12 @@ func (t TokenMap) tokenize(char rune) int64 {
 }
 
 func (t TokenMap) TokenizeWord(word string) []int64 {
-	result := []int64{}
+	result := []int64{0}
 	for _, char := range word {
 		result = append(result, t.tokenize(char))
 	}
+	result = append(result, 10)
+	result = append(result, 0)
 	return result
 }
 
