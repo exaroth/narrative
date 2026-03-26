@@ -9,3 +9,6 @@
 go.work
 packs
 out.bin
+scratch.go
+book.gob
+scratch

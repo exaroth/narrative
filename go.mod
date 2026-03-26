@@ -25,6 +25,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dolthub/maphash v0.1.0 // indirect
 	github.com/gammazero/deque v0.2.1 // indirect
+	github.com/gopxl/beep v1.4.1 // indirect
 	github.com/gopxl/beep/v2 v2.1.1 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/k0kubun/pp/v3 v3.5.1 // indirect
