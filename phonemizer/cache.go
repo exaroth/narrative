@@ -1,8 +1,11 @@
 package phonemizer
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/binary"
+	"encoding/gob"
+	"fmt"
 
 	"github.com/maypok86/otter"
 	"github.com/neurlang/classifier/hash"
@@ -15,67 +18,28 @@ type WordCache struct {
 
 func (c *WordCache) LoadWord(word string, hash uint32) map[string]uint32 {
 	value, _ := c.cache.Get(hash)
+
 	if value == "" {
 		return nil
 	}
-	result := make(map[string]uint32)
-	length := binary.LittleEndian.Uint32([]byte(value[0:4]))
-	end := 4 + length*16
-	for i := uint32(0); i < length; i++ {
-		k := binary.LittleEndian.Uint64([]byte(value[3*i+4 : 3*i+12]))
-		l := binary.LittleEndian.Uint32([]byte(value[3*i+12 : 3*i+16]))
-		m := binary.LittleEndian.Uint32([]byte(value[3*i+16 : 3*i+20]))
-		src := value[end : end+l]
-		end += l
-		dst := value[end : end+m]
-		end += m
-		result[src] = 0
-		result[dst] = uint32(k)
+	var result map[string]uint32
+	if err := gob.NewDecoder(bytes.NewReader([]byte(value))).Decode(result); err != nil {
+		// todo
+		fmt.Printf("Error decoding cache value  %+v", err)
+		return nil
 	}
 	return result
-
 }
 
 func (c *WordCache) StoreWord(value map[string]uint32, hash uint32) {
 
-	var buf, data []byte
-	var num4 [4]byte
-	var num8 [8]byte
-	var has0 bool
-	var str0 string
-	for k, v := range value {
-		if v == 0 {
-			has0 = true
-			str0 = k
-			break
-		}
-	}
-	if has0 {
-		binary.LittleEndian.PutUint32(num4[:], uint32(len(value)-1))
-	} else {
-		binary.LittleEndian.PutUint32(num8[:], uint32(len(value)))
-	}
-	buf = append(buf, num4[:]...)
+	buf := bytes.Buffer{}
 
-	for v, k := range value {
-		if k == 0 {
-			continue
-		}
-		binary.LittleEndian.PutUint64(num8[:], uint64(k))
-		buf = append(buf, num8[:]...)
-		binary.LittleEndian.PutUint32(num4[:], uint32(len(str0)))
-		buf = append(buf, num4[:]...)
-		binary.LittleEndian.PutUint32(num4[:], uint32(len(v)))
-		buf = append(buf, num4[:]...)
-		data = append(data, []byte(str0)...)
-		data = append(data, []byte(v)...)
+	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
+		fmt.Printf("Error encoding word %+v", value)
+		return
 	}
-
-	val := string(buf) + string(data)
-
-	//TODO
-	// hash := c.hashWord(val)
-	c.cache.Set(hash, val)
+	c.cache.Set(hash, buf.String())
 }
 
 func (c *WordCache) HashWord(word string) uint32 {

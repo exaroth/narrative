@@ -20,6 +20,9 @@ type Phonemizer struct {
 func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 	// TODO lowercase
 	words, punct := SplitPunctuation(sentence)
+	fmt.Println(">>>>>>>>>>>> words")
+	pp.Println(words)
+	fmt.Println("<<<<<<<<<<<<")
 	phonemes := make([]map[string]uint32, len(words))
 	for i, w := range words {
 		phonemized_w, err := p.phonemizeWord(w)
@@ -27,11 +30,15 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 			return "", err
 		}
 		if phonemized_w == nil {
+			fmt.Println("word is nil", w)
 			phonemes[i] = map[string]uint32{w: 0}
 		} else {
 			phonemes[i] = phonemized_w
 		}
 	}
+	fmt.Println(">>>>>>>>>>>> phonemes")
+	pp.Println(phonemes)
+	fmt.Println("<<<<<<<<<<<<")
 
 	selected := p.selectPhonemes(phonemes)
 	phoneme_a := []string{}
@@ -149,6 +156,7 @@ func (p *Phonemizer) phonemizeWord(word string) (map[string]uint32, error) {
 	cached := p.cache.LoadWord(word, hash)
 
 	if cached != nil {
+		fmt.Println("Cached::::::: ", cached)
 		return cached, nil
 	}
 
