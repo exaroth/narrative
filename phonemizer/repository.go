@@ -104,6 +104,8 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 		(*r.lang_tags)[tagkey] = tagjson
 		(*r.words_tags)[[2]string{src, dst}] = tagkey
 	}
+	// fmt.Println(r.lang_tags)
+	// pp.Print(r.words_tags)
 	return nil
 }
 

@@ -71,7 +71,6 @@ func SplitPunctuation(text string) ([]string, []*Mark) {
 }
 
 func CompactPunctuation(text []string, punctuation []*Mark) string {
-
 	p_a := make([][2]string, len(text))
 	result := make([]string, len(text))
 

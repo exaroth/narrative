@@ -19,7 +19,8 @@ var VOICE_MAP map[string]string = map[string]string{
 	"Leo":    "expr-voice-5-m.npy",
 }
 
-const DEFAULT_VOICE = "Jasper"
+const DEFAULT_VOICE = "Hugo"
+const DEFAULT_SPEED float32 = 0.9
 
 type vMat [400][256]float32
 
@@ -58,7 +59,7 @@ func (k *Kitten) createTensors(sentence []int64) (
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("Error creating input tensor: %+v\n, %w", sentence, err)
 	}
-	voiceData := k.voice[24][:]
+	voiceData := k.voice[1][:]
 
 	voiceShape := ort.NewShape(1, 256)
 	voiceTensor, err := ort.NewTensor(voiceShape, voiceData)
@@ -67,7 +68,7 @@ func (k *Kitten) createTensors(sentence []int64) (
 	}
 
 	speedShape := ort.NewShape(1)
-	speedTensor, err := ort.NewTensor(speedShape, []float32{1.0})
+	speedTensor, err := ort.NewTensor(speedShape, []float32{DEFAULT_SPEED})
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("Error creating speed tensor: %w", err)
 	}
