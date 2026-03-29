@@ -54,36 +54,39 @@ func (k *Kitten) createTensors(sentence []int64) (
 	sentence = append(sentence, 10)
 	sentence = append(sentence, 0)
 
-	inputShape := ort.NewShape(1, int64(len(sentence)))
-	inputTensor, err := ort.NewTensor(inputShape, sentence)
+	input_tensor, err := ort.NewTensor(ort.NewShape(1, int64(len(sentence))), sentence)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("Error creating input tensor: %+v\n, %w", sentence, err)
 	}
-	voiceData := k.voice[1][:]
 
-	voiceShape := ort.NewShape(1, 256)
-	voiceTensor, err := ort.NewTensor(voiceShape, voiceData)
+	var voice_i int = 399
+	if len(sentence) < 399 {
+		voice_i = len(sentence)
+	}
+
+	voice_data := k.voice[voice_i][:]
+
+	voice_tensor, err := ort.NewTensor(ort.NewShape(1, 256), voice_data)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("Error creating voice tensor: %w", err)
 	}
 
-	speedShape := ort.NewShape(1)
-	speedTensor, err := ort.NewTensor(speedShape, []float32{DEFAULT_SPEED})
+	speed_tensor, err := ort.NewTensor(ort.NewShape(1), []float32{DEFAULT_SPEED})
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("Error creating speed tensor: %w", err)
 	}
-	return inputTensor, voiceTensor, speedTensor, nil
+	return input_tensor, voice_tensor, speed_tensor, nil
 }
 
 func (k *Kitten) RunInference(sentence []int64) ([]float32, error) {
 
-	inputTensor, voiceTensor, speedTensor, err := k.createTensors(sentence)
+	input_tensor, voice_tensor, speed_tensor, err := k.createTensors(sentence)
 	if err != nil {
 		return nil, err
 	}
-	defer inputTensor.Destroy()
-	defer voiceTensor.Destroy()
-	defer speedTensor.Destroy()
+	defer input_tensor.Destroy()
+	defer voice_tensor.Destroy()
+	defer speed_tensor.Destroy()
 
 	outputs := []ort.Value{nil, nil}
 	defer func() {
@@ -92,7 +95,7 @@ func (k *Kitten) RunInference(sentence []int64) ([]float32, error) {
 		}
 	}()
 	err = k.session.Run(
-		[]ort.Value{inputTensor, voiceTensor, speedTensor},
+		[]ort.Value{input_tensor, voice_tensor, speed_tensor},
 		outputs,
 	)
 	if err != nil {
