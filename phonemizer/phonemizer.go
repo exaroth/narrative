@@ -3,50 +3,51 @@ package phonemizer
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
+	"github.com/k0kubun/pp"
 	"github.com/neurlang/classifier/hash"
 )
 
 type Phonemizer struct {
 	repository *PhonemizerRepository
 	hashtron   *HashtronPhonemizer
-	wselector  *WordSelector
+	selector   *PhonemeSelector
 	cache      *WordCache
 }
 
 func (p *Phonemizer) Phonemize(sentence string) (string, error) {
+	// TODO lowercase
 	words, punct := SplitPunctuation(sentence)
-	phonemes := make([]string, len(words))
+	phonemes := make([]map[string]uint32, len(words))
 	for i, w := range words {
-		if len(w) == 0 {
-			phonemes[i] = w
-			continue
-		}
-		p, err := p.phonemizeWord(w)
+		phonemized_w, err := p.phonemizeWord(w)
 		if err != nil {
 			return "", err
 		}
-		if len(p) == 0 {
-			// TODO
-			panic(fmt.Sprintf("No result returned for word %s", w))
-			// continue
-		}
-		pthis := p[0]
-		for k := range pthis {
-			if k == w {
-				continue
-			}
-			phonemes[i] = k
-			break
+		if phonemized_w == nil {
+			phonemes[i] = map[string]uint32{w: 0}
+		} else {
+			phonemes[i] = phonemized_w
 		}
 	}
-	return CompactPunctuation(phonemes, punct), nil
+
+	selected := p.selectPhonemes(phonemes)
+	phoneme_a := []string{}
+	for _, p := range selected {
+		phoneme_a = append(phoneme_a, p[1])
+	}
+
+	return CompactPunctuation(phoneme_a, punct), nil
 
 }
 
-func (p *Phonemizer) SelectWords(sentence []map[string]uint32) [][2]string {
+func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 
+	fmt.Println(">>>>>>>>>>>> input")
+	fmt.Println(sentence)
+	fmt.Println("<<<<<<<<<<<<")
 	result := [][2]string{}
 	dict_m := make([]*[2]string, len(sentence))
 	pref_m := make([]*[2]string, len(sentence))
@@ -70,24 +71,23 @@ func (p *Phonemizer) SelectWords(sentence []map[string]uint32) [][2]string {
 				continue
 			}
 			var tags = p.repository.LookupTags(orig, word)
-			var json_tags []string
-			err := json.Unmarshal([]byte(tags), json_tags)
+			json_tags := []string{}
+			err := json.Unmarshal([]byte(tags), &json_tags)
 			if err != nil {
 				// todo
 				panic(err)
 			}
+			if slices.Contains(json_tags, "dict") {
+				inputmap[word] = [2]uint32{k, 0}
+				dict_m[i] = &[2]string{orig, word}
 
-			for _, tag := range json_tags {
-				if tag == "dict" {
-					inputmap[word] = [2]uint32{k, 0}
-					dict_m[i] = &[2]string{orig, word}
-				}
 			}
+
 		}
 		input = append(input, inputmap)
 	}
 
-	var preferred = p.wselector.Select(input)
+	var preferred = p.selector.Select(input)
 
 	for i, words := range sentence {
 		var last_preferred, hash_preferred uint32
@@ -110,6 +110,12 @@ func (p *Phonemizer) SelectWords(sentence []map[string]uint32) [][2]string {
 			}
 		}
 	}
+	fmt.Println(">>>>>>>>>>>> selection")
+	fmt.Println("Dict")
+	pp.Println(dict_m)
+	fmt.Println("Pref")
+	pp.Println(pref_m)
+	fmt.Println("<<<<<<<<<<<< <`1`>")
 
 	for idx, words := range sentence {
 		if pref_m[idx] != nil {
@@ -133,39 +139,57 @@ func (p *Phonemizer) SelectWords(sentence []map[string]uint32) [][2]string {
 	return result
 }
 
-func (p *Phonemizer) phonemizeWord(word string) ([]map[string]uint32, error) {
-	var result []map[string]uint32
+func (p *Phonemizer) phonemizeWord(word string) (map[string]uint32, error) {
 
-	result = p.repository.LookupWords(word)
-	if result != nil {
-		fmt.Printf("repo for word %s found::: %s\n", word, result)
-		return result, nil
+	if len(word) == 0 {
+		return nil, nil
 	}
-	fmt.Println("NOT FOUND::: ", word)
 
-	cached := p.cache.LoadWord(word)
+	hash := p.cache.HashWord(word)
+	cached := p.cache.LoadWord(word, hash)
+
 	if cached != nil {
-		result = []map[string]uint32{}
-		result = append(result, cached)
-		return result, nil
+		return cached, nil
 	}
 
-	result, err := p.hashtron.PhonemizeWord(word)
+	repo_result := p.repository.LookupWords(word)
+	if len(repo_result) > 0 {
+		// TODO
+		if len(repo_result) > 1 {
+			fmt.Printf("Repository returned more that one result for word %s: %v", word, repo_result)
+		}
+		r := repo_result[0]
+		p.cache.StoreWord(r, hash)
+		return r, nil
+	}
+
+	p_result, err := p.hashtron.PhonemizeWord(word)
 	if err != nil {
 		return nil, err
 	}
-	// TODO handle multiple results
-	for _, w := range result {
-		p.cache.StoreWord(w)
+	if len(p_result) == 0 {
+		// todo
+		fmt.Printf("No results returned from phonemizer for word %s", word)
+		return nil, nil
+
 	}
-	return result, nil
+	if len(p_result) > 1 {
+		// todo
+		if len(repo_result) > 1 {
+			fmt.Printf("Phonemizer returned more that one result for word %s: %v", word, p_result)
+		}
+
+	}
+	r := p_result[0]
+	p.cache.StoreWord(r, hash)
+	return r, nil
 
 }
 
 func NewPhonemizer() (*Phonemizer, error) {
 	repo := NewPhonemizerRepository(nil, false)
 	pho := NewHashtronPhonemizer(nil, false)
-	hselector := NewHomonymSelector(nil)
+	selector := NewPhonemeSelector(nil)
 
 	if err := repo.LoadLanguage(); err != nil {
 		return nil, err
@@ -173,7 +197,7 @@ func NewPhonemizer() (*Phonemizer, error) {
 	if err := pho.LoadLanguage(); err != nil {
 		return nil, err
 	}
-	if err := hselector.LoadLanguage(); err != nil {
+	if err := selector.LoadLanguage(); err != nil {
 		return nil, err
 	}
 
@@ -184,7 +208,7 @@ func NewPhonemizer() (*Phonemizer, error) {
 	return &Phonemizer{
 		hashtron:   pho,
 		repository: repo,
-		hselector:  hselector,
+		selector:   selector,
 		cache:      cache,
 	}, nil
 }

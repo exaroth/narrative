@@ -18,12 +18,12 @@ import (
 
 const HOMONYM_WEIGHTS_FNAME = "weights7.json.zlib"
 
-type WordSelector struct {
+type PhonemeSelector struct {
 	network *feedforward.FeedforwardNetwork
 	mut     *sync.RWMutex
 }
 
-func (h *WordSelector) Select(sentence []map[string][2]uint32) (ret [][3]uint32) {
+func (h *PhonemeSelector) Select(sentence []map[string][2]uint32) (ret [][3]uint32) {
 
 	var ai_sentence = PhonemizerSample{
 		Sentence: []PhonemizerToken{},
@@ -104,7 +104,7 @@ func (h *WordSelector) Select(sentence []map[string][2]uint32) (ret [][3]uint32)
 
 }
 
-func (h *WordSelector) LoadLanguage() error {
+func (h *PhonemeSelector) LoadLanguage() error {
 
 	f_contents, err := dict.Language.ReadFile(HOMONYM_WEIGHTS_FNAME)
 	if err != nil {
@@ -136,9 +136,9 @@ func (h *WordSelector) LoadLanguage() error {
 	return h.network.ReadZlibWeights(bytesReader)
 }
 
-func NewWordSelector(dict_path *string) *WordSelector {
+func NewPhonemeSelector(dict_path *string) *PhonemeSelector {
 
-	return &WordSelector{
+	return &PhonemeSelector{
 		mut:     &sync.RWMutex{},
 		network: nil,
 	}

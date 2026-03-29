@@ -13,8 +13,7 @@ type WordCache struct {
 	cache otter.Cache[uint32, string]
 }
 
-func (c *WordCache) LoadWord(word string) map[string]uint32 {
-	hash := c.hashWord(word)
+func (c *WordCache) LoadWord(word string, hash uint32) map[string]uint32 {
 	value, _ := c.cache.Get(hash)
 	if value == "" {
 		return nil
@@ -37,7 +36,7 @@ func (c *WordCache) LoadWord(word string) map[string]uint32 {
 
 }
 
-func (c *WordCache) StoreWord(value map[string]uint32) {
+func (c *WordCache) StoreWord(value map[string]uint32, hash uint32) {
 
 	var buf, data []byte
 	var num4 [4]byte
@@ -75,11 +74,11 @@ func (c *WordCache) StoreWord(value map[string]uint32) {
 	val := string(buf) + string(data)
 
 	//TODO
-	hash := c.hashWord(val)
+	// hash := c.hashWord(val)
 	c.cache.Set(hash, val)
 }
 
-func (c *WordCache) hashWord(word string) uint32 {
+func (c *WordCache) HashWord(word string) uint32 {
 	return hash.StringHash(c.seed, word+"\x00")
 }
 

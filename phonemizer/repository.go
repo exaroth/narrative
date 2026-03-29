@@ -127,8 +127,6 @@ func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32
 	}
 	var m = make(map[string]uint32)
 	for k, v := range foundCopy {
-		// todo
-		// log.Now().Debugf("LookupWords Key: %s, Value: %v", k, v)
 		m[k] = v
 	}
 	m[word+" "] = 0
