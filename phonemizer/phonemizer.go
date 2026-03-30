@@ -6,7 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/k0kubun/pp"
 	"github.com/neurlang/classifier/hash"
 )
 
@@ -33,10 +32,6 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 			phonemes[i] = phonemized_w
 		}
 	}
-	fmt.Println(">>>>>>>>>>>> phonemes")
-	pp.Println(phonemes)
-	fmt.Println("<<<<<<<<<<<<")
-
 	selected := p.selectPhonemes(phonemes)
 	phoneme_a := []string{}
 	for _, p := range selected {
@@ -51,14 +46,15 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 
 	result := [][2]string{}
 	dict_m := make([]*[2]string, len(sentence))
+	dict_tag_len := make([]int, len(sentence))
 	pref_m := make([]*[2]string, len(sentence))
 	word_orig := make([]string, len(sentence))
 
 	var input []map[string][2]uint32
 
-	for i, words := range sentence {
+	for i, phoneme_map := range sentence {
 		var orig string
-		for word, k := range words {
+		for word, k := range phoneme_map {
 			if k == 0 {
 				orig = strings.TrimRight(word, " ")
 				word_orig[i] = orig
@@ -67,20 +63,35 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 		}
 		var inputmap = make(map[string][2]uint32)
 		inputmap[orig+" "] = [2]uint32{0, 0}
-		for word, k := range words {
+		fmt.Println(">>> Word tags for : ", orig)
+		for word, k := range phoneme_map {
 			if k == 0 {
 				continue
 			}
 			var tags = p.repository.LookupTags(orig, word)
 			json_tags := []string{}
+			fmt.Println("    - ", word)
 			err := json.Unmarshal([]byte(tags), &json_tags)
 			if err != nil {
 				// todo
 				panic(err)
 			}
+			for _, t := range json_tags {
+				fmt.Println("       + ", t)
+			}
 			if slices.Contains(json_tags, "dict") {
 				inputmap[word] = [2]uint32{k, 0}
-				dict_m[i] = &[2]string{orig, word}
+				if dict_m[i] == nil {
+					dict_m[i] = &[2]string{orig, word}
+					dict_tag_len[i] = len(json_tags)
+					continue
+				}
+				prev_l := dict_tag_len[i]
+				if len(json_tags) > prev_l {
+					dict_m[i] = &[2]string{orig, word}
+					dict_tag_len[i] = len(json_tags)
+					fmt.Println("Overriding phoneme based on tags: ", word)
+				}
 
 			}
 
@@ -111,20 +122,29 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 			}
 		}
 	}
+
 	fmt.Println(">>>>>>>>>>>> selection")
-	fmt.Println("Dict")
-	pp.Println(dict_m)
-	fmt.Println("Pref")
-	pp.Println(pref_m)
-	fmt.Println("<<<<<<<<<<<< <`1`>")
+	fmt.Println("Dicts:")
+	for _, d := range dict_m {
+		if d != nil {
+			fmt.Printf(" - %s - %s\n", d[0], d[1])
+		}
+	}
+	fmt.Println("Prefs:")
+	for _, d := range pref_m {
+		if d != nil {
+			fmt.Printf(" - %s - %s\n", d[0], d[1])
+		}
+	}
+	fmt.Println("<<<<<<<<<<<<")
 
 	for idx, words := range sentence {
-		if dict_m[idx] != nil {
-			result = append(result, *dict_m[idx])
-			continue
-		}
 		if pref_m[idx] != nil {
 			result = append(result, *pref_m[idx])
+			continue
+		}
+		if dict_m[idx] != nil {
+			result = append(result, *dict_m[idx])
 			continue
 		}
 		for word, k := range words {
