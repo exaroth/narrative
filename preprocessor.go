@@ -1,5 +1,7 @@
 package main
 
+// type PreprocessorFun(input string) (string, error) func
+
 type Preprocessor struct {
 	source string
 }

@@ -134,16 +134,24 @@ func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32
 	return
 }
 
-func (r *PhonemizerRepository) LookupTags(word1, word2 string) string {
+func (r *PhonemizerRepository) LookupTags(word1, word2 string) []string {
 	r.mut.RLock()
 	// Copy the result while holding the mutex
 	tagKey := (*r.words_tags)[[2]string{word1, word2}]
 	found := (*r.lang_tags)[tagKey]
 	r.mut.RUnlock()
-	if found != "" {
-		return found
+
+	if found == "" {
+		return []string{}
 	}
-	return "[]"
+
+	var json_tags []string
+	err := json.Unmarshal([]byte(found), &json_tags)
+	if err != nil {
+		// todo
+		panic(err)
+	}
+	return json_tags
 }
 
 func NewPhonemizerRepository(dict_path *string, reverse bool) *PhonemizerRepository {

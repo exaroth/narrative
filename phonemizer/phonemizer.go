@@ -1,7 +1,6 @@
 package phonemizer
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -61,35 +60,30 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 				break
 			}
 		}
+		fmt.Println(">>> Word tags for : ", orig)
 		var inputmap = make(map[string][2]uint32)
 		inputmap[orig+" "] = [2]uint32{0, 0}
-		fmt.Println(">>> Word tags for : ", orig)
+
+		var tags []string
 		for word, k := range phoneme_map {
 			if k == 0 {
 				continue
 			}
-			var tags = p.repository.LookupTags(orig, word)
-			json_tags := []string{}
-			fmt.Println("    - ", word)
-			err := json.Unmarshal([]byte(tags), &json_tags)
-			if err != nil {
-				// todo
-				panic(err)
-			}
-			for _, t := range json_tags {
+			tags = p.repository.LookupTags(orig, word)
+			for _, t := range tags {
 				fmt.Println("       + ", t)
 			}
-			if slices.Contains(json_tags, "dict") {
+			if slices.Contains(tags, "dict") {
 				inputmap[word] = [2]uint32{k, 0}
 				if dict_m[i] == nil {
 					dict_m[i] = &[2]string{orig, word}
-					dict_tag_len[i] = len(json_tags)
+					dict_tag_len[i] = len(tags)
 					continue
 				}
 				prev_l := dict_tag_len[i]
-				if len(json_tags) > prev_l {
+				if len(tags) > prev_l {
 					dict_m[i] = &[2]string{orig, word}
-					dict_tag_len[i] = len(json_tags)
+					dict_tag_len[i] = len(tags)
 					fmt.Println("Overriding phoneme based on tags: ", word)
 				}
 
