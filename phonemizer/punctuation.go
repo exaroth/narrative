@@ -7,7 +7,6 @@ import (
 )
 
 const PUNCTUATION = ";:,.!?¡¿—…\"«»“”(){}\\[\\]'"
-const PUNCTUATION_M_LEN = 3
 
 var DEFAULT_MARKS_RE = regexp.MustCompile("[" + PUNCTUATION + "]")
 var LETTERS_RE = regexp.MustCompile("[a-zA-Z]")
@@ -19,6 +18,7 @@ type Mark struct {
 }
 
 func SplitPunctuation(text string) ([]string, []*Mark) {
+	text = strings.Trim(text, " ")
 	t_a := strings.Split(text, " ")
 	m_a := []*Mark{}
 	for t_idx, word := range t_a {
@@ -30,13 +30,16 @@ func SplitPunctuation(text string) ([]string, []*Mark) {
 			continue
 		}
 		var pad uint8 = 0
-		l_res := LETTERS_RE.FindStringIndex(word)
+		l_res := LETTERS_RE.FindAllStringIndex(word, -1)
 		for _, m := range punctuation_marks {
 			if len(l_res) > 0 {
-				if m[0] < l_res[0] {
+				if m[0] < l_res[0][0] {
 					pad = 1
-				} else {
+				} else if m[0] > l_res[len(l_res)-1][0] {
 					pad = 2
+				} else {
+					// don't process punctuation in the middle of the word
+					continue
 				}
 			}
 			m_a = append(m_a, &Mark{
