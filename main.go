@@ -30,15 +30,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	preprocessor := NewPreprocessor()
 
 	kitten := NewKitten(nil)
 
 	defer kitten.Deinit()
 
 	for _, sentence := range Sentencize(input) {
+
+		sentence = preprocessor.ProcessSentence(sentence)
 		phonemized, err := phonemizer.Phonemize(sentence)
+
 		fmt.Println("Original: ", sentence)
 		fmt.Println("Phonemized: ", phonemized)
+
 		if err != nil {
 			panic(err)
 		}

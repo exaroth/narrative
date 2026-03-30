@@ -10,7 +10,7 @@
 
 .PHONY: run
 run:
-	go run main.go tokenizer.go kitten.go sentencizer.go "Test input"
+	go run main.go tokenizer.go kitten.go sentencizer.go preprocessor.go "Test input"
 
 .PHONY: play
 play:
