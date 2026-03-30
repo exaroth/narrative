@@ -79,21 +79,28 @@ func (s *SampleSentenceIO) Feature(n int) (ret uint32) {
 	for ; pos < len((s.SampleSentence.Sample.Sentence)); pos += (s.SampleSentence.dimension / 3) {
 		if pos < s.SampleSentence.position {
 			ret += uint32(s.SampleSentence.Sample.Sentence[pos].Solution)
-		} else if pos == s.SampleSentence.position {
+			continue
+		}
+		if pos == s.SampleSentence.position {
 			choice := s.SampleSentence.Sample.Sentence[pos].Choices[s.choice]
 			// Compare current choice with context
-			if n%3 == 1 {
+			switch n % 3 {
+			case 1:
 				ret += uint32(choice[1]) // Key
-			} else if n%3 == 2 {
+			case 2:
 				ret += uint32(choice[0]) // Value
 			}
-		} else if s.SampleSentence.version >= 2 {
+			continue
+		}
+		if s.SampleSentence.version >= 2 {
 			for _, choice := range s.SampleSentence.Sample.Sentence[pos].Choices {
 				// Compare future shifted choice with context
-				if n%3 == 1 {
+				switch n % 3 {
+				case 1:
 					ret += uint32(choice[1]) >> 16 // Key
-				} else if n%3 == 2 {
+				case 2:
 					ret += uint32(choice[0]) >> 16 // Value
+
 				}
 			}
 		}

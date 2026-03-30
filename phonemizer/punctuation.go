@@ -80,6 +80,7 @@ func CompactPunctuation(text []string, punctuation []*Mark) string {
 	for _, mark := range punctuation {
 		switch mark.pad {
 		case 0:
+			fallthrough
 		case 1:
 			p_a[mark.index][0] = p_a[mark.index][0] + mark.char
 		case 2:

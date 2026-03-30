@@ -48,7 +48,6 @@ func TestSplittingPunctuation(t *testing.T) {
 				},
 			},
 		},
-
 		{
 			input:    "Test : 1",
 			expected: []string{"Test", "", "1"},
@@ -57,6 +56,27 @@ func TestSplittingPunctuation(t *testing.T) {
 					char:  ":",
 					pad:   uint8(0),
 					index: 1,
+				},
+			},
+		},
+		{
+			input:    "[test]!",
+			expected: []string{"test"},
+			marks: []*Mark{
+				{
+					char:  "[",
+					pad:   uint8(1),
+					index: 0,
+				},
+				{
+					char:  "]",
+					pad:   uint8(2),
+					index: 0,
+				},
+				{
+					char:  "!",
+					pad:   uint8(2),
+					index: 0,
 				},
 			},
 		},
@@ -108,5 +128,79 @@ func TestSplittingPunctuation(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestCombiningPunctuation(t *testing.T) {
+
+	tests := []struct {
+		input_text  []string
+		input_marks []*Mark
+		expected    string
+	}{
+		{
+			input_text: []string{"Test", "string"},
+			input_marks: []*Mark{
+				{
+					char:  ",",
+					pad:   uint8(2),
+					index: 0,
+				},
+				{
+					char:  "!",
+					pad:   uint8(2),
+					index: 1,
+				},
+			},
+			expected: "Test, string!",
+		},
+		{
+			input_text: []string{"test"},
+			input_marks: []*Mark{
+				{
+					char:  "[",
+					pad:   uint8(1),
+					index: 0,
+				},
+				{
+					char:  "]",
+					pad:   uint8(2),
+					index: 0,
+				},
+				{
+					char:  "!",
+					pad:   uint8(2),
+					index: 0,
+				},
+			},
+			expected: "[test]!",
+		},
+		{
+			input_text: []string{"test", "", "string"},
+			input_marks: []*Mark{
+				{
+					char:  ":",
+					pad:   uint8(0),
+					index: 1,
+				},
+				{
+					char:  ":",
+					pad:   uint8(0),
+					index: 1,
+				},
+			},
+			expected: "test :: string",
+		},
+	}
+
+	for idx, test := range tests {
+		testname := fmt.Sprintf("Punctuation combining, %d", idx)
+		t.Run(testname, func(t *testing.T) {
+			result := CompactPunctuation(test.input_text, test.input_marks)
+			if result != test.expected {
+				t.Errorf("Invalid compacted string, got %s, want %s, t: %d", result, test.expected, idx)
+			}
+
+		})
 	}
 }
