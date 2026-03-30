@@ -23,7 +23,7 @@ func (c *WordCache) LoadWord(word string, hash uint32) map[string]uint32 {
 		return nil
 	}
 	var result map[string]uint32
-	if err := gob.NewDecoder(bytes.NewReader([]byte(value))).Decode(result); err != nil {
+	if err := gob.NewDecoder(bytes.NewReader([]byte(value))).Decode(&result); err != nil {
 		// todo
 		fmt.Printf("Error decoding cache value  %+v", err)
 		return nil

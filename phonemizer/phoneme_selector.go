@@ -59,7 +59,7 @@ func (h *PhonemeSelector) Select(sentence []map[string][2]uint32) (ret [][3]uint
 		if len(choices) > 0 {
 			sol = choices[0][0]
 		}
-		//sol = 0
+
 		ai_sentence.Sentence = append(ai_sentence.Sentence, PhonemizerToken{
 			Homograph: hash.StringHash(0, origword),
 			Choices:   choices,

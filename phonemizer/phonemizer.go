@@ -18,11 +18,9 @@ type Phonemizer struct {
 }
 
 func (p *Phonemizer) Phonemize(sentence string) (string, error) {
-	// TODO lowercase
+
+	sentence = strings.ToLower(sentence)
 	words, punct := SplitPunctuation(sentence)
-	fmt.Println(">>>>>>>>>>>> words")
-	pp.Println(words)
-	fmt.Println("<<<<<<<<<<<<")
 	phonemes := make([]map[string]uint32, len(words))
 	for i, w := range words {
 		phonemized_w, err := p.phonemizeWord(w)
@@ -30,7 +28,6 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 			return "", err
 		}
 		if phonemized_w == nil {
-			fmt.Println("word is nil", w)
 			phonemes[i] = map[string]uint32{w: 0}
 		} else {
 			phonemes[i] = phonemized_w
@@ -52,9 +49,6 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 
 func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 
-	fmt.Println(">>>>>>>>>>>> input")
-	fmt.Println(sentence)
-	fmt.Println("<<<<<<<<<<<<")
 	result := [][2]string{}
 	dict_m := make([]*[2]string, len(sentence))
 	pref_m := make([]*[2]string, len(sentence))
@@ -125,12 +119,12 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 	fmt.Println("<<<<<<<<<<<< <`1`>")
 
 	for idx, words := range sentence {
-		if pref_m[idx] != nil {
-			result = append(result, *pref_m[idx])
-			continue
-		}
 		if dict_m[idx] != nil {
 			result = append(result, *dict_m[idx])
+			continue
+		}
+		if pref_m[idx] != nil {
+			result = append(result, *pref_m[idx])
 			continue
 		}
 		for word, k := range words {
@@ -156,7 +150,6 @@ func (p *Phonemizer) phonemizeWord(word string) (map[string]uint32, error) {
 	cached := p.cache.LoadWord(word, hash)
 
 	if cached != nil {
-		fmt.Println("Cached::::::: ", cached)
 		return cached, nil
 	}
 

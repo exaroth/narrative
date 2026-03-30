@@ -20,7 +20,7 @@ var VOICE_MAP map[string]string = map[string]string{
 }
 
 const DEFAULT_VOICE = "Hugo"
-const DEFAULT_SPEED float32 = 0.9
+const DEFAULT_SPEED float32 = 1.0
 
 type vMat [400][256]float32
 
@@ -106,7 +106,7 @@ func (k *Kitten) RunInference(sentence []int64) ([]float32, error) {
 }
 
 func NewKitten(voice_name *string) *Kitten {
-	ort.SetSharedLibraryPath("/home/exaroth/Projects/narrative/onnx_libs/lib/libonnxruntime.so")
+	ort.SetSharedLibraryPath("/home/exaroth/Projects/narrative/lib/libonnxruntime.so")
 
 	err := ort.InitializeEnvironment()
 	if err != nil {
@@ -123,7 +123,7 @@ func NewKitten(voice_name *string) *Kitten {
 		voice_dtf = VOICE_MAP[DEFAULT_VOICE]
 	}
 
-	f, err := npz.Open("./kitten/voices.npz")
+	f, err := npz.Open("./models/kitten/voices.npz")
 	if err != nil {
 		log.Fatalf("Could not open npz file: %+v", err)
 	}
@@ -139,7 +139,7 @@ func NewKitten(voice_name *string) *Kitten {
 	voice.Load(f0)
 
 	session, err := ort.NewDynamicAdvancedSession(
-		"./kitten/kitten.onnx",
+		"./models/kitten/kitten.onnx",
 		[]string{"input_ids", "style", "speed"},
 		[]string{"waveform", "duration"},
 		nil,

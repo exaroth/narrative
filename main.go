@@ -19,53 +19,46 @@ func init() {
 
 func main() {
 
-	input := ""
-	if len(os.Args) > 1 {
-		input = os.Args[1]
+	input, err := os.ReadFile("./scratch/kafka-on-the-shore.txt")
+	if err != nil {
+		panic(err)
 	}
-	fmt.Println("input", input)
 
 	token_map := buildTokenMap()
+
 	phonemizer, err := phonemizer.NewPhonemizer()
 	if err != nil {
 		panic(err)
 	}
-	word := "mighty"
-	r, _ := phonemizer.Phonemize(word)
-
-	i := r[0]
-	var w string
-	for k, v := range i {
-		if v == 0 {
-			continue
-		}
-		w = k
-	}
-
-	tokens := token_map.TokenizeWord(w)
-	fmt.Println(tokens)
-
-	fmt.Println("err")
-	fmt.Println(err)
 
 	kitten := NewKitten(nil)
 
 	defer kitten.Deinit()
 
-	outputData, err := kitten.RunInference(tokens)
-	if err != nil {
-		log.Fatalf("%+v", err)
-	}
-
-	fname := "out.bin"
-	file, _ := os.Create(fname)
-
-	for _, sample := range outputData {
-		var buf [8]byte
-		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
-		_, err := file.Write(buf[:])
+	for _, sentence := range Sentencize(input) {
+		phonemized, err := phonemizer.Phonemize(sentence)
+		fmt.Println("Original: ", sentence)
+		fmt.Println("Phonemized: ", phonemized)
 		if err != nil {
 			panic(err)
+		}
+
+		tokens := token_map.TokenizeWord(phonemized)
+		outputData, err := kitten.RunInference(tokens)
+		if err != nil {
+			log.Fatalf("%+v", err)
+		}
+
+		fname := "out.bin"
+		file, _ := os.Create(fname)
+
+		for _, sample := range outputData {
+			var buf [8]byte
+			binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
+			_, err := file.Write(buf[:])
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }
