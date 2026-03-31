@@ -1,0 +1,20 @@
+#!/bin/sh
+
+sha=$(md5sum out.bin | cut -f1 -d " ")
+while true :
+do
+    if [ -f ./.tts-processing.lock ]; then
+        sleep 1
+        continue
+    else
+		this_sha=$(md5sum out.bin | cut -f1 -d " ")
+		if [ "$this_sha" = "$sha" ]; then
+			sleep 1
+			continue
+		fi
+        touch ./.tts-playback.lock
+        ffplay  -vn -v quiet -autoexit -f f32le -ar  44100 -showmode 1 out.bin
+        sha=$this_sha
+        rm .tts-playback.lock
+    fi
+done

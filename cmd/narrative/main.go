@@ -45,6 +45,8 @@ func main() {
 	var phonemized string
 	for _, sentence := range sentencizer.Sentencize(input) {
 
+		_, _ = os.Create("./.tts-processing.lock")
+
 		sentence = preprocessor.ProcessSentence(sentence)
 		phonemized, err = phonemizer.Phonemize(sentence)
 
@@ -72,7 +74,15 @@ func main() {
 			}
 		}
 
-		fmt.Println("Streaming")
+		_ = os.Remove("./.tts-processing.lock")
 		time.Sleep(1 * time.Second)
+
+		for {
+			if f, _ := os.Stat("./.tts-playback.lock"); f != nil {
+				time.Sleep(1 * time.Second)
+			} else {
+				break
+			}
+		}
 	}
 }

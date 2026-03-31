@@ -15,3 +15,6 @@ scratch
 lib
 dictionary.*
 ./narrative
+
+.tts-processing.lock
+.tts-playback.lock
