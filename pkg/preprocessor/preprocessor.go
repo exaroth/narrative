@@ -1,4 +1,4 @@
-package main
+package preprocessor
 
 type PreprocessorFunc func(input string) (string, error)
 

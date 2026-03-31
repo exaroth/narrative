@@ -1,4 +1,4 @@
-package main
+package kitten
 
 import "fmt"
 
@@ -35,7 +35,7 @@ func (t TokenMap) TokenizeWord(word string) []int64 {
 	return result
 }
 
-func buildTokenMap() TokenMap {
+func BuildTokenMap() TokenMap {
 	token_arr := []rune{PAD}
 	token_arr = append(token_arr, CHARS_PUNCTUATION...)
 	token_arr = append(token_arr, CHARS_LETTER...)

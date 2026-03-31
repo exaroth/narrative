@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/exaroth/narrative/phonemizer"
+	"github.com/exaroth/narrative/pkg/phonemizer"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 
 	word := os.Args[1]
 
-	repo := phonemizer.NewPhonemizerRepository(nil, false)
+	repo := phonemizer.NewPhonemizerRepository()
 
 	if err := repo.LoadLanguage(); err != nil {
 		panic(err)

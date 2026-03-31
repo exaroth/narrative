@@ -14,6 +14,4 @@ book.gob
 scratch
 lib
 dictionary.*
-narrative
-
-dictionary
+./narrative

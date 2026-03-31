@@ -1,4 +1,4 @@
-package main
+package kitten
 
 import (
 	"fmt"
@@ -19,8 +19,8 @@ var VOICE_MAP map[string]string = map[string]string{
 	"Leo":    "expr-voice-5-m.npy",
 }
 
-const DEFAULT_VOICE = "Hugo"
-const DEFAULT_SPEED float32 = 1.0
+const DEFAULT_VOICE = "Luna"
+const DEFAULT_SPEED float32 = 1.2
 
 type vMat [400][256]float32
 
@@ -116,7 +116,7 @@ func NewKitten(voice_name *string) *Kitten {
 	if voice_name != nil {
 		v, ok := VOICE_MAP[*voice_name]
 		if !ok {
-			log.Fatalf("Invalid voice id %s provided", voice_name)
+			log.Fatalf("Invalid voice id %s provided", *voice_name)
 		}
 		voice_dtf = v
 	} else {

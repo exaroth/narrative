@@ -5,8 +5,13 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 
-	"github.com/exaroth/narrative/phonemizer"
+	"github.com/exaroth/narrative/pkg/kitten"
+	"github.com/exaroth/narrative/pkg/phonemizer"
+	"github.com/exaroth/narrative/pkg/preprocessor"
+	"github.com/exaroth/narrative/pkg/sentencizer"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -24,22 +29,24 @@ func main() {
 		panic(err)
 	}
 
-	token_map := buildTokenMap()
+	token_map := kitten.BuildTokenMap()
 
 	phonemizer, err := phonemizer.NewPhonemizer()
 	if err != nil {
 		panic(err)
 	}
-	preprocessor := NewPreprocessor()
 
-	kitten := NewKitten(nil)
+	preprocessor := preprocessor.NewPreprocessor()
+	kitten := kitten.NewKitten(nil)
 
 	defer kitten.Deinit()
 
-	for _, sentence := range Sentencize(input) {
+	var waveform_data []float32
+	var phonemized string
+	for _, sentence := range sentencizer.Sentencize(input) {
 
 		sentence = preprocessor.ProcessSentence(sentence)
-		phonemized, err := phonemizer.Phonemize(sentence)
+		phonemized, err = phonemizer.Phonemize(sentence)
 
 		fmt.Println("Original: ", sentence)
 		fmt.Println("Phonemized: ", phonemized)
@@ -48,8 +55,7 @@ func main() {
 			panic(err)
 		}
 
-		tokens := token_map.TokenizeWord(phonemized)
-		outputData, err := kitten.RunInference(tokens)
+		waveform_data, err = kitten.RunInference(token_map.TokenizeWord(phonemized))
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
@@ -57,7 +63,7 @@ func main() {
 		fname := "out.bin"
 		file, _ := os.Create(fname)
 
-		for _, sample := range outputData {
+		for _, sample := range waveform_data {
 			var buf [8]byte
 			binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
 			_, err := file.Write(buf[:])
@@ -65,5 +71,8 @@ func main() {
 				panic(err)
 			}
 		}
+
+		fmt.Println("Streaming")
+		time.Sleep(time.Duration(((len(waveform_data) / 44100) + 1)) * time.Second)
 	}
 }
