@@ -12,6 +12,7 @@ out.bin
 scratch.go
 book.gob
 scratch
+dump
 lib
 dictionary.*
 ./narrative
