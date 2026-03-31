@@ -50,6 +50,7 @@ func (k *Kitten) createTensors(sentence []int64) (
 	speed *ort.Tensor[float32],
 	err error,
 ) {
+	sentence_l := len(sentence)
 	sentence = append([]int64{0}, sentence...)
 	sentence = append(sentence, 10)
 	sentence = append(sentence, 0)
@@ -60,8 +61,8 @@ func (k *Kitten) createTensors(sentence []int64) (
 	}
 
 	var voice_i int = 399
-	if len(sentence) < 399 {
-		voice_i = len(sentence)
+	if sentence_l < 399 {
+		voice_i = sentence_l
 	}
 
 	voice_data := k.voice[voice_i][:]
