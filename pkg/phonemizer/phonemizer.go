@@ -67,31 +67,32 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 
 		var tags []string
 		var is_dict, is_override bool
-		for word, k := range phoneme_map {
+		for phoneme, k := range phoneme_map {
 			if k == 0 {
 				continue
 			}
-			tags = p.repository.LookupTags(orig, word)
+			tags = p.repository.LookupTags(orig, phoneme)
+			fmt.Println("   - ", phoneme)
 			for _, t := range tags {
 				fmt.Println("       + ", t)
 			}
 			is_dict = slices.Contains(tags, "dict")
 			is_override = slices.Contains(tags, "override")
 			if is_dict || is_override {
-				inputmap[word] = [2]uint32{k, 0}
+				inputmap[phoneme] = [2]uint32{k, 0}
 				if is_override {
-					override_m[i] = &[2]string{orig, word}
+					override_m[i] = &[2]string{orig, phoneme}
 				} else {
 					if dict_m[i] == nil {
-						dict_m[i] = &[2]string{orig, word}
+						dict_m[i] = &[2]string{orig, phoneme}
 						dict_tag_len[i] = len(tags)
 						continue
 					}
 					prev_l := dict_tag_len[i]
 					if len(tags) > prev_l {
-						dict_m[i] = &[2]string{orig, word}
+						dict_m[i] = &[2]string{orig, phoneme}
 						dict_tag_len[i] = len(tags)
-						fmt.Println("Overriding phoneme based on tags: ", word)
+						fmt.Println("Overriding phoneme based on tags: ", phoneme)
 					}
 				}
 			}
