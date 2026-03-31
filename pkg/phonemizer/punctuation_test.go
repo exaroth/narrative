@@ -28,6 +28,17 @@ func TestSplittingPunctuation(t *testing.T) {
 			marks:    []*Mark{},
 		},
 		{
+			input:    "Multi — byte",
+			expected: []string{"Multi", "", "byte"},
+			marks: []*Mark{
+				{
+					char:  "—",
+					pad:   uint8(0),
+					index: 1,
+				},
+			},
+		},
+		{
 			input:    "\"Working, but could be better\"",
 			expected: []string{"Working", "but", "could", "be", "better"},
 			marks: []*Mark{

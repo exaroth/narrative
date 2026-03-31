@@ -24,7 +24,7 @@ func init() {
 
 func main() {
 
-	input, err := os.ReadFile("./scratch/kafka-on-the-shore.txt")
+	input, err := os.ReadFile("./dump/kafka-on-the-shore.txt")
 	if err != nil {
 		panic(err)
 	}

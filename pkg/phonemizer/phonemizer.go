@@ -44,10 +44,10 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 
 	result := [][2]string{}
-	dict_m := make([]*[2]string, len(sentence))
 	dict_tag_len := make([]int, len(sentence))
-	pref_m := make([]*[2]string, len(sentence))
 	word_orig := make([]string, len(sentence))
+	dict_m := make([]*[2]string, len(sentence))
+	pref_m := make([]*[2]string, len(sentence))
 	override_m := make([]*[2]string, len(sentence))
 
 	var input []map[string][2]uint32
@@ -61,7 +61,9 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 				break
 			}
 		}
+		// debug
 		fmt.Println(">>> Word tags for : ", orig)
+		// debug
 		var inputmap = make(map[string][2]uint32)
 		inputmap[orig+" "] = [2]uint32{0, 0}
 
@@ -168,6 +170,10 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 		}
 		for word, k := range words {
 			if k == 0 {
+				if word == "" {
+					result = append(result, [2]string{"", ""})
+					break
+				}
 				continue
 			}
 			result = append(result, [2]string{word_orig[idx], word})

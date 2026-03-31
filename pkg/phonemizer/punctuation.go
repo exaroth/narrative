@@ -1,9 +1,12 @@
 package phonemizer
 
 import (
+	"fmt"
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/k0kubun/pp"
 )
 
 const PUNCTUATION = ";:,.!?¡¿—…\"«»“”(){}\\[\\]'"
@@ -43,7 +46,7 @@ func SplitPunctuation(text string) ([]string, []*Mark) {
 				}
 			}
 			m_a = append(m_a, &Mark{
-				char:  string(word[m[0]]),
+				char:  string(word[m[0]:m[1]]),
 				pad:   pad,
 				index: t_idx,
 			})
@@ -78,6 +81,9 @@ func CompactPunctuation(text []string, punctuation []*Mark) string {
 	result := make([]string, len(text))
 
 	for _, mark := range punctuation {
+		fmt.Println(">>>>>>>>>>>> mark")
+		pp.Println(mark)
+		fmt.Println("<<<<<<<<<<<<")
 		switch mark.pad {
 		case 0:
 			fallthrough
