@@ -14,4 +14,4 @@ run:
 
 .PHONY: play
 play:
-	ffplay -vn -f f32le -ar  44100 -showmode 1 out.bin
+	ffplay  -vn -v quiet -autoexit -f f32le -ar  44100 -showmode 1 out.bin
