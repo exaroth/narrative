@@ -1,0 +1,3 @@
+#!/bin/sh
+
+go run ./cmd/tts-raw/main.go $@ && make play

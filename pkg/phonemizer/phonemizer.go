@@ -72,10 +72,14 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 				continue
 			}
 			tags = p.repository.LookupTags(orig, phoneme)
+
+			// debug
 			fmt.Println("   - ", phoneme)
 			for _, t := range tags {
 				fmt.Println("       + ", t)
 			}
+			// debug
+
 			is_dict = slices.Contains(tags, "dict")
 			is_override = slices.Contains(tags, "override")
 			if is_dict || is_override {
@@ -92,7 +96,9 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 					if len(tags) > prev_l {
 						dict_m[i] = &[2]string{orig, phoneme}
 						dict_tag_len[i] = len(tags)
+						// debug
 						fmt.Println("Overriding phoneme based on tags: ", phoneme)
+						// debug
 					}
 				}
 			}
@@ -124,6 +130,7 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 		}
 	}
 
+	// debug
 	fmt.Println(">>>>>>>>>>>> selection")
 	fmt.Println("Override:")
 	for _, d := range override_m {
@@ -144,6 +151,7 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 		}
 	}
 	fmt.Println("<<<<<<<<<<<<")
+	// debug
 
 	for idx, words := range sentence {
 		if override_m[idx] != nil {
@@ -165,7 +173,12 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 			result = append(result, [2]string{word_orig[idx], word})
 			break
 		}
+	}
 
+	// TODO
+	// trim left hyphen as it doesnt play well with kitten tts
+	for i, p := range result {
+		result[i][1] = strings.TrimLeft(p[1], "'ˈ")
 	}
 
 	return result

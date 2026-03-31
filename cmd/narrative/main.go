@@ -73,6 +73,6 @@ func main() {
 		}
 
 		fmt.Println("Streaming")
-		time.Sleep(time.Duration(((len(waveform_data) / 44100) + 1)) * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
