@@ -14,11 +14,10 @@ import (
 	"github.com/neurlang/classifier/hash"
 )
 
-const MISSING_F_NAME = "missing.all.zlib"
+const DICT_F_NAME = "missing.all.zlib"
+const AUX_DICT_F_NAME = "aux_dict.csv"
 
 type PhonemizerRepository struct {
-	reverse    bool
-	dict_path  *string
 	lang_words *map[string]map[string]uint32
 	lang_tags  *map[uint32]string
 	words_tags *map[[2]string]uint32
@@ -26,13 +25,53 @@ type PhonemizerRepository struct {
 }
 
 func (r *PhonemizerRepository) LoadLanguage() error {
+	err := r.loadMainDict()
+	err = r.loadAuxDict()
+	return err
+}
 
-	// TODO. if path set load from custom
+func (r *PhonemizerRepository) loadAuxDict() error {
 
+	tagkey, tagjson, err := serializeTags(parseTags("[\"override\"]"))
+	if err != nil {
+		return err
+	}
+
+	f_reader, err := dict.Language.Open(AUX_DICT_F_NAME)
+	if err != nil {
+		return err
+	}
+	var reader = csv.NewReader(f_reader)
+	reader.Comma = ' '
+
+	recs, err := reader.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	(*r.lang_tags)[tagkey] = tagjson
+
+	var src, dst string
+	for _, rec := range recs {
+		if len(rec) != 2 {
+			return fmt.Errorf("Invalid number of columns returned from aux dict, %v", rec)
+		}
+		src = rec[0]
+		dst = rec[1]
+		if (*r.lang_words)[src] == nil {
+			(*r.lang_words)[src] = make(map[string]uint32)
+		}
+		(*r.lang_words)[src][dst] = tagkey
+		(*r.words_tags)[[2]string{src, dst}] = tagkey
+	}
+	return nil
+}
+
+func (r *PhonemizerRepository) loadMainDict() error {
 	r.mut.Lock()
 	defer r.mut.Unlock()
 
-	f_contents, err := dict.Language.ReadFile(MISSING_F_NAME)
+	f_contents, err := dict.Language.ReadFile(DICT_F_NAME)
 	if err != nil {
 		return err
 	}
@@ -57,26 +96,17 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 		}
 		var src, dst, tagstr string
 		if len(v) == 2 {
-			if r.reverse {
-				src = v[1]
-				dst = v[0]
-			} else {
-				src = v[0]
-				dst = v[1]
-			}
+			src = v[1]
+			dst = v[0]
 			tagstr = "[]"
 		} else if len(v) == 3 {
-			if r.reverse {
-				src = v[1]
-				dst = v[0]
-			} else {
-				src = v[0]
-				dst = v[1]
-			}
+			src = v[0]
+			dst = v[1]
 			tagstr = v[2]
 		} else {
 			return fmt.Errorf("Language %s has wrong number of columns: %d", src, len(v))
 		}
+
 		var tagkey, tagjson, err = serializeTags(addTags(parseTags(tagstr), "dict"))
 
 		if err != nil {
@@ -104,8 +134,6 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 		(*r.lang_tags)[tagkey] = tagjson
 		(*r.words_tags)[[2]string{src, dst}] = tagkey
 	}
-	// fmt.Println(r.lang_tags)
-	// pp.Print(r.words_tags)
 	return nil
 }
 
@@ -154,17 +182,15 @@ func (r *PhonemizerRepository) LookupTags(word1, word2 string) []string {
 	return json_tags
 }
 
-func NewPhonemizerRepository(dict_path *string, reverse bool) *PhonemizerRepository {
-	mapping := make(map[string]map[string]uint32)
-	mapping2 := make(map[uint32]string)
-	mapping3 := make(map[[2]string]uint32)
+func NewPhonemizerRepository() *PhonemizerRepository {
+	lang_words := make(map[string]map[string]uint32)
+	lang_tags := make(map[uint32]string)
+	word_tags := make(map[[2]string]uint32)
 
 	return &PhonemizerRepository{
-		dict_path:  dict_path,
-		reverse:    reverse,
-		lang_words: &mapping,
-		lang_tags:  &mapping2,
-		words_tags: &mapping3,
+		lang_words: &lang_words,
+		lang_tags:  &lang_tags,
+		words_tags: &word_tags,
 		mut:        &sync.RWMutex{},
 	}
 }

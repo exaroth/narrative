@@ -48,6 +48,7 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 	dict_tag_len := make([]int, len(sentence))
 	pref_m := make([]*[2]string, len(sentence))
 	word_orig := make([]string, len(sentence))
+	override_m := make([]*[2]string, len(sentence))
 
 	var input []map[string][2]uint32
 
@@ -65,6 +66,7 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 		inputmap[orig+" "] = [2]uint32{0, 0}
 
 		var tags []string
+		var is_dict, is_override bool
 		for word, k := range phoneme_map {
 			if k == 0 {
 				continue
@@ -73,22 +75,26 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 			for _, t := range tags {
 				fmt.Println("       + ", t)
 			}
-			if slices.Contains(tags, "dict") {
+			is_dict = slices.Contains(tags, "dict")
+			is_override = slices.Contains(tags, "override")
+			if is_dict || is_override {
 				inputmap[word] = [2]uint32{k, 0}
-				if dict_m[i] == nil {
-					dict_m[i] = &[2]string{orig, word}
-					dict_tag_len[i] = len(tags)
-					continue
+				if is_override {
+					override_m[i] = &[2]string{orig, word}
+				} else {
+					if dict_m[i] == nil {
+						dict_m[i] = &[2]string{orig, word}
+						dict_tag_len[i] = len(tags)
+						continue
+					}
+					prev_l := dict_tag_len[i]
+					if len(tags) > prev_l {
+						dict_m[i] = &[2]string{orig, word}
+						dict_tag_len[i] = len(tags)
+						fmt.Println("Overriding phoneme based on tags: ", word)
+					}
 				}
-				prev_l := dict_tag_len[i]
-				if len(tags) > prev_l {
-					dict_m[i] = &[2]string{orig, word}
-					dict_tag_len[i] = len(tags)
-					fmt.Println("Overriding phoneme based on tags: ", word)
-				}
-
 			}
-
 		}
 		input = append(input, inputmap)
 	}
@@ -118,8 +124,8 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 	}
 
 	fmt.Println(">>>>>>>>>>>> selection")
-	fmt.Println("Dicts:")
-	for _, d := range dict_m {
+	fmt.Println("Override:")
+	for _, d := range override_m {
 		if d != nil {
 			fmt.Printf(" - %s - %s\n", d[0], d[1])
 		}
@@ -130,9 +136,19 @@ func (p *Phonemizer) selectPhonemes(sentence []map[string]uint32) [][2]string {
 			fmt.Printf(" - %s - %s\n", d[0], d[1])
 		}
 	}
+	fmt.Println("Dicts:")
+	for _, d := range dict_m {
+		if d != nil {
+			fmt.Printf(" - %s - %s\n", d[0], d[1])
+		}
+	}
 	fmt.Println("<<<<<<<<<<<<")
 
 	for idx, words := range sentence {
+		if override_m[idx] != nil {
+			result = append(result, *override_m[idx])
+			continue
+		}
 		if pref_m[idx] != nil {
 			result = append(result, *pref_m[idx])
 			continue
@@ -202,7 +218,7 @@ func (p *Phonemizer) phonemizeWord(word string) (map[string]uint32, error) {
 }
 
 func NewPhonemizer() (*Phonemizer, error) {
-	repo := NewPhonemizerRepository(nil, false)
+	repo := NewPhonemizerRepository()
 	pho := NewHashtronPhonemizer(nil, false)
 	selector := NewPhonemeSelector(nil)
 
