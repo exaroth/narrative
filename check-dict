@@ -1,0 +1,3 @@
+#!/bin/sh
+
+go run ./cmd/check-dict/main.go $1
