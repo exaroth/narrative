@@ -52,3 +52,25 @@ func TestSplittingHyphenizedWords(t *testing.T) {
 		})
 	}
 }
+
+func TestRemovingTrailingApostrophes(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "people's rights' are important",
+			expected: "peoples rights are important",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("Remove trailing apostrophes: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := removeTrailingApostrophes(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.input)
+			}
+		})
+	}
+}

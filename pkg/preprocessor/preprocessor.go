@@ -33,6 +33,7 @@ func NewPreprocessor() *Preprocessor {
 
 	proc.RegisterFunc(normalizeQuotes)
 	proc.RegisterFunc(splitHyphenizedWords)
+	proc.RegisterFunc(removeTrailingApostrophes)
 
 	return proc
 }
