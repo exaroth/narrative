@@ -23,6 +23,10 @@ var PUNCT_REPLACEMENT_MAP = []struct {
 		re:   regexp.MustCompile("[’]"),
 		repl: "\"",
 	},
+	{
+		re:   regexp.MustCompile("[—]"),
+		repl: "-",
+	},
 }
 
 // Normalize whitespace removing multiple occurences

@@ -20,3 +20,5 @@ dictionary.*
 .tts-playback.lock
 rtts-s
 tts-s
+dict-s
+playback-s

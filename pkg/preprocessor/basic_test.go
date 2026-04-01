@@ -14,6 +14,10 @@ func testNormalizingPunctuation(t *testing.T) {
 			input:    "«this» “should” ’normalized’",
 			expected: "\"this\" \"should\" 'normalized'",
 		},
+		{
+			input:    "half—life",
+			expected: "half-life",
+		},
 	}
 	for idx, test := range tests {
 		testname := fmt.Sprintf("Normalize quotes: %d", idx)
