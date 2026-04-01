@@ -17,7 +17,6 @@ type Phonemizer struct {
 
 func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 
-	sentence = strings.ToLower(sentence)
 	words, punct := SplitPunctuation(sentence)
 	phonemes := make([]map[string]uint32, len(words))
 	for i, w := range words {

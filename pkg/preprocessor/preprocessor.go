@@ -2,6 +2,7 @@ package preprocessor
 
 import (
 	"regexp"
+	"strings"
 )
 
 var (
@@ -23,7 +24,7 @@ func (p *Preprocessor) ProcessSentence(input string) string {
 			panic(err)
 		}
 	}
-	return input
+	return strings.ToLower(input)
 }
 
 func (p *Preprocessor) RegisterFunc(f PreprocessorFunc) {

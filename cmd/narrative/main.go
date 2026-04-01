@@ -24,7 +24,7 @@ func init() {
 
 func main() {
 
-	input, err := os.ReadFile("./dump/kafka-on-the-shore.txt")
+	input, err := os.ReadFile("./dump/nose.md")
 	if err != nil {
 		panic(err)
 	}
@@ -43,14 +43,16 @@ func main() {
 
 	var waveform_data []float32
 	var phonemized string
+	var p_sentence string
 	for _, sentence := range sentencizer.Sentencize(input) {
 
 		_, _ = os.Create("./.tts-processing.lock")
 
-		sentence = preprocessor.ProcessSentence(sentence)
-		phonemized, err = phonemizer.Phonemize(sentence)
+		p_sentence = preprocessor.ProcessSentence(sentence)
+		phonemized, err = phonemizer.Phonemize(p_sentence)
 
 		fmt.Println("Original: ", sentence)
+		fmt.Println("Processed: ", p_sentence)
 		fmt.Println("Phonemized: ", phonemized)
 
 		if err != nil {
