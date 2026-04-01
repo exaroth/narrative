@@ -87,7 +87,10 @@ func removeTrailingApostrophes(input string) (string, error) {
 		// trim hyphen from 's
 		if word[len(word)-1] == 115 && word[len(word)-2] == 39 {
 			result = append(result, string(word[0:len(word)-2])+"s")
+			continue
 		}
+		result = append(result, word)
+
 	}
 	return strings.Join(result, " "), nil
 }

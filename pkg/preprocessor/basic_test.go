@@ -63,8 +63,8 @@ func TestRemovingTrailingApostrophes(t *testing.T) {
 		expected string
 	}{
 		{
-			input:    "people's rights' are important",
-			expected: "peoples rights are important",
+			input:    "people's rights' must've been important",
+			expected: "peoples rights must've been important",
 		},
 	}
 	for idx, test := range tests {
