@@ -9,6 +9,8 @@ var (
 	DOUBLE_QUOTES_REP_RE = regexp.MustCompile("[«»“”]")
 	SINGLE_QUOTES_REP_RE = regexp.MustCompile("[’]")
 	SPACES_RE            = regexp.MustCompile(`\s+`)
+	// todo - recheck
+	PUNCT_RE = regexp.MustCompile(`[^\w\s.,?!;:-]`)
 )
 
 // Normalize whitespace removing multiple occurences
@@ -71,4 +73,10 @@ func removeTrailingApostrophes(input string) (string, error) {
 		}
 	}
 	return strings.Join(result, " "), nil
+}
+
+// Remove non prosodic punctuation keeping only punctuation
+// that affects intonation.
+func removeNonProsodicPunctuation(input string) (string, error) {
+	return PUNCT_RE.ReplaceAllString(input, " "), nil
 }

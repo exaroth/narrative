@@ -96,3 +96,25 @@ func TestRemovingWhitespace(t *testing.T) {
 		})
 	}
 }
+
+func TestRemovingPunctuation(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "testing, #@(){}[]#%$ '\" punctuation;  removal!== @",
+			expected: "testing,                punctuation;  removal!    ",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("Remove punctuation: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := removeNonProsodicPunctuation(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}

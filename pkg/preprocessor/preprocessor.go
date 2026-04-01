@@ -35,10 +35,12 @@ func NewPreprocessor() *Preprocessor {
 		funcs: []PreprocessorFunc{},
 	}
 
-	proc.RegisterFunc(normalizeWhitespace)
 	proc.RegisterFunc(normalizeQuotes)
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
+
+	proc.RegisterFunc(removeNonProsodicPunctuation)
+	proc.RegisterFunc(normalizeWhitespace)
 
 	return proc
 }
