@@ -15,7 +15,8 @@ scratch
 dump
 lib
 dictionary.*
-./narrative
 
 .tts-processing.lock
 .tts-playback.lock
+rtts-s
+tts-s
