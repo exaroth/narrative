@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func testNormalizingPunctuation(t *testing.T) {
+func TestNormalizingPunctuation(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string

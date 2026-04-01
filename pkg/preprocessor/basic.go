@@ -26,7 +26,7 @@ var PUNCT_REPLACEMENT_MAP = []struct {
 	},
 	{
 		re:   regexp.MustCompile("[’]"),
-		repl: "\"",
+		repl: "'",
 	},
 	{
 		re:   regexp.MustCompile("[—]"),

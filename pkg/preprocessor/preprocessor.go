@@ -38,6 +38,7 @@ func NewPreprocessor() *Preprocessor {
 
 	proc.RegisterFunc(cleanupUnusableTextParts)
 	proc.RegisterFunc(normalizePunctuation)
+	proc.RegisterFunc(expandContractions)
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
 
