@@ -8,7 +8,12 @@ import (
 var (
 	SPACES_RE = regexp.MustCompile(`\s+`)
 	// todo - recheck
-	PUNCT_RE = regexp.MustCompile(`[^\w\s.,?!;:-]`)
+	PUNCT_RE   = regexp.MustCompile(`[^\w\s.,?!;:-]`)
+	URL_RE     = regexp.MustCompile(`https?://\S+|www\.\S+`)
+	EMAIL_RE   = regexp.MustCompile(`\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b`)
+	HASHTAG_RE = regexp.MustCompile(`#\w+`)
+	MENTION_RE = regexp.MustCompile(`@\w+`)
+	HTML_RE    = regexp.MustCompile(`<[^>]+>`)
 )
 
 var PUNCT_REPLACEMENT_MAP = []struct {
@@ -42,6 +47,17 @@ func normalizePunctuation(input string) (string, error) {
 	for _, r := range PUNCT_REPLACEMENT_MAP {
 		input = r.re.ReplaceAllString(input, r.repl)
 	}
+	return input, nil
+}
+
+// This function removes all parts of sentence that
+// are unusable for phonetization, eg. email, urls etc.
+func cleanupUnusableTextParts(input string) (string, error) {
+	input = HTML_RE.ReplaceAllString(input, "")
+	input = URL_RE.ReplaceAllString(input, "")
+	input = EMAIL_RE.ReplaceAllString(input, "")
+	input = HASHTAG_RE.ReplaceAllString(input, "")
+	input = MENTION_RE.ReplaceAllString(input, "")
 	return input, nil
 }
 

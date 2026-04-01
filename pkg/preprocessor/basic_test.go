@@ -122,3 +122,41 @@ func TestRemovingPunctuation(t *testing.T) {
 		})
 	}
 }
+
+func TestRemovingUnusableTextParts(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "https://www.test.com?test=1 https://www.google.com",
+			expected: " ",
+		},
+		{
+			input:    "test@test.com",
+			expected: "",
+		},
+		{
+			input:    "<p>test</p>",
+			expected: "test",
+		},
+		{
+			input:    "@test",
+			expected: "",
+		},
+		{
+			input:    "#test",
+			expected: "",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("Cleanup trash: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := cleanupUnusableTextParts(test.input)
+			if result != test.expected {
+				t.Errorf("got |%s|, want |%s|", result, test.expected)
+			}
+		})
+	}
+}
