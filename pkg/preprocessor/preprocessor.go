@@ -32,6 +32,7 @@ func NewPreprocessor() *Preprocessor {
 	}
 
 	proc.RegisterFunc(normalizeQuotes)
+	proc.RegisterFunc(splitHyphenizedWords)
 
 	return proc
 }

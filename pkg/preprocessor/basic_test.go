@@ -26,3 +26,29 @@ func TestReplacingQuotes(t *testing.T) {
 		})
 	}
 }
+
+func TestSplittingHyphenizedWords(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "half-life -rocks-",
+			expected: "half life - rocks -",
+		},
+		{
+			input:    "thirty-five tokens",
+			expected: "thirty five tokens",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("Split hyphens: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := splitHyphenizedWords(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.input)
+			}
+		})
+	}
+}
