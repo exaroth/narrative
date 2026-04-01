@@ -1,8 +1,12 @@
 package preprocessor
 
-import "regexp"
+import (
+	"regexp"
+)
 
-var LETTERS_RE = regexp.MustCompile("[a-zA-Z]")
+var (
+	LETTERS_RE = regexp.MustCompile("[a-zA-Z]")
+)
 
 type PreprocessorFunc func(input string) (string, error)
 
@@ -31,6 +35,7 @@ func NewPreprocessor() *Preprocessor {
 		funcs: []PreprocessorFunc{},
 	}
 
+	proc.RegisterFunc(normalizeWhitespace)
 	proc.RegisterFunc(normalizeQuotes)
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)

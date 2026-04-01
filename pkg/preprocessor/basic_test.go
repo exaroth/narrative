@@ -21,7 +21,7 @@ func TestReplacingQuotes(t *testing.T) {
 
 			result, _ := normalizeQuotes(test.input)
 			if result != test.expected {
-				t.Errorf("got %s, want %s", result, test.input)
+				t.Errorf("got %s, want %s", result, test.expected)
 			}
 		})
 	}
@@ -47,7 +47,7 @@ func TestSplittingHyphenizedWords(t *testing.T) {
 
 			result, _ := splitHyphenizedWords(test.input)
 			if result != test.expected {
-				t.Errorf("got %s, want %s", result, test.input)
+				t.Errorf("got %s, want %s", result, test.expected)
 			}
 		})
 	}
@@ -69,7 +69,29 @@ func TestRemovingTrailingApostrophes(t *testing.T) {
 
 			result, _ := removeTrailingApostrophes(test.input)
 			if result != test.expected {
-				t.Errorf("got %s, want %s", result, test.input)
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}
+
+func TestRemovingWhitespace(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "   This \r should     be \t normalized   \n",
+			expected: "This should be normalized",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("Normalize whitespace: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := normalizeWhitespace(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
 			}
 		})
 	}

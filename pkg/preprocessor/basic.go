@@ -5,8 +5,18 @@ import (
 	"strings"
 )
 
-var DOUBLE_QUOTES_REP_RE = regexp.MustCompile("[«»“”]")
-var SINGLE_QUOTES_REP_RE = regexp.MustCompile("[’]")
+var (
+	DOUBLE_QUOTES_REP_RE = regexp.MustCompile("[«»“”]")
+	SINGLE_QUOTES_REP_RE = regexp.MustCompile("[’]")
+	SPACES_RE            = regexp.MustCompile(`\s+`)
+)
+
+// Normalize whitespace removing multiple occurences
+// and trimming the sentence.
+func normalizeWhitespace(input string) (string, error) {
+	input = SPACES_RE.ReplaceAllString(input, " ")
+	return strings.Trim(input, " "), nil
+}
 
 // Replace custom quotes with normalized version
 // to make text easier to process later on.
