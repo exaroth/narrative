@@ -107,8 +107,8 @@ func TestRemovingPunctuation(t *testing.T) {
 		expected string
 	}{
 		{
-			input:    "testing, #@(){}[]#%$ '\" punctuation;  removal!== @",
-			expected: "testing,                punctuation;  removal!    ",
+			input:    "testing, #@(){}[]#%$ 'punctuation';  removal!== @",
+			expected: "testing,             'punctuation';  removal!    ",
 		},
 	}
 	for idx, test := range tests {

@@ -8,7 +8,7 @@ import (
 var (
 	SPACES_RE = regexp.MustCompile(`\s+`)
 	// todo - recheck
-	PUNCT_RE   = regexp.MustCompile(`[^\w\s.,?!;:-]`)
+	PUNCT_RE   = regexp.MustCompile(`[^\w\s.,?!;:'"-]`)
 	URL_RE     = regexp.MustCompile(`https?://\S+|www\.\S+`)
 	EMAIL_RE   = regexp.MustCompile(`\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b`)
 	HASHTAG_RE = regexp.MustCompile(`#\w+`)
