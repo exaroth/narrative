@@ -1,5 +1,9 @@
 package preprocessor
 
+import "regexp"
+
+var LETTERS_RE = regexp.MustCompile("[a-zA-Z]")
+
 type PreprocessorFunc func(input string) (string, error)
 
 type Preprocessor struct {
@@ -23,7 +27,11 @@ func (p *Preprocessor) RegisterFunc(f PreprocessorFunc) {
 }
 
 func NewPreprocessor() *Preprocessor {
-	return &Preprocessor{
+	proc := &Preprocessor{
 		funcs: []PreprocessorFunc{},
 	}
+
+	proc.RegisterFunc(normalizeQuotes)
+
+	return proc
 }
