@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestReplacingQuotes(t *testing.T) {
+func testNormalizingPunctuation(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
@@ -19,7 +19,7 @@ func TestReplacingQuotes(t *testing.T) {
 		testname := fmt.Sprintf("Normalize quotes: %d", idx)
 		t.Run(testname, func(t *testing.T) {
 
-			result, _ := normalizeQuotes(test.input)
+			result, _ := normalizePunctuation(test.input)
 			if result != test.expected {
 				t.Errorf("got %s, want %s", result, test.expected)
 			}

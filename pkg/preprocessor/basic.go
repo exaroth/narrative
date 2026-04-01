@@ -6,12 +6,24 @@ import (
 )
 
 var (
-	DOUBLE_QUOTES_REP_RE = regexp.MustCompile("[«»“”]")
-	SINGLE_QUOTES_REP_RE = regexp.MustCompile("[’]")
-	SPACES_RE            = regexp.MustCompile(`\s+`)
+	SPACES_RE = regexp.MustCompile(`\s+`)
 	// todo - recheck
 	PUNCT_RE = regexp.MustCompile(`[^\w\s.,?!;:-]`)
 )
+
+var PUNCT_REPLACEMENT_MAP = []struct {
+	re   *regexp.Regexp
+	repl string
+}{
+	{
+		re:   regexp.MustCompile("[«»“”]"),
+		repl: "\"",
+	},
+	{
+		re:   regexp.MustCompile("[’]"),
+		repl: "\"",
+	},
+}
 
 // Normalize whitespace removing multiple occurences
 // and trimming the sentence.
@@ -20,11 +32,12 @@ func normalizeWhitespace(input string) (string, error) {
 	return strings.Trim(input, " "), nil
 }
 
-// Replace custom quotes with normalized version
-// to make text easier to process later on.
-func normalizeQuotes(input string) (string, error) {
-	input = DOUBLE_QUOTES_REP_RE.ReplaceAllString(input, "\"")
-	input = SINGLE_QUOTES_REP_RE.ReplaceAllString(input, "'")
+// Narmalize punctuation across the sentence
+// for easier processing.
+func normalizePunctuation(input string) (string, error) {
+	for _, r := range PUNCT_REPLACEMENT_MAP {
+		input = r.re.ReplaceAllString(input, r.repl)
+	}
 	return input, nil
 }
 
@@ -34,7 +47,7 @@ func normalizeQuotes(input string) (string, error) {
 func splitHyphenizedWords(input string) (string, error) {
 	result := []string{}
 	for word := range strings.SplitSeq(input, " ") {
-		if len(word) == 1 || !strings.ContainsAny(word, "-") {
+		if len(word) < 2 || !strings.ContainsAny(word, "-") {
 			result = append(result, word)
 			continue
 		}

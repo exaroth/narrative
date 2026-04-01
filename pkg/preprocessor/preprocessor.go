@@ -35,7 +35,7 @@ func NewPreprocessor() *Preprocessor {
 		funcs: []PreprocessorFunc{},
 	}
 
-	proc.RegisterFunc(normalizeQuotes)
+	proc.RegisterFunc(normalizePunctuation)
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
 
