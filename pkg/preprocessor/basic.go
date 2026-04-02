@@ -2,6 +2,7 @@ package preprocessor
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -15,6 +16,8 @@ var (
 	MENTION_RE = regexp.MustCompile(`@\w+`)
 	HTML_RE    = regexp.MustCompile(`<[^>]+>`)
 )
+
+var APOSTROPHE_REMOVAL_EXCLUSIONS = []string{"he's"}
 
 var PUNCT_REPLACEMENT_MAP = []struct {
 	re   *regexp.Regexp
@@ -93,6 +96,10 @@ func removeTrailingApostrophes(input string) (string, error) {
 
 	for word := range strings.SplitSeq(input, " ") {
 		if len(word) < 3 || !strings.ContainsAny(word, "'") {
+			result = append(result, word)
+			continue
+		}
+		if slices.Index(APOSTROPHE_REMOVAL_EXCLUSIONS, word) > -1 {
 			result = append(result, word)
 			continue
 		}
