@@ -99,7 +99,7 @@ func removeTrailingApostrophes(input string) (string, error) {
 			result = append(result, word)
 			continue
 		}
-		if slices.Index(APOSTROPHE_REMOVAL_EXCLUSIONS, word) > -1 {
+		if slices.Index(APOSTROPHE_REMOVAL_EXCLUSIONS, strings.ToLower(word)) > -1 {
 			result = append(result, word)
 			continue
 		}
