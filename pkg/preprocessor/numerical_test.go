@@ -5,6 +5,62 @@ import (
 	"testing"
 )
 
+func TestGeneratingOrdinalSuffix(t *testing.T) {
+	tests := []struct {
+		input    int
+		expected string
+	}{
+		{
+			input:    5,
+			expected: "fifth",
+		},
+		{
+			input:    21,
+			expected: "twenty first",
+		},
+		{
+			input:    1,
+			expected: "first",
+		},
+		{
+			input:    2,
+			expected: "second",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("ordinal suffix: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result := ordinalSuffix(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}
+
+func TestExpandingFractions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "1/2 cup, 3/4 mile, 2/3 done, 5/8 inch",
+			expected: "one half cup, three quarters mile, two thirds done, five eighths inch",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("expand leading dec: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := expandFractions(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}
+
 func TestReplacingNumericValues(t *testing.T) {
 	tests := []struct {
 		input    string

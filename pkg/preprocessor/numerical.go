@@ -6,8 +6,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/k0kubun/pp"
 )
 
 var (
@@ -22,9 +20,52 @@ var (
 	}
 	SCALE = []string{"", "thousand", "million", "billion", "trillion"}
 
+	ORDINAL_EXCEPTIONS = map[string]string{
+		"one": "first", "two": "second", "three": "third", "four": "fourth",
+		"five": "fifth", "six": "sixth", "seven": "seventh", "eight": "eighth",
+		"nine": "ninth", "twelve": "twelfth",
+	}
+
 	NUMBER_RE      = regexp.MustCompile(`([-])?[\d]+(?:\.\d+)?`)
+	FRACTION_RE    = regexp.MustCompile(`\b(\d+)\s*/\s*(\d+)\b`)
 	LEADING_DEC_RE = regexp.MustCompile(`(^|\s+)(-)?\.([\d]+)+\b`)
 )
+
+// Expand fractions into words, eg. 1/2 -> one half,
+// 2/3 -> two thirds
+func expandFractions(input string) (string, error) {
+	for _, g := range FRACTION_RE.FindAllStringSubmatch(input, -1) {
+		first, err := strconv.Atoi(g[1])
+		second, err := strconv.Atoi(g[2])
+		if err != nil {
+			return "", fmt.Errorf("Error converting fractions for %s %w", input, err)
+		}
+		numerator := numberToWords(first)
+		var denom string
+		switch second {
+		case 2:
+			if first == 1 {
+				denom = "half"
+			} else {
+				denom = "halves"
+			}
+		case 4:
+			if first == 1 {
+				denom = "quarter"
+			} else {
+				denom = "quarters"
+			}
+		default:
+			denom = ordinalSuffix(second)
+			if first != 1 {
+				denom = denom + "s"
+			}
+
+		}
+		input = strings.ReplaceAll(input, g[0], fmt.Sprintf("%s %s", numerator, denom))
+	}
+	return input, nil
+}
 
 func expandLeadingDecimals(input string) (string, error) {
 	for _, g := range LEADING_DEC_RE.FindAllStringSubmatch(input, -1) {
@@ -45,9 +86,6 @@ func replaceNumbers(input string) (string, error) {
 		return input, nil
 	}
 	for _, g := range NUMBER_RE.FindAllStringSubmatch(input, -1) {
-		fmt.Println(">>>>>>>>>>>> g")
-		pp.Println(g)
-		fmt.Println("<<<<<<<<<<<<")
 		if strings.Contains(g[0], ".") {
 			f_parts := strings.Split(g[0], ".")
 			if len(f_parts) != 2 {
@@ -156,4 +194,32 @@ func floatToWords(base int, rest string) string {
 		digits = append(digits, d_m[ci])
 	}
 	return fmt.Sprintf("%s point %s", base_s, strings.Join(digits, " "))
+}
+
+// Convert number to ordinal suffix
+// eg 1 - first.
+func ordinalSuffix(num int) string {
+	words := strings.Split(numberToWords(num), " ")
+	var prefix, last, last_ord string
+	if len(words) == 2 {
+		prefix, last = words[0], words[1]
+	} else {
+		prefix, last = "", words[0]
+	}
+	if _, ok := ORDINAL_EXCEPTIONS[last]; ok {
+		last_ord = ORDINAL_EXCEPTIONS[last]
+	} else {
+		switch last[len(last)-1] {
+		case 't':
+			last_ord = last + "h"
+		case 'e':
+			last_ord = last[0:len(last)-1] + "th"
+		default:
+			last_ord = last + "th"
+		}
+	}
+	if len(prefix) > 0 {
+		return fmt.Sprintf("%s %s", prefix, last_ord)
+	}
+	return last_ord
 }
