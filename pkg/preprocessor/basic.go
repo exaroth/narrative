@@ -17,7 +17,10 @@ var (
 	HTML_RE    = regexp.MustCompile(`<[^>]+>`)
 )
 
-var APOSTROPHE_REMOVAL_EXCLUSIONS = []string{"he's", "it's"}
+var APOSTROPHE_REMOVAL_EXCLUSIONS = []string{
+	"he's", "it's", "there's", "that's", "here's", "where's",
+	"what's",
+}
 
 var PUNCT_REPLACEMENT_MAP = []struct {
 	re   *regexp.Regexp

@@ -43,9 +43,10 @@ func NewPreprocessor() *Preprocessor {
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
 
+	proc.RegisterFunc(expandTime)
 	proc.RegisterFunc(expandDecades)
-
 	proc.RegisterFunc(expandFractions)
+
 	proc.RegisterFunc(replaceNumbers)
 
 	proc.RegisterFunc(removeNonProsodicPunctuation)
