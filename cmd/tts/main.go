@@ -11,6 +11,7 @@ import (
 
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
+	"github.com/exaroth/narrative/pkg/preprocessor"
 )
 
 func main() {
@@ -33,20 +34,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	preprocessor := preprocessor.NewPreprocessor()
 
 	kitten := kitten.NewKitten(nil)
-
 	defer kitten.Deinit()
 
 	var waveform_data []float32
 	var phonemized string
 
-	phonemized, err = phonemizer.Phonemize(input)
+	input_p := preprocessor.ProcessSentence(input)
+	phonemized, err = phonemizer.Phonemize(input_p)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Original: ", input)
+	fmt.Println("Processed: ", input_p)
 	fmt.Println("Phonemized: ", phonemized)
 
 	waveform_data, err = kitten.RunInference(token_map.TokenizeWord(phonemized))
