@@ -102,23 +102,17 @@ func replaceNumbers(input string) (string, error) {
 		if strings.Contains(g[0], ".") {
 			f_parts := strings.Split(g[0], ".")
 			if len(f_parts) != 2 {
-				// todo
-				fmt.Println("unsupported string1: ", g[0])
-				return input, nil
+				return "", fmt.Errorf("Err replacing numbers for float %s @ %s", input, g[0])
 			}
 			base, err := strconv.Atoi(f_parts[0])
 			if err != nil {
-				// todo
-				fmt.Println("unsupported string2: ", g[0])
-				return input, nil
+				return "", fmt.Errorf("Err replacing numbers %s @ %s, %w", input, g[0], err)
 			}
 			input = strings.ReplaceAll(input, g[0], floatToWords(base, f_parts[1]))
 		} else {
 			num, err := strconv.Atoi(g[0])
 			if err != nil {
-				// todo
-				fmt.Println("unsupported string: ", g[0])
-				return input, nil
+				return "", fmt.Errorf("Err replacing numbers %s @ %s, %w", input, g[0], err)
 			}
 			input = strings.ReplaceAll(input, g[0], numberToWords(num))
 		}
@@ -201,8 +195,8 @@ func floatToWords(base int, rest string) string {
 	for _, c := range rest {
 		ci, err = strconv.Atoi(string(c))
 		if err != nil {
-			//todo
-			panic(err)
+			// todo
+			continue
 		}
 		digits = append(digits, d_m[ci])
 	}

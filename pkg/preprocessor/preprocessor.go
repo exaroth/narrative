@@ -17,12 +17,14 @@ type Preprocessor struct {
 
 func (p *Preprocessor) ProcessSentence(input string) string {
 	var err error
+	var proc string
 	for _, f := range p.funcs {
-		input, err = f(input)
+		proc, err = f(input)
 		if err != nil {
-			// todo
-			panic(err)
+			// todo, log
+			continue
 		}
+		input = proc
 	}
 	return strings.ToLower(input)
 }
