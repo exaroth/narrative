@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/k0kubun/pp"
 )
 
 var (
@@ -20,7 +22,7 @@ var (
 	}
 	SCALE = []string{"", "thousand", "million", "billion", "trillion"}
 
-	NUMBER_RE      = regexp.MustCompile(`[\d,]+(?:\.\d+)?`)
+	NUMBER_RE      = regexp.MustCompile(`([-])?[\d]+(?:\.\d+)?`)
 	LEADING_DEC_RE = regexp.MustCompile(`(^|\s+)(-)?\.([\d]+)+\b`)
 )
 
@@ -37,23 +39,42 @@ func expandLeadingDecimals(input string) (string, error) {
 	return input, nil
 }
 
-// func replaceNumbers(input string) (string, error) {
+func replaceNumbers(input string) (string, error) {
 
-// 	if len(NUMBER_RE.FindStringIndex(input)) == 0 {
-// 		return input, nil
-// 	}
-// 	for _, g := range NUMBER_RE.FindAllStringSubmatch(input, -1) {
-// 		fmt.Println(g)
-// 		if strings.Index(g[0], ".") > 1 {
-// 			f_parts := strings.Split(g[0], ".")
-// 			if len(f_parts) != 2 {
+	if len(NUMBER_RE.FindStringIndex(input)) == 0 {
+		return input, nil
+	}
+	for _, g := range NUMBER_RE.FindAllStringSubmatch(input, -1) {
+		fmt.Println(">>>>>>>>>>>> g")
+		pp.Println(g)
+		fmt.Println("<<<<<<<<<<<<")
+		if strings.Contains(g[0], ".") {
+			f_parts := strings.Split(g[0], ".")
+			if len(f_parts) != 2 {
+				// todo
+				fmt.Println("unsupported string1: ", g[0])
+				return input, nil
+			}
+			base, err := strconv.Atoi(f_parts[0])
+			if err != nil {
+				// todo
+				fmt.Println("unsupported string2: ", g[0])
+				return input, nil
+			}
+			input = strings.ReplaceAll(input, g[0], floatToWords(base, f_parts[1]))
+		} else {
+			num, err := strconv.Atoi(g[0])
+			if err != nil {
+				// todo
+				fmt.Println("unsupported string: ", g[0])
+				return input, nil
+			}
+			input = strings.ReplaceAll(input, g[0], numberToWords(num))
+		}
+	}
 
-// 			}
-// 		}
-// 	}
-
-// 	return "", nil
-// }
+	return input, nil
+}
 
 func threeDigitsToWords(num int) string {
 	if num == 0 {

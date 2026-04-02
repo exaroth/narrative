@@ -42,6 +42,7 @@ func NewPreprocessor() *Preprocessor {
 	proc.RegisterFunc(expandLeadingDecimals)
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
+	proc.RegisterFunc(replaceNumbers)
 
 	proc.RegisterFunc(removeNonProsodicPunctuation)
 	proc.RegisterFunc(normalizeWhitespace)

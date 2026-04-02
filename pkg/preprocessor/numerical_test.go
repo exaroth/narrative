@@ -5,6 +5,36 @@ import (
 	"testing"
 )
 
+func TestReplacingNumericValues(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "he has 234 cats",
+			expected: "he has two hundred thirty four cats",
+		},
+		{
+			input:    "percentage is 0.39 percent",
+			expected: "percentage is zero point three nine percent",
+		},
+		{
+			input:    "-10, -2.99, 0.00013, 21, 1234567.22",
+			expected: "minus ten, negative two point nine nine, zero point zero zero zero one three, twenty one, one million two hundred thirty four thousand five hundred sixty seven point two two",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("expand leading dec: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := replaceNumbers(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}
+
 func TestExpandingLeadingDecimals(t *testing.T) {
 	tests := []struct {
 		input    string
