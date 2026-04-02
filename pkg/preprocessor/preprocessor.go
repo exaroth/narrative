@@ -43,6 +43,7 @@ func NewPreprocessor() *Preprocessor {
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
 
+	proc.RegisterFunc(expandOrdinals)
 	proc.RegisterFunc(expandTime)
 	proc.RegisterFunc(expandDecades)
 	proc.RegisterFunc(expandFractions)

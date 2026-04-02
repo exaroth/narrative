@@ -5,6 +5,36 @@ import (
 	"testing"
 )
 
+func TestExpandingOrdinals(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "1st or 2nd",
+			expected: "first or second",
+		},
+		{
+			input:    "19th century fox",
+			expected: "nineteenth century fox",
+		},
+		{
+			input:    "3rd base",
+			expected: "third base",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("expanding ordinals: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := expandOrdinals(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}
+
 func TestGeneratingOrdinalSuffix(t *testing.T) {
 	tests := []struct {
 		input    int
@@ -50,7 +80,7 @@ func TestExpandingFractions(t *testing.T) {
 		},
 	}
 	for idx, test := range tests {
-		testname := fmt.Sprintf("expand leading dec: %d", idx)
+		testname := fmt.Sprintf("expand fractions: %d", idx)
 		t.Run(testname, func(t *testing.T) {
 
 			result, _ := expandFractions(test.input)
@@ -80,7 +110,7 @@ func TestReplacingNumericValues(t *testing.T) {
 		},
 	}
 	for idx, test := range tests {
-		testname := fmt.Sprintf("expand leading dec: %d", idx)
+		testname := fmt.Sprintf("expand replacing num : %d", idx)
 		t.Run(testname, func(t *testing.T) {
 
 			result, _ := replaceNumbers(test.input)

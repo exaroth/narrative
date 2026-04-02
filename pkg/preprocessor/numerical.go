@@ -29,10 +29,23 @@ var (
 	NUMBER_RE      = regexp.MustCompile(`([-])?[\d]+(?:\.\d+)?`)
 	FRACTION_RE    = regexp.MustCompile(`\b(\d+)\s*/\s*(\d+)\b`)
 	LEADING_DEC_RE = regexp.MustCompile(`(^|\s+)(-)?\.([\d]+)+\b`)
+	ORDINAL_RE     = regexp.MustCompile(`\b(\d+)(st|nd|rd|th)\b`)
 )
 
+// Expand ordinal numbers eg. 1st -> first.
+func expandOrdinals(input string) (string, error) {
+	for _, g := range ORDINAL_RE.FindAllStringSubmatch(input, -1) {
+		ord, err := strconv.Atoi(g[1])
+		if err != nil {
+			return "", fmt.Errorf("Error expanding ordinal for %s, %w", input, err)
+		}
+		input = strings.ReplaceAll(input, g[0], ordinalSuffix(ord))
+	}
+	return input, nil
+}
+
 // Expand fractions into words, eg. 1/2 -> one half,
-// 2/3 -> two thirds
+// 2/3 -> two thirds.
 func expandFractions(input string) (string, error) {
 	for _, g := range FRACTION_RE.FindAllStringSubmatch(input, -1) {
 		first, err := strconv.Atoi(g[1])
