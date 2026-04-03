@@ -70,19 +70,19 @@ func TestExpandingCurrency(t *testing.T) {
 	}{
 		{
 			input:    "$100",
-			expected: "one hundred dollars",
+			expected: "one hundred dollars ",
 		},
 		{
 			input:    "£9.99",
-			expected: "nine point nine nine pounds",
+			expected: "nine point nine nine pounds ",
 		},
 		{
 			input:    "$2.5M",
-			expected: "five million dollars",
+			expected: "two point five million dollars",
 		},
 		{
 			input:    "€1",
-			expected: "one euro",
+			expected: "one euro ",
 		},
 	}
 	for idx, test := range tests {

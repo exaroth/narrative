@@ -5,8 +5,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/k0kubun/pp"
 )
 
 var (
@@ -107,9 +105,6 @@ func expandCurrency(input string) (string, error) {
 	var val string
 	var exp string
 	for _, g := range CURRENCY_RE.FindAllStringSubmatch(input, -1) {
-		fmt.Println(">>>>>>>>>>>> depro")
-		pp.Println(g)
-		fmt.Println("<<<<<<<<<<<<")
 		if u, ok := CURRENCY_SYMBOLS[g[1]]; ok {
 			cur = u
 		} else {
@@ -154,7 +149,7 @@ func expandCurrency(input string) (string, error) {
 			input = strings.ReplaceAll(
 				input,
 				g[0],
-				fmt.Sprintf("%s %s", val, cur),
+				fmt.Sprintf("%s %s ", val, cur),
 			)
 		}
 	}
