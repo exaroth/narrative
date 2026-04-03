@@ -160,3 +160,33 @@ func TestRemovingUnusableTextParts(t *testing.T) {
 		})
 	}
 }
+
+func TestTrimmingSentenceQuotes(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "\"Trim it\"",
+			expected: "Trim it",
+		},
+		{
+			input:    "'Trim it'",
+			expected: "Trim it",
+		},
+		{
+			input:    "\"Don't trim\" it",
+			expected: "\"Don't trim\" it",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("trim quotes : %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := trimSentenceQuotes(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}

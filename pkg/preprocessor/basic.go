@@ -17,11 +17,15 @@ var (
 	HTML_RE    = regexp.MustCompile(`<[^>]+>`)
 )
 
+// Array containing words which should be excluded when
+// removing apostrophes from the words.
 var APOSTROPHE_REMOVAL_EXCLUSIONS = []string{
 	"he's", "it's", "there's", "that's", "here's", "where's",
 	"what's",
 }
 
+// Contains patterns and replacement rules to be
+// used when normalizing characters in the input string.
 var PUNCT_REPLACEMENT_MAP = []struct {
 	re   *regexp.Regexp
 	repl string
@@ -125,4 +129,16 @@ func removeTrailingApostrophes(input string) (string, error) {
 // that affects intonation.
 func removeNonProsodicPunctuation(input string) (string, error) {
 	return PUNCT_RE.ReplaceAllString(input, " "), nil
+}
+
+// Trim wrapping quotes from the sentence,
+// as kittenTTS doesn't like it.
+func trimSentenceQuotes(input string) (string, error) {
+	if input[0] == '"' && input[len(input)-1] == '"' {
+		return trimSentenceQuotes(strings.Trim(input, "\""))
+	}
+	if input[0] == '\'' && input[len(input)-1] == '\'' {
+		return trimSentenceQuotes(strings.Trim(input, "'"))
+	}
+	return input, nil
 }

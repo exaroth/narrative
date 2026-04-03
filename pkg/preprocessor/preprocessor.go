@@ -40,6 +40,7 @@ func NewPreprocessor() *Preprocessor {
 
 	proc.RegisterFunc(cleanupUnusableTextParts)
 	proc.RegisterFunc(normalizePunctuation)
+	proc.RegisterFunc(trimSentenceQuotes)
 	proc.RegisterFunc(expandContractions)
 	proc.RegisterFunc(expandLeadingDecimals)
 	proc.RegisterFunc(expandCurrency)
