@@ -9,7 +9,7 @@ import (
 )
 
 type PhonemeOptions struct {
-	Tags         *[]map[[2]string][]string
+	Tags         *[]map[string][]string
 	WordOrigins  *[]string
 	DictOpts     *[]*[2]string
 	PrefOpts     *[]*[2]string
@@ -17,7 +17,7 @@ type PhonemeOptions struct {
 }
 
 func NewPhonemeOpts(l int) *PhonemeOptions {
-	tags := make([]map[[2]string][]string, l)
+	tags := make([]map[string][]string, l)
 	word_orig := make([]string, l)
 	dict_m := make([]*[2]string, l)
 	pref_m := make([]*[2]string, l)
@@ -56,26 +56,37 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 	phoneme_opts := p.getPhonemeOptions(phonemes)
 
 	// debug
-	fmt.Println(">>>>>>>>>>>> selection")
-	fmt.Println("Override:")
-	for _, d := range *phoneme_opts.OverrideOpts {
-		if d != nil {
-			fmt.Printf(" - %s - %s\n", d[0], d[1])
-		}
-	}
-	fmt.Println("Prefs:")
-	for _, d := range *phoneme_opts.PrefOpts {
-		if d != nil {
-			fmt.Printf(" - %s - %s\n", d[0], d[1])
-		}
-	}
-	fmt.Println("Dicts:")
-	for _, d := range *phoneme_opts.DictOpts {
-		if d != nil {
-			fmt.Printf(" - %s - %s\n", d[0], d[1])
-		}
-	}
-	fmt.Println("<<<<<<<<<<<<")
+	// fmt.Println(">>>>>>>>>>>> selection")
+	// fmt.Println("Tags: ")
+	// for i, k := range *phoneme_opts.WordOrigins {
+	// 	fmt.Println(k)
+	// 	for k, v := range (*phoneme_opts.Tags)[i] {
+	// 		fmt.Println("  - ", k)
+	// 		for _, t := range v {
+	// 			fmt.Println("     + ", t)
+	// 		}
+	// 	}
+
+	// }
+	// fmt.Println("Override:")
+	// for _, d := range *phoneme_opts.OverrideOpts {
+	// 	if d != nil {
+	// 		fmt.Printf(" - %s - %s\n", d[0], d[1])
+	// 	}
+	// }
+	// fmt.Println("Prefs:")
+	// for _, d := range *phoneme_opts.PrefOpts {
+	// 	if d != nil {
+	// 		fmt.Printf(" - %s - %s\n", d[0], d[1])
+	// 	}
+	// }
+	// fmt.Println("Dicts:")
+	// for _, d := range *phoneme_opts.DictOpts {
+	// 	if d != nil {
+	// 		fmt.Printf(" - %s - %s\n", d[0], d[1])
+	// 	}
+	// }
+	// fmt.Println("<<<<<<<<<<<<")
 	// debug
 
 	selected := p.selectPhonemes(phonemes, phoneme_opts)
@@ -115,9 +126,9 @@ func (p *Phonemizer) getPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 			}
 			tags = p.repository.LookupTags(orig, phoneme)
 			if (*opts.Tags)[i] == nil {
-				(*opts.Tags)[i] = make(map[[2]string][]string)
+				(*opts.Tags)[i] = make(map[string][]string)
 			}
-			(*opts.Tags)[i][[2]string{orig, phoneme}] = tags
+			(*opts.Tags)[i][phoneme] = tags
 
 			is_dict = slices.Contains(tags, "dict")
 			is_override = slices.Contains(tags, "override")
@@ -130,8 +141,7 @@ func (p *Phonemizer) getPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 						(*opts.DictOpts)[i] = &[2]string{orig, phoneme}
 						continue
 					}
-					k := [2]string{orig, phoneme}
-					prev_l := len((*opts.Tags)[i][k])
+					prev_l := len((*opts.Tags)[i][phoneme])
 					if len(tags) > prev_l {
 						(*opts.DictOpts)[i] = &[2]string{orig, phoneme}
 					}
