@@ -35,8 +35,9 @@ func (v *vMat) Load(flat []float32) {
 }
 
 type Kitten struct {
-	voice   *vMat
-	session *ort.DynamicAdvancedSession
+	token_map *TokenMap
+	voice     *vMat
+	session   *ort.DynamicAdvancedSession
 }
 
 func (k *Kitten) Deinit() {
@@ -79,9 +80,11 @@ func (k *Kitten) createTensors(sentence []int64) (
 	return input_tensor, voice_tensor, speed_tensor, nil
 }
 
-func (k *Kitten) RunInference(sentence []int64) ([]float32, error) {
+func (k *Kitten) RunInference(sentence string) ([]float32, error) {
 
-	input_tensor, voice_tensor, speed_tensor, err := k.createTensors(sentence)
+	tokens := k.token_map.TokenizeWord(sentence)
+
+	input_tensor, voice_tensor, speed_tensor, err := k.createTensors(tokens)
 	if err != nil {
 		return nil, err
 	}
@@ -149,9 +152,12 @@ func NewKitten(voice_name *string) *Kitten {
 		log.Fatalf("Error intializing session %+v", err)
 	}
 
+	token_map := BuildTokenMap()
+
 	return &Kitten{
-		voice:   &voice,
-		session: session,
+		token_map: &token_map,
+		voice:     &voice,
+		session:   session,
 	}
 
 }

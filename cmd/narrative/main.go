@@ -29,8 +29,6 @@ func main() {
 		panic(err)
 	}
 
-	token_map := kitten.BuildTokenMap()
-
 	phonemizer, err := phonemizer.NewPhonemizer()
 	if err != nil {
 		panic(err)
@@ -59,7 +57,7 @@ func main() {
 			panic(err)
 		}
 
-		waveform_data, err = kitten.RunInference(token_map.TokenizeWord(phonemized))
+		waveform_data, err = kitten.RunInference(phonemized)
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}

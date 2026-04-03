@@ -55,40 +55,6 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 	}
 	phoneme_opts := p.getPhonemeOptions(phonemes)
 
-	// debug
-	// fmt.Println(">>>>>>>>>>>> selection")
-	// fmt.Println("Tags: ")
-	// for i, k := range *phoneme_opts.WordOrigins {
-	// 	fmt.Println(k)
-	// 	for k, v := range (*phoneme_opts.Tags)[i] {
-	// 		fmt.Println("  - ", k)
-	// 		for _, t := range v {
-	// 			fmt.Println("     + ", t)
-	// 		}
-	// 	}
-
-	// }
-	// fmt.Println("Override:")
-	// for _, d := range *phoneme_opts.OverrideOpts {
-	// 	if d != nil {
-	// 		fmt.Printf(" - %s - %s\n", d[0], d[1])
-	// 	}
-	// }
-	// fmt.Println("Prefs:")
-	// for _, d := range *phoneme_opts.PrefOpts {
-	// 	if d != nil {
-	// 		fmt.Printf(" - %s - %s\n", d[0], d[1])
-	// 	}
-	// }
-	// fmt.Println("Dicts:")
-	// for _, d := range *phoneme_opts.DictOpts {
-	// 	if d != nil {
-	// 		fmt.Printf(" - %s - %s\n", d[0], d[1])
-	// 	}
-	// }
-	// fmt.Println("<<<<<<<<<<<<")
-	// debug
-
 	selected := p.selectPhonemes(phonemes, phoneme_opts)
 
 	phoneme_a := []string{}

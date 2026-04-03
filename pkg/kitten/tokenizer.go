@@ -16,6 +16,7 @@ func (t TokenMap) tokenize(char rune) int64 {
 	if val, ok := t[char]; ok {
 		return val
 	}
+	// todo
 	fmt.Printf("char %s not found in token map", string(char))
 	return -1
 }
