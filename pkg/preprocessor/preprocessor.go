@@ -42,10 +42,13 @@ func NewPreprocessor() *Preprocessor {
 	proc.RegisterFunc(normalizePunctuation)
 	proc.RegisterFunc(expandContractions)
 	proc.RegisterFunc(expandLeadingDecimals)
+	proc.RegisterFunc(expandCurrency)
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
 
+	proc.RegisterFunc(expandPercentages)
 	proc.RegisterFunc(expandOrdinals)
+	proc.RegisterFunc(expandUnits)
 	proc.RegisterFunc(expandTime)
 	proc.RegisterFunc(expandDecades)
 	proc.RegisterFunc(expandFractions)
