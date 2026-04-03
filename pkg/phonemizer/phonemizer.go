@@ -43,7 +43,7 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 	words, punct := SplitPunctuation(sentence)
 	phonemes := make([]map[string]uint32, len(words))
 	for i, w := range words {
-		phonemized_w, err := p.phonemizeWord(w)
+		phonemized_w, err := p.PhonemizeWord(w)
 		if err != nil {
 			return "", err
 		}
@@ -53,9 +53,9 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 			phonemes[i] = phonemized_w
 		}
 	}
-	phoneme_opts := p.getPhonemeOptions(phonemes)
+	phoneme_opts := p.GetPhonemeOptions(phonemes)
 
-	selected := p.selectPhonemes(phonemes, phoneme_opts)
+	selected := p.SelectPhonemes(phonemes, phoneme_opts)
 
 	phoneme_a := []string{}
 	for _, p := range selected {
@@ -66,7 +66,7 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 
 }
 
-func (p *Phonemizer) getPhonemeOptions(sentence []map[string]uint32) *PhonemeOptions {
+func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOptions {
 
 	opts := NewPhonemeOpts(len(sentence))
 
@@ -143,7 +143,7 @@ func (p *Phonemizer) getPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 	return opts
 }
 
-func (p *Phonemizer) selectPhonemes(
+func (p *Phonemizer) SelectPhonemes(
 	sentence []map[string]uint32,
 	opts *PhonemeOptions,
 ) [][2]string {
@@ -185,7 +185,7 @@ func (p *Phonemizer) selectPhonemes(
 	return result
 }
 
-func (p *Phonemizer) phonemizeWord(word string) (map[string]uint32, error) {
+func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 
 	if len(word) == 0 {
 		return nil, nil
