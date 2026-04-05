@@ -7,15 +7,17 @@ import (
 // Config stores all configuration
 // used for Narrative operation.
 type Config struct {
-	DebuggerMode bool
-	LogLevel     log.Level
+	DebuggerMode                 bool
+	LogLevel                     log.Level
+	UsePhonemeSelectionInference bool
 }
 
 // Initialize new config based on the options provided.
-func NewConfig(log_level log.Level, debug_mode bool) *Config {
+func NewConfig(log_level log.Level, debug_mode bool, use_selection_inference bool) *Config {
 	return &Config{
-		DebuggerMode: debug_mode,
-		LogLevel:     log_level,
+		DebuggerMode:                 debug_mode,
+		LogLevel:                     log_level,
+		UsePhonemeSelectionInference: use_selection_inference,
 	}
 }
 
@@ -24,5 +26,6 @@ func DefaultConfig() *Config {
 	return NewConfig(
 		log.ErrorLevel,
 		false,
+		true,
 	)
 }

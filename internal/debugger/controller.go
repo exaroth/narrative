@@ -67,11 +67,22 @@ func NewDebugger(fpath string) (*Debugger, error) {
 		sentenceData:    make(map[int]*sentenceData),
 	}
 
+	model := NewDebuggerModel(debugger)
+	debugger.model = model
+
 	return debugger, nil
 }
 
 func (d *Debugger) Deinit() {
 	d.ttsClient.Deinit()
+}
+
+func (d *Debugger) Run() {
+	p := tea.NewProgram(d.model)
+	if _, err := p.Run(); err != nil {
+		panic(err)
+	}
+
 }
 
 func (d *Debugger) play(sentence_n int) {
@@ -93,9 +104,7 @@ func (d *Debugger) getSentenceData(sentence_num uint) (*sentenceData, error) {
 	}
 	sentence := d.source[n]
 
-	fmt.Println("Original: ", sentence)
 	p_sentence := d.preprocessor.ProcessSentence(sentence)
-	fmt.Println("Processed: ", p_sentence)
 	words, punct := phonemizer.SplitPunctuation(p_sentence)
 
 	phonemes, opts, err := d.getPhonemeOptionsForSentence(words)
@@ -118,6 +127,7 @@ func (d *Debugger) getSentenceData(sentence_num uint) (*sentenceData, error) {
 		phonemized:       compacted,
 	}
 	d.sentenceData[n] = data
+	d.currentSentence = n
 
 	return data, nil
 }
@@ -130,7 +140,6 @@ func (d *Debugger) nextSentenceData() (*sentenceData, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.currentSentence += 1
 	return data, nil
 }
 
@@ -142,17 +151,7 @@ func (d *Debugger) prevSentenceData() (*sentenceData, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.currentSentence -= 1
 	return data, nil
-}
-
-func (d *Debugger) Run() error {
-	// for _, sentence := range d.source {
-	// 	if err := d.processSentence(sentence); err != nil {
-	// 		return err
-	// 	}
-	// }
-	return nil
 }
 
 func (d *Debugger) getPhonemeOptionsForSentence(sentence []string) (
