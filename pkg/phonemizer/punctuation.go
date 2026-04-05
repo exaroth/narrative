@@ -17,7 +17,32 @@ type Mark struct {
 	pad   uint8
 }
 
-func SplitPunctuation(text string) ([]string, []*Mark) {
+type Punctuation []*Mark
+
+// Convert punctuation data to array containing pre- and post-
+// prefixes for the sentence words.
+func (p Punctuation) AsArr(text_len int) [][2]string {
+
+	p_a := make([][2]string, text_len)
+
+	for _, mark := range p {
+		switch mark.pad {
+		case 0:
+			fallthrough
+		case 1:
+			p_a[mark.index][0] = p_a[mark.index][0] + mark.char
+		case 2:
+			p_a[mark.index][1] = p_a[mark.index][1] + mark.char
+		default:
+			// TODO
+			panic("Invalid pad value")
+		}
+	}
+	return p_a
+
+}
+
+func SplitPunctuation(text string) ([]string, Punctuation) {
 	text = strings.Trim(text, " ")
 	t_a := strings.Split(text, " ")
 	m_a := []*Mark{}
@@ -73,23 +98,9 @@ func SplitPunctuation(text string) ([]string, []*Mark) {
 	return t_a, m_a
 }
 
-func CompactPunctuation(text []string, punctuation []*Mark) string {
-	p_a := make([][2]string, len(text))
+func CompactPunctuation(text []string, punctuation Punctuation) string {
+	p_a := punctuation.AsArr(len(text))
 	result := make([]string, len(text))
-
-	for _, mark := range punctuation {
-		switch mark.pad {
-		case 0:
-			fallthrough
-		case 1:
-			p_a[mark.index][0] = p_a[mark.index][0] + mark.char
-		case 2:
-			p_a[mark.index][1] = p_a[mark.index][1] + mark.char
-		default:
-			// TODO
-			panic("Invalid pad value")
-		}
-	}
 
 	for i, t := range text {
 		p_m := p_a[i]
