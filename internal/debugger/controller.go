@@ -28,8 +28,6 @@ type sentenceData struct {
 type Debugger struct {
 	// all sentences from the input
 	source []string
-	// index of the current sentence
-	currentSentence int
 	// phonemization data for each sentence
 	sentenceData map[int]*sentenceData
 	model        tea.Model
@@ -57,17 +55,16 @@ func NewDebugger(fpath string) (*Debugger, error) {
 	kitten := kitten.NewKitten(nil)
 
 	debugger := &Debugger{
-		config:          config,
-		ttsClient:       kitten,
-		phonemizer:      phonemizer,
-		preprocessor:    preprocessor,
-		model:           nil,
-		source:          sentencizer.Sentencize(input),
-		currentSentence: 0,
-		sentenceData:    make(map[int]*sentenceData),
+		config:       config,
+		ttsClient:    kitten,
+		phonemizer:   phonemizer,
+		preprocessor: preprocessor,
+		model:        nil,
+		source:       sentencizer.Sentencize(input),
+		sentenceData: make(map[int]*sentenceData),
 	}
 
-	model := NewDebuggerModel(debugger)
+	model := NewDebuggerModel(debugger, 0)
 	debugger.model = model
 
 	return debugger, nil
@@ -127,30 +124,7 @@ func (d *Debugger) getSentenceData(sentence_num uint) (*sentenceData, error) {
 		phonemized:       compacted,
 	}
 	d.sentenceData[n] = data
-	d.currentSentence = n
 
-	return data, nil
-}
-
-func (d *Debugger) nextSentenceData() (*sentenceData, error) {
-	if d.currentSentence == len(d.source) {
-		return nil, nil
-	}
-	data, err := d.getSentenceData(uint(d.currentSentence + 1))
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-func (d *Debugger) prevSentenceData() (*sentenceData, error) {
-	if d.currentSentence == 0 {
-		return nil, nil
-	}
-	data, err := d.getSentenceData(uint(d.currentSentence - 1))
-	if err != nil {
-		return nil, err
-	}
 	return data, nil
 }
 

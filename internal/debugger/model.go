@@ -41,9 +41,10 @@ func tick() tea.Cmd {
 	})
 }
 
-func NewDebuggerModel(controller *Debugger) tea.Model {
+func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 	return &mainViewModel{
-		ctrl: controller,
+		ctrl:            controller,
+		currentSentence: sentence_idx,
 	}
 }
 
@@ -52,16 +53,46 @@ func (m mainViewModel) Init() tea.Cmd {
 	return nil
 }
 
+func (m *mainViewModel) selectPrevSentence() {
+	m.selectSentence(m.currentSentence - 1)
+}
+
+func (m *mainViewModel) selectNextSentence() {
+	m.selectSentence(m.currentSentence + 1)
+}
+
+func (m *mainViewModel) selectSentence(n int) {
+	if n < 0 {
+		n = 0
+	}
+	if n >= len(m.ctrl.source) {
+		n = len(m.ctrl.source) - 1
+	}
+	m.currentSentence = n
+	m.sentenceList.SetContent(m.renderList())
+
+}
+
 func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	var currentSentence = m.currentSentence
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
 			return m, tea.Quit
 		}
+		if k := msg.String(); k == "j" {
+			m.selectNextSentence()
+		}
+		if k := msg.String(); k == "k" {
+			m.selectPrevSentence()
+		}
 	case tea.WindowSizeMsg:
 		headerHeight := lipgloss.Height(m.headerView())
-		fmt.Println(headerHeight)
 		// get footer height
 		verticalMarginHeight := headerHeight
 		if !m.ready {
@@ -69,7 +100,8 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				viewport.WithWidth(msg.Width),
 				viewport.WithHeight(msg.Height-verticalMarginHeight),
 			)
-			m.sentenceList.SoftWrap = true
+			m.sentenceList.KeyMap = GetSentenceListKeymap()
+			m.sentenceList.YPosition = headerHeight
 			m.sentenceList.SetContent(m.renderList())
 			m.ready = true
 		} else {
@@ -78,14 +110,27 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tickMsg:
 		fmt.Println("tick")
-		// return m, tick()
+		return m, tick()
 	}
-	return m, nil
+
+	// update viewport on input
+	m.sentenceList, cmd = m.sentenceList.Update(msg)
+	cmds = append(cmds, cmd)
+
+	if currentSentence != m.currentSentence {
+		_, err := m.ctrl.getSentenceData(uint(m.currentSentence))
+		if err != nil {
+			// todo send
+		}
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m mainViewModel) View() tea.View {
 	var v tea.View
 	v.AltScreen = true
+	v.MouseMode = tea.MouseModeCellMotion
 	if !m.ready {
 		v.SetContent("\n  Initializing...")
 	} else {
