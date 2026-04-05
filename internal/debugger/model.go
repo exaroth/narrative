@@ -15,10 +15,31 @@ type tickMsg time.Time
 
 // sentence list styles
 var (
-	sentenceListBaseStyle      = lipgloss.NewStyle().MarginBottom(1).MarginLeft(1).Inline(true)
 	sentenceListDimColor       = lipgloss.Color("250")
-	sentenceListHighlightColor = lipgloss.Color("#EE6FF8")
+	sentenceListHighlightColor = lipgloss.Color("228")
+	sentenceListBaseStyle      = lipgloss.NewStyle().MarginBottom(1).MarginLeft(1).Inline(true)
 )
+
+// sentence introspection styles
+var (
+	sentencePanelWordStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("110"))
+	sentencePanelPunctStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("white"))
+	sentencePanelNumStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("250"))
+	sentencePanelPhonemeStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("222"))
+
+	sentencePanelStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		return lipgloss.NewStyle().
+			MarginBottom(1).
+			Height(12).
+			BorderStyle(b).
+			BorderForeground(lipgloss.Color("237")).
+			PaddingLeft(2).PaddingTop(1).PaddingRight(1)
+
+	}()
+)
+
+// title styles
 
 var (
 	titleStyle = func() lipgloss.Style {
@@ -49,6 +70,7 @@ func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 }
 
 func (m mainViewModel) Init() tea.Cmd {
+	m.selectSentence(m.currentSentence)
 	// return tick()
 	return nil
 }
@@ -69,6 +91,7 @@ func (m *mainViewModel) selectSentence(n int) {
 		n = len(m.ctrl.source) - 1
 	}
 	m.currentSentence = n
+	m.ctrl.getSentenceData(uint(n))
 	m.sentenceList.SetContent(m.renderList())
 
 }
@@ -78,7 +101,6 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
-	var currentSentence = m.currentSentence
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
@@ -93,8 +115,10 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		headerHeight := lipgloss.Height(m.headerView())
+		sentencePanelHeight := lipgloss.Height(m.sentencePanelView())
 		// get footer height
-		verticalMarginHeight := headerHeight
+		verticalMarginHeight := headerHeight + sentencePanelHeight
+
 		if !m.ready {
 			m.sentenceList = viewport.New(
 				viewport.WithWidth(msg.Width),
@@ -117,13 +141,6 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.sentenceList, cmd = m.sentenceList.Update(msg)
 	cmds = append(cmds, cmd)
 
-	if currentSentence != m.currentSentence {
-		_, err := m.ctrl.getSentenceData(uint(m.currentSentence))
-		if err != nil {
-			// todo send
-		}
-	}
-
 	return m, tea.Batch(cmds...)
 }
 
@@ -134,7 +151,7 @@ func (m mainViewModel) View() tea.View {
 	if !m.ready {
 		v.SetContent("\n  Initializing...")
 	} else {
-		v.SetContent(fmt.Sprintf("%s\n%s", m.headerView(), m.sentenceList.View()))
+		v.SetContent(fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.sentenceList.View(), m.sentencePanelView()))
 		m.ready = true
 	}
 
@@ -166,17 +183,59 @@ func (m mainViewModel) renderList() string {
 	return lipgloss.Sprint("\n", l, "\n")
 }
 
-// func (m model) renderSentenceParts() string {
+func (m mainViewModel) generateSentenceTranscription(use_phonemes bool) string {
+	var builder strings.Builder
+	m.selectSentence(m.currentSentence)
+	sentence_data := m.ctrl.sentenceData[m.currentSentence]
+	if sentence_data == nil {
+		panic("No opts found")
+	}
+	var words []string
+	var style lipgloss.Style
+	if use_phonemes {
+		style = sentencePanelPhonemeStyle
+		func() {
+			for _, e := range sentence_data.selectedPhonemes {
+				words = append(words, e[1])
+			}
+		}()
+	} else {
+		style = sentencePanelWordStyle
+		words = *sentence_data.opts.WordOrigins
+	}
+	punctuation := sentence_data.punctuation.AsArr(len(words))
 
-// }
+	var w, pre_punct, post_punct, num string
+	for idx, word := range words {
+		num = lipgloss.Sprint(sentencePanelNumStyle.Render(fmt.Sprintf("(%d)", idx+1)))
+		w = lipgloss.Sprint(style.Render(word))
+		pre_punct = lipgloss.Sprint(sentencePanelPunctStyle.Render(punctuation[idx][0]))
+		post_punct = lipgloss.Sprint(sentencePanelPunctStyle.Render(punctuation[idx][1]))
 
-// func (m model) generatePreProcParts() string {
+		if len(word) > 0 {
+			builder.WriteString(num)
+		}
 
-// }
+		builder.WriteString(pre_punct)
+		builder.WriteString(w)
+		builder.WriteString(post_punct)
+		builder.WriteString(" ")
+	}
+	if use_phonemes {
+		return fmt.Sprintf("Phonemes: %s", builder.String())
+	}
+	return fmt.Sprintf(" Input: %s", builder.String())
+}
 
-// func (m model) generatePhonemeParts() string {
+func (m mainViewModel) sentencePanelView() string {
 
-// }
+	output := sentencePanelStyle.Width(m.sentenceList.Width()).Render(
+		m.generateSentenceTranscription(false),
+		"\n\n",
+		m.generateSentenceTranscription(true),
+	)
+	return lipgloss.Sprint(output)
+}
 
 func (m mainViewModel) headerView() string {
 	title := titleStyle.Render("Narrative Debugger v0.1")

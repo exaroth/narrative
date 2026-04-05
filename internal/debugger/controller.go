@@ -20,7 +20,7 @@ type sentenceData struct {
 	// phonemes selected to be used
 	selectedPhonemes [][2]string
 	// array containing all punctuation in the sentence
-	punctuation []*phonemizer.Mark
+	punctuation phonemizer.Punctuation
 	// phonemized output
 	phonemized string
 }
