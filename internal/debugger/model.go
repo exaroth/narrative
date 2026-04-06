@@ -59,7 +59,7 @@ var (
 	phonemeViewSelectedPhoneme    = lipgloss.NewStyle().Foreground(lipgloss.Color("#F00"))
 )
 
-type mainViewModel struct {
+type debugModel struct {
 	ready           bool
 	phonemeView     bool
 	currentSentence int
@@ -78,19 +78,19 @@ func tick() tea.Cmd {
 }
 
 func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
-	return &mainViewModel{
+	return &debugModel{
 		ctrl:            controller,
 		currentSentence: sentence_idx,
 	}
 }
 
-func (m mainViewModel) Init() tea.Cmd {
+func (m debugModel) Init() tea.Cmd {
 	m.selectSentence(m.currentSentence)
 	// return tick()
 	return nil
 }
 
-func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -162,7 +162,7 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m mainViewModel) View() tea.View {
+func (m debugModel) View() tea.View {
 	var v tea.View
 	v.AltScreen = true
 	v.MouseMode = tea.MouseModeCellMotion
@@ -177,15 +177,15 @@ func (m mainViewModel) View() tea.View {
 	return v
 }
 
-func (m *mainViewModel) selectPrevSentence() {
+func (m *debugModel) selectPrevSentence() {
 	m.selectSentence(m.currentSentence - 1)
 }
 
-func (m *mainViewModel) selectNextSentence() {
+func (m *debugModel) selectNextSentence() {
 	m.selectSentence(m.currentSentence + 1)
 }
 
-func (m *mainViewModel) selectSentence(n int) {
+func (m *debugModel) selectSentence(n int) {
 	if n < 0 {
 		n = 0
 	}
@@ -198,7 +198,7 @@ func (m *mainViewModel) selectSentence(n int) {
 	m.sentenceList.SetContent(m.renderSentenceList())
 }
 
-func (m *mainViewModel) selectWord(w_n int) {
+func (m *debugModel) selectWord(w_n int) {
 	var data = (*m.ctrl.sentenceData[m.currentSentence])
 	var words = data.opts.WordOrigins
 
@@ -211,20 +211,20 @@ func (m *mainViewModel) selectWord(w_n int) {
 	m.currentWord = w_n
 }
 
-func (m *mainViewModel) selectNextWord() {
+func (m *debugModel) selectNextWord() {
 	m.selectWord(m.currentWord + 1)
 }
 
-func (m *mainViewModel) selectPrevWord() {
+func (m *debugModel) selectPrevWord() {
 	m.selectWord(m.currentWord - 1)
 }
 
-func (m *mainViewModel) setTermDimensions(w int, h int) {
+func (m *debugModel) setTermDimensions(w int, h int) {
 	m.width = w
 	m.height = h
 }
 
-func (m *mainViewModel) selectPhoneme(n int) {
+func (m *debugModel) selectPhoneme(n int) {
 	_, _, tags := m.getPhonemeOptionsForWord(m.currentWord)
 	phonemes := slices.Sorted(maps.Keys(tags))
 	if n < 0 {
@@ -236,15 +236,15 @@ func (m *mainViewModel) selectPhoneme(n int) {
 	m.selectedPhoneme = n
 }
 
-func (m *mainViewModel) selectNextPhoneme() {
+func (m *debugModel) selectNextPhoneme() {
 	m.selectPhoneme(m.selectedPhoneme + 1)
 }
 
-func (m *mainViewModel) selectPrevPhoneme() {
+func (m *debugModel) selectPrevPhoneme() {
 	m.selectPhoneme(m.selectedPhoneme - 1)
 }
 
-func (m *mainViewModel) selectDefaultPhoneme() {
+func (m *debugModel) selectDefaultPhoneme() {
 	_, def, tags := m.getPhonemeOptionsForWord(m.currentWord)
 	phonemes := slices.Sorted(maps.Keys(tags))
 
@@ -257,7 +257,7 @@ func (m *mainViewModel) selectDefaultPhoneme() {
 	m.selectPhoneme(0)
 }
 
-func (m *mainViewModel) getPhonemeOptionsForWord(word_n int) (string, string, map[string][]string) {
+func (m *debugModel) getPhonemeOptionsForWord(word_n int) (string, string, map[string][]string) {
 	s_data := m.ctrl.sentenceData[m.currentSentence]
 	if s_data == nil {
 		return "", "", nil
@@ -268,11 +268,11 @@ func (m *mainViewModel) getPhonemeOptionsForWord(word_n int) (string, string, ma
 	return origin, selected[1], tags
 }
 
-func (m *mainViewModel) togglePhonemeView() {
+func (m *debugModel) togglePhonemeView() {
 	m.phonemeView = !m.phonemeView
 }
 
-func (m mainViewModel) renderSentenceList() string {
+func (m debugModel) renderSentenceList() string {
 
 	l := list.New().
 		Enumerator(list.Arabic).
@@ -297,7 +297,7 @@ func (m mainViewModel) renderSentenceList() string {
 	return lipgloss.Sprint("\n", l, "\n")
 }
 
-func (m *mainViewModel) generateSentenceTranscription(use_phonemes bool) string {
+func (m *debugModel) generateSentenceTranscription(use_phonemes bool) string {
 	var builder strings.Builder
 	m.selectSentence(m.currentSentence)
 	sentence_data := m.ctrl.sentenceData[m.currentSentence]
@@ -343,7 +343,7 @@ func (m *mainViewModel) generateSentenceTranscription(use_phonemes bool) string 
 	return lipgloss.Sprintf(" Words    %s", builder.String())
 }
 
-func (m mainViewModel) phonemePanelView() string {
+func (m debugModel) phonemePanelView() string {
 	word, selected, tags := m.getPhonemeOptionsForWord(m.currentWord)
 	var builder strings.Builder
 
@@ -373,7 +373,7 @@ func (m mainViewModel) phonemePanelView() string {
 	return phonemeViewBaseStyle.Render(builder.String())
 }
 
-func (m mainViewModel) sentencePanelView() string {
+func (m debugModel) sentencePanelView() string {
 
 	output := sentencePanelStyle.Width(m.sentenceList.Width()).Render(
 		m.generateSentenceTranscription(false),
@@ -383,7 +383,7 @@ func (m mainViewModel) sentencePanelView() string {
 	return lipgloss.Sprint(output)
 }
 
-func (m mainViewModel) headerView() string {
+func (m debugModel) headerView() string {
 	title := titleStyle.Render("Narrative Debugger v0.1")
 	line := strings.Repeat("─", max(0, m.sentenceList.Width()-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
