@@ -39,14 +39,13 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 func (r *PhonemizerRepository) loadAuxDict(fpath string) error {
 	var f_reader fs.File
 	var err error
-
-	tagkey, tagjson, err := serializeTags(parseTags("[\"override\"]"))
-	if err != nil {
-		return err
-	}
+	var tagkey uint32
+	var tagjson string
 	if len(fpath) > 0 {
+		tagkey, tagjson, err = serializeTags(parseTags("[\"override-ext\"]"))
 		f_reader, err = os.Open(fpath)
 	} else {
+		tagkey, tagjson, err = serializeTags(parseTags("[\"override\"]"))
 		f_reader, err = dict.Language.Open(AUX_DICT_F_NAME)
 	}
 	if err != nil {

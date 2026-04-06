@@ -97,11 +97,16 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 			(*opts.Tags)[i][phoneme] = tags
 
 			is_dict = slices.Contains(tags, "dict")
-			is_override = slices.Contains(tags, "override")
+			is_override = slices.Contains(tags, "override") || slices.Contains(tags, "override-ext")
 			if is_dict || is_override {
 				inputmap[phoneme] = [2]uint32{k, 0}
 				if is_override {
-					(*opts.OverrideOpts)[i] = &[2]string{orig, phoneme}
+					prev := (*opts.Tags)[i][phoneme]
+					// dont set override phoneme if one was already set
+					// from external dict.
+					if !slices.Contains(prev, "override-ext") {
+						(*opts.OverrideOpts)[i] = &[2]string{orig, phoneme}
+					}
 				} else {
 					if (*opts.DictOpts)[i] == nil {
 						(*opts.DictOpts)[i] = &[2]string{orig, phoneme}
