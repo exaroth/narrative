@@ -6,6 +6,8 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io/fs"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -18,26 +20,35 @@ const DICT_F_NAME = "missing.all.zlib"
 const AUX_DICT_F_NAME = "aux_dict.csv"
 
 type PhonemizerRepository struct {
-	lang_words *map[string]map[string]uint32
-	lang_tags  *map[uint32]string
-	words_tags *map[[2]string]uint32
-	mut        *sync.RWMutex
+	langWords        *map[string]map[string]uint32
+	langTags         *map[uint32]string
+	wordTags         *map[[2]string]uint32
+	externalDictPath string
+	mut              *sync.RWMutex
 }
 
 func (r *PhonemizerRepository) LoadLanguage() error {
 	err := r.loadMainDict()
-	err = r.loadAuxDict()
+	err = r.loadAuxDict("")
+	if r.externalDictPath != "" {
+		err = r.loadAuxDict(r.externalDictPath)
+	}
 	return err
 }
 
-func (r *PhonemizerRepository) loadAuxDict() error {
+func (r *PhonemizerRepository) loadAuxDict(fpath string) error {
+	var f_reader fs.File
+	var err error
 
 	tagkey, tagjson, err := serializeTags(parseTags("[\"override\"]"))
 	if err != nil {
 		return err
 	}
-
-	f_reader, err := dict.Language.Open(AUX_DICT_F_NAME)
+	if len(fpath) > 0 {
+		f_reader, err = os.Open(fpath)
+	} else {
+		f_reader, err = dict.Language.Open(AUX_DICT_F_NAME)
+	}
 	if err != nil {
 		return err
 	}
@@ -49,7 +60,7 @@ func (r *PhonemizerRepository) loadAuxDict() error {
 		return err
 	}
 
-	(*r.lang_tags)[tagkey] = tagjson
+	(*r.langTags)[tagkey] = tagjson
 
 	var src, dst string
 	for _, rec := range recs {
@@ -58,11 +69,11 @@ func (r *PhonemizerRepository) loadAuxDict() error {
 		}
 		src = rec[0]
 		dst = rec[1]
-		if (*r.lang_words)[src] == nil {
-			(*r.lang_words)[src] = make(map[string]uint32)
+		if (*r.langWords)[src] == nil {
+			(*r.langWords)[src] = make(map[string]uint32)
 		}
-		(*r.lang_words)[src][dst] = tagkey
-		(*r.words_tags)[[2]string{src, dst}] = tagkey
+		(*r.langWords)[src][dst] = tagkey
+		(*r.wordTags)[[2]string{src, dst}] = tagkey
 	}
 	return nil
 }
@@ -113,13 +124,13 @@ func (r *PhonemizerRepository) loadMainDict() error {
 			return err
 		}
 
-		if (*r.lang_words)[src] == nil {
+		if (*r.langWords)[src] == nil {
 
-			(*r.lang_words)[src] = make(map[string]uint32)
+			(*r.langWords)[src] = make(map[string]uint32)
 
-		} else if m, ok := (*r.lang_words)[src][dst]; ok {
+		} else if m, ok := (*r.langWords)[src][dst]; ok {
 
-			existingTags := parseTags((*r.lang_tags)[m])
+			existingTags := parseTags((*r.langTags)[m])
 			var existing []string
 			for _, tag := range existingTags {
 				existing = append(existing, tag)
@@ -130,9 +141,9 @@ func (r *PhonemizerRepository) loadMainDict() error {
 			}
 		}
 
-		(*r.lang_words)[src][dst] = tagkey
-		(*r.lang_tags)[tagkey] = tagjson
-		(*r.words_tags)[[2]string{src, dst}] = tagkey
+		(*r.langWords)[src][dst] = tagkey
+		(*r.langTags)[tagkey] = tagjson
+		(*r.wordTags)[[2]string{src, dst}] = tagkey
 	}
 	return nil
 }
@@ -140,7 +151,7 @@ func (r *PhonemizerRepository) loadMainDict() error {
 func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32) {
 
 	r.mut.RLock()
-	found := (*r.lang_words)[word]
+	found := (*r.langWords)[word]
 	var foundCopy map[string]uint32
 	if len(found) > 0 {
 		foundCopy = make(map[string]uint32)
@@ -165,8 +176,8 @@ func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32
 func (r *PhonemizerRepository) LookupTags(word1, word2 string) []string {
 	r.mut.RLock()
 	// Copy the result while holding the mutex
-	tagKey := (*r.words_tags)[[2]string{word1, word2}]
-	found := (*r.lang_tags)[tagKey]
+	tagKey := (*r.wordTags)[[2]string{word1, word2}]
+	found := (*r.langTags)[tagKey]
 	r.mut.RUnlock()
 
 	if found == "" {
@@ -183,15 +194,15 @@ func (r *PhonemizerRepository) LookupTags(word1, word2 string) []string {
 }
 
 func NewPhonemizerRepository() *PhonemizerRepository {
-	lang_words := make(map[string]map[string]uint32)
-	lang_tags := make(map[uint32]string)
+	langWords := make(map[string]map[string]uint32)
+	langTags := make(map[uint32]string)
 	word_tags := make(map[[2]string]uint32)
 
 	return &PhonemizerRepository{
-		lang_words: &lang_words,
-		lang_tags:  &lang_tags,
-		words_tags: &word_tags,
-		mut:        &sync.RWMutex{},
+		langWords: &langWords,
+		langTags:  &langTags,
+		wordTags:  &word_tags,
+		mut:       &sync.RWMutex{},
 	}
 }
 
