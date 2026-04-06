@@ -22,10 +22,11 @@ var (
 
 // sentence introspection styles
 var (
-	sentencePanelWordStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("110"))
-	sentencePanelPunctStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("white"))
-	sentencePanelNumStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("250"))
-	sentencePanelPhonemeStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("222"))
+	sentencePanelPunctStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFF"))
+	sentencePanelNumStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("250"))
+	sentencePanelWordStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("110"))
+	sentencePanelPhonemeStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("222"))
+	sentencePanelSelectedWordStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#f00"))
 
 	sentencePanelStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
@@ -51,7 +52,11 @@ var (
 
 type mainViewModel struct {
 	ready           bool
+	phonemeView     bool
 	currentSentence int
+	currentWord     int
+	width           int
+	height          int
 	ctrl            *Debugger
 	sentenceList    viewport.Model
 }
@@ -66,6 +71,7 @@ func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 	return &mainViewModel{
 		ctrl:            controller,
 		currentSentence: sentence_idx,
+		currentWord:     0,
 	}
 }
 
@@ -92,8 +98,45 @@ func (m *mainViewModel) selectSentence(n int) {
 	}
 	m.currentSentence = n
 	m.ctrl.getSentenceData(uint(n))
-	m.sentenceList.SetContent(m.renderList())
 
+	m.sentenceList.SetContent(m.renderList())
+}
+
+func (m *mainViewModel) setTermDimensions(w int, h int) {
+	m.width = w
+	m.height = h
+}
+
+func (m *mainViewModel) selectWord(w_n int) {
+	var data = (*m.ctrl.sentenceData[m.currentSentence])
+	var words = data.opts.WordOrigins
+
+	if w_n < 0 {
+		w_n = len(*words) - 1
+	}
+	if w_n >= len(*words) {
+		w_n = 0
+	}
+	m.currentWord = w_n
+}
+
+func (m *mainViewModel) selectNextWord() {
+	m.selectWord(m.currentWord + 1)
+}
+
+func (m *mainViewModel) selectPrevWord() {
+	m.selectWord(m.currentWord - 1)
+}
+
+func (m *mainViewModel) getPhonemeOptionsForWord(word_n int) (string, string, map[string][]string) {
+	s_data := m.ctrl.sentenceData[m.currentSentence]
+	if s_data == nil {
+		return "", "", nil
+	}
+	origin := (*s_data.opts.WordOrigins)[word_n]
+	selected := s_data.selectedPhonemes[word_n]
+	tags := (*s_data.opts.Tags)[word_n]
+	return origin, selected[1], tags
 }
 
 func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -109,11 +152,23 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if k := msg.String(); k == "j" {
 			m.selectNextSentence()
+			m.selectWord(0)
 		}
 		if k := msg.String(); k == "k" {
 			m.selectPrevSentence()
+			m.selectWord(0)
 		}
+		if k := msg.String(); k == "l" || k == "tab" {
+			m.selectNextWord()
+		}
+		if k := msg.String(); k == "h" {
+			m.selectPrevWord()
+		}
+		// if k := msg.String(); k == "enter" {
+		// 	m.selectPrevSentence()
+		// }
 	case tea.WindowSizeMsg:
+		m.setTermDimensions(msg.Width, msg.Height)
 		headerHeight := lipgloss.Height(m.headerView())
 		sentencePanelHeight := lipgloss.Height(m.sentencePanelView())
 		// get footer height
@@ -183,7 +238,7 @@ func (m mainViewModel) renderList() string {
 	return lipgloss.Sprint("\n", l, "\n")
 }
 
-func (m mainViewModel) generateSentenceTranscription(use_phonemes bool) string {
+func (m *mainViewModel) generateSentenceTranscription(use_phonemes bool) string {
 	var builder strings.Builder
 	m.selectSentence(m.currentSentence)
 	sentence_data := m.ctrl.sentenceData[m.currentSentence]
@@ -194,11 +249,9 @@ func (m mainViewModel) generateSentenceTranscription(use_phonemes bool) string {
 	var style lipgloss.Style
 	if use_phonemes {
 		style = sentencePanelPhonemeStyle
-		func() {
-			for _, e := range sentence_data.selectedPhonemes {
-				words = append(words, e[1])
-			}
-		}()
+		for _, e := range sentence_data.selectedPhonemes {
+			words = append(words, e[1])
+		}
 	} else {
 		style = sentencePanelWordStyle
 		words = *sentence_data.opts.WordOrigins
@@ -208,7 +261,11 @@ func (m mainViewModel) generateSentenceTranscription(use_phonemes bool) string {
 	var w, pre_punct, post_punct, num string
 	for idx, word := range words {
 		num = lipgloss.Sprint(sentencePanelNumStyle.Render(fmt.Sprintf("(%d)", idx+1)))
-		w = lipgloss.Sprint(style.Render(word))
+		if idx == m.currentWord {
+			w = lipgloss.Sprint(sentencePanelSelectedWordStyle.Render(word))
+		} else {
+			w = lipgloss.Sprint(style.Render(word))
+		}
 		pre_punct = lipgloss.Sprint(sentencePanelPunctStyle.Render(punctuation[idx][0]))
 		post_punct = lipgloss.Sprint(sentencePanelPunctStyle.Render(punctuation[idx][1]))
 

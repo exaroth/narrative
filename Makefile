@@ -19,3 +19,7 @@ run:
 .PHONY: play
 play:
 	ffplay  -vn -v quiet -autoexit -f f32le -ar  44100 -showmode 1 out.bin
+
+.PHONY: debugger
+debugger:
+	go run ./cmd/debugger/main.go ./dump/kafka-on-the-shore.txt
