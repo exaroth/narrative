@@ -361,8 +361,13 @@ func (m mainViewModel) phonemePanelView() string {
 		} else {
 			builder.WriteString(lipgloss.Sprintf("%d) %s : \n", idx+1, phoneme))
 		}
-		for _, tag := range tags[phoneme] {
-			builder.WriteString(lipgloss.Sprintf("  - %s \n", tag))
+		// phonemes without tags are implied to be inferred
+		if len(tags[phoneme]) == 0 {
+			builder.WriteString(lipgloss.Sprint("  - INFERRED \n"))
+		} else {
+			for _, tag := range tags[phoneme] {
+				builder.WriteString(lipgloss.Sprintf("  - %s \n", tag))
+			}
 		}
 	}
 	return phonemeViewBaseStyle.Render(builder.String())
