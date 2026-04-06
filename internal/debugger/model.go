@@ -2,6 +2,8 @@ package debugger
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 	"time"
 
@@ -36,18 +38,24 @@ var (
 			BorderStyle(b).
 			BorderForeground(lipgloss.Color("237")).
 			PaddingLeft(2).PaddingTop(1).PaddingRight(1)
-
 	}()
 )
 
 // title styles
-
 var (
 	titleStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
 		b.Right = "├"
-		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+		return lipgloss.NewStyle().Bold(true).BorderStyle(b).Padding(0, 1)
 	}()
+)
+
+// Phoneme view styles
+
+var (
+	phonemeViewBaseStyle          = lipgloss.NewStyle().Padding(1)
+	phonemeViewHeaderWordStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFF"))
+	phonemeViewheaderPhonemeStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFF"))
 )
 
 type mainViewModel struct {
@@ -55,6 +63,7 @@ type mainViewModel struct {
 	phonemeView     bool
 	currentSentence int
 	currentWord     int
+	selectedPhoneme int
 	width           int
 	height          int
 	ctrl            *Debugger
@@ -81,64 +90,6 @@ func (m mainViewModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *mainViewModel) selectPrevSentence() {
-	m.selectSentence(m.currentSentence - 1)
-}
-
-func (m *mainViewModel) selectNextSentence() {
-	m.selectSentence(m.currentSentence + 1)
-}
-
-func (m *mainViewModel) selectSentence(n int) {
-	if n < 0 {
-		n = 0
-	}
-	if n >= len(m.ctrl.source) {
-		n = len(m.ctrl.source) - 1
-	}
-	m.currentSentence = n
-	m.ctrl.getSentenceData(uint(n))
-
-	m.sentenceList.SetContent(m.renderList())
-}
-
-func (m *mainViewModel) setTermDimensions(w int, h int) {
-	m.width = w
-	m.height = h
-}
-
-func (m *mainViewModel) selectWord(w_n int) {
-	var data = (*m.ctrl.sentenceData[m.currentSentence])
-	var words = data.opts.WordOrigins
-
-	if w_n < 0 {
-		w_n = len(*words) - 1
-	}
-	if w_n >= len(*words) {
-		w_n = 0
-	}
-	m.currentWord = w_n
-}
-
-func (m *mainViewModel) selectNextWord() {
-	m.selectWord(m.currentWord + 1)
-}
-
-func (m *mainViewModel) selectPrevWord() {
-	m.selectWord(m.currentWord - 1)
-}
-
-func (m *mainViewModel) getPhonemeOptionsForWord(word_n int) (string, string, map[string][]string) {
-	s_data := m.ctrl.sentenceData[m.currentSentence]
-	if s_data == nil {
-		return "", "", nil
-	}
-	origin := (*s_data.opts.WordOrigins)[word_n]
-	selected := s_data.selectedPhonemes[word_n]
-	tags := (*s_data.opts.Tags)[word_n]
-	return origin, selected[1], tags
-}
-
 func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -147,26 +98,32 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
-			return m, tea.Quit
+		if m.phonemeView {
+			if k := msg.String(); k == "q" || k == "esc" {
+				m.togglePhonemeView()
+			}
+		} else {
+			if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
+				return m, tea.Quit
+			}
+			if k := msg.String(); k == "j" {
+				m.selectNextSentence()
+				m.selectWord(0)
+			}
+			if k := msg.String(); k == "k" {
+				m.selectPrevSentence()
+				m.selectWord(0)
+			}
+			if k := msg.String(); k == "l" || k == "tab" {
+				m.selectNextWord()
+			}
+			if k := msg.String(); k == "h" {
+				m.selectPrevWord()
+			}
+			if k := msg.String(); k == "enter" {
+				m.togglePhonemeView()
+			}
 		}
-		if k := msg.String(); k == "j" {
-			m.selectNextSentence()
-			m.selectWord(0)
-		}
-		if k := msg.String(); k == "k" {
-			m.selectPrevSentence()
-			m.selectWord(0)
-		}
-		if k := msg.String(); k == "l" || k == "tab" {
-			m.selectNextWord()
-		}
-		if k := msg.String(); k == "h" {
-			m.selectPrevWord()
-		}
-		// if k := msg.String(); k == "enter" {
-		// 	m.selectPrevSentence()
-		// }
 	case tea.WindowSizeMsg:
 		m.setTermDimensions(msg.Width, msg.Height)
 		headerHeight := lipgloss.Height(m.headerView())
@@ -205,12 +162,75 @@ func (m mainViewModel) View() tea.View {
 	v.MouseMode = tea.MouseModeCellMotion
 	if !m.ready {
 		v.SetContent("\n  Initializing...")
+	} else if m.phonemeView {
+		v.SetContent(fmt.Sprintf("%s\n%s", m.headerView(), m.phonemePanelView()))
 	} else {
 		v.SetContent(fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.sentenceList.View(), m.sentencePanelView()))
 		m.ready = true
 	}
-
 	return v
+}
+
+func (m *mainViewModel) selectPrevSentence() {
+	m.selectSentence(m.currentSentence - 1)
+}
+
+func (m *mainViewModel) selectNextSentence() {
+	m.selectSentence(m.currentSentence + 1)
+}
+
+func (m *mainViewModel) selectSentence(n int) {
+	if n < 0 {
+		n = 0
+	}
+	if n >= len(m.ctrl.source) {
+		n = len(m.ctrl.source) - 1
+	}
+	m.currentSentence = n
+	m.ctrl.getSentenceData(uint(n))
+
+	m.sentenceList.SetContent(m.renderList())
+}
+
+func (m *mainViewModel) selectWord(w_n int) {
+	var data = (*m.ctrl.sentenceData[m.currentSentence])
+	var words = data.opts.WordOrigins
+
+	if w_n < 0 {
+		w_n = len(*words) - 1
+	}
+	if w_n >= len(*words) {
+		w_n = 0
+	}
+	m.currentWord = w_n
+}
+
+func (m *mainViewModel) selectNextWord() {
+	m.selectWord(m.currentWord + 1)
+}
+
+func (m *mainViewModel) selectPrevWord() {
+	m.selectWord(m.currentWord - 1)
+}
+
+func (m *mainViewModel) setTermDimensions(w int, h int) {
+	m.width = w
+	m.height = h
+}
+
+func (m *mainViewModel) getPhonemeOptionsForWord(word_n int) (string, string, map[string][]string) {
+	s_data := m.ctrl.sentenceData[m.currentSentence]
+	if s_data == nil {
+		return "", "", nil
+	}
+	origin := (*s_data.opts.WordOrigins)[word_n]
+	selected := s_data.selectedPhonemes[word_n]
+	tags := (*s_data.opts.Tags)[word_n]
+	return origin, selected[1], tags
+}
+
+func (m *mainViewModel) togglePhonemeView() {
+	m.phonemeView = !m.phonemeView
 }
 
 func (m mainViewModel) renderList() string {
@@ -282,6 +302,27 @@ func (m *mainViewModel) generateSentenceTranscription(use_phonemes bool) string 
 		return fmt.Sprintf("Phonemes: %s", builder.String())
 	}
 	return fmt.Sprintf(" Input: %s", builder.String())
+}
+
+func (m mainViewModel) phonemePanelView() string {
+	word, selected, tags := m.getPhonemeOptionsForWord(m.currentWord)
+	var builder strings.Builder
+
+	builder.WriteString(lipgloss.Sprintf(
+		"%s / %s\n\n",
+		phonemeViewHeaderWordStyle.Render(word),
+		phonemeViewheaderPhonemeStyle.Render(selected),
+	))
+
+	keys := slices.Sorted(maps.Keys(tags))
+
+	for idx, phoneme := range keys {
+		builder.WriteString(lipgloss.Sprintf("%d) %s : \n", idx+1, phoneme))
+		for _, tag := range tags[phoneme] {
+			builder.WriteString(lipgloss.Sprintf("  - %s \n", tag))
+		}
+	}
+	return phonemeViewBaseStyle.Render(builder.String())
 }
 
 func (m mainViewModel) sentencePanelView() string {
