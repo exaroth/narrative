@@ -101,10 +101,15 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 			if is_dict || is_override {
 				inputmap[phoneme] = [2]uint32{k, 0}
 				if is_override {
-					prev := (*opts.Tags)[i][phoneme]
 					// dont set override phoneme if one was already set
 					// from external dict.
-					if !slices.Contains(prev, "override-ext") {
+					if (*opts.OverrideOpts)[i] != nil {
+						if slices.Contains(tags, "override-ext") {
+							(*opts.OverrideOpts)[i] = &[2]string{orig, phoneme}
+						} else {
+							continue
+						}
+					} else {
 						(*opts.OverrideOpts)[i] = &[2]string{orig, phoneme}
 					}
 				} else {
