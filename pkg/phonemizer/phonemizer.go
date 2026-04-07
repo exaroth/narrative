@@ -242,6 +242,10 @@ func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 
 }
 
+func (p *Phonemizer) ReloadDictionaries(req DictionaryReloadRequest) error {
+	return p.repository.Reload(req)
+}
+
 func NewPhonemizer(external_dict_path string) (*Phonemizer, error) {
 	repo := NewPhonemizerRepository(external_dict_path)
 	pho := NewHashtronPhonemizer(nil, false)

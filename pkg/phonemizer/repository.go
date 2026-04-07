@@ -19,6 +19,14 @@ import (
 const DICT_F_NAME = "missing.all.zlib"
 const AUX_DICT_F_NAME = "aux_dict.csv"
 
+type DictionaryReloadRequest int
+
+const (
+	ReloadRequestDict = iota
+	ReloadRequestAux
+	ReloadRequestExt
+)
+
 type PhonemizerRepository struct {
 	langWords        *map[string]map[string]uint32
 	langTags         *map[uint32]string
@@ -34,6 +42,39 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 		err = r.loadAuxDict(r.externalDictPath)
 	}
 	return err
+}
+
+func (r *PhonemizerRepository) Reload(request DictionaryReloadRequest) error {
+	var dict_r, aux_r, ext_r bool
+	var err error
+	switch request {
+	case ReloadRequestDict:
+		dict_r = true
+	case ReloadRequestAux:
+		dict_r = true
+		aux_r = true
+	case ReloadRequestExt:
+		dict_r = true
+		aux_r = true
+		ext_r = true
+	}
+
+	if dict_r {
+		if err = r.loadMainDict(); err != nil {
+			return err
+		}
+	}
+	if aux_r {
+		if err = r.loadAuxDict(""); err != nil {
+			return err
+		}
+	}
+	if ext_r {
+		if err = r.loadAuxDict(r.externalDictPath); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *PhonemizerRepository) loadAuxDict(fpath string) error {
