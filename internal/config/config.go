@@ -7,8 +7,8 @@ import (
 // Config stores all configuration
 // used for Narrative operation.
 type Config struct {
-	DebuggerMode                 bool
 	LogLevel                     log.Level
+	DebuggerMode                 bool
 	UsePhonemeSelectionInference bool
 	// remove trailing hyphenes from phonemes,
 	// ass kitten tts does not like those

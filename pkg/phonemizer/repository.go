@@ -192,16 +192,17 @@ func (r *PhonemizerRepository) LookupTags(word1, word2 string) []string {
 	return json_tags
 }
 
-func NewPhonemizerRepository() *PhonemizerRepository {
+func NewPhonemizerRepository(external_dict_path string) *PhonemizerRepository {
 	langWords := make(map[string]map[string]uint32)
 	langTags := make(map[uint32]string)
 	word_tags := make(map[[2]string]uint32)
 
 	return &PhonemizerRepository{
-		langWords: &langWords,
-		langTags:  &langTags,
-		wordTags:  &word_tags,
-		mut:       &sync.RWMutex{},
+		langWords:        &langWords,
+		langTags:         &langTags,
+		wordTags:         &word_tags,
+		externalDictPath: external_dict_path,
+		mut:              &sync.RWMutex{},
 	}
 }
 

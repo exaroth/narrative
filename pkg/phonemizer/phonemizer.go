@@ -237,8 +237,8 @@ func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 
 }
 
-func NewPhonemizer() (*Phonemizer, error) {
-	repo := NewPhonemizerRepository()
+func NewPhonemizer(external_dict_path string) (*Phonemizer, error) {
+	repo := NewPhonemizerRepository(external_dict_path)
 	pho := NewHashtronPhonemizer(nil, false)
 	selector := NewPhonemeSelector(nil)
 

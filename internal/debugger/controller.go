@@ -3,8 +3,8 @@ package debugger
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/exaroth/narrative/internal/config"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/preprocessor"
@@ -29,24 +29,66 @@ type Debugger struct {
 	// all sentences from the input
 	source []string
 	// phonemization data for each sentence
-	sentenceData map[int]*sentenceData
-	model        tea.Model
-	config       *config.Config
-	ttsClient    *kitten.Kitten
-	phonemizer   *phonemizer.Phonemizer
-	preprocessor *preprocessor.Preprocessor
+	sentenceData    map[int]*sentenceData
+	model           tea.Model
+	config          *Config
+	extDictPath     string
+	missingDictPath string
+	ttsClient       *kitten.Kitten
+	phonemizer      *phonemizer.Phonemizer
+	preprocessor    *preprocessor.Preprocessor
 }
 
-func NewDebugger(fpath string) (*Debugger, error) {
-	config := config.DefaultConfig()
-	config.DebuggerMode = true
-
-	input, err := os.ReadFile(fpath)
-	if err != nil {
-		return nil, fmt.Errorf("debugger init err; invalid input %s: %w", fpath, err)
+// Initialize debugger directory along with
+// dictionaries inside.
+func initDebuggerDir(config *Config) ([]string, error) {
+	var err error
+	d_path := config.debuggerDirPathName
+	if !filepath.IsAbs(d_path) {
+		d_path, err = filepath.Abs(config.debuggerDirPathName)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if _, err = os.Stat(d_path); err != nil {
+		err = os.Mkdir(d_path, 0755)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	phonemizer, err := phonemizer.NewPhonemizer()
+	d_filenames := []string{
+		config.externalDictFName,
+		config.missingDictFName,
+	}
+	var result []string
+	for _, f := range d_filenames {
+		f_path := filepath.Join(d_path, f)
+		if _, err = os.Stat(f_path); err != nil {
+			_, err = os.Create(f_path)
+			if err != nil {
+				return nil, err
+			}
+		}
+		result = append(result, f_path)
+	}
+
+	return result, nil
+}
+
+func NewDebugger(input_fpath string) (*Debugger, error) {
+	config := DefaultConfig()
+
+	input, err := os.ReadFile(input_fpath)
+	if err != nil {
+		return nil, fmt.Errorf("debugger init err; invalid input %s: %w", input_fpath, err)
+	}
+	paths, err := initDebuggerDir(config)
+	if err != nil {
+		return nil, fmt.Errorf("err initializing debugger dir: %w", err)
+	}
+
+	phonemizer, err := phonemizer.NewPhonemizer(paths[0])
 	if err != nil {
 		return nil, fmt.Errorf("debugger init err; phonemizer init: %w", err)
 	}

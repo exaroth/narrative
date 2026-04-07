@@ -13,8 +13,6 @@ import (
 	"github.com/exaroth/narrative/bubbles/viewport"
 )
 
-type tickMsg time.Time
-
 // sentence list styles
 var (
 	sentenceListDimColor       = lipgloss.Color("250")
@@ -59,6 +57,14 @@ var (
 	phonemeViewSelectedPhoneme    = lipgloss.NewStyle().Foreground(lipgloss.Color("#F00"))
 )
 
+type tickMsg time.Time
+
+func tick() tea.Cmd {
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return tickMsg(t)
+	})
+}
+
 type debugModel struct {
 	ready           bool
 	phonemeView     bool
@@ -69,12 +75,6 @@ type debugModel struct {
 	height          int
 	ctrl            *Debugger
 	sentenceList    viewport.Model
-}
-
-func tick() tea.Cmd {
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-		return tickMsg(t)
-	})
 }
 
 func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
