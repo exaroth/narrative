@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	charm.land/bubbles/v2 v2.1.0 // indirect
 	github.com/alexflint/go-arg v1.6.1 // indirect
 	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.2 // indirect
@@ -33,7 +34,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.21 // indirect
 	github.com/maypok86/otter v1.2.4 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/neurlang/quaternary v0.2.4 // indirect
