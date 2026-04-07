@@ -1,8 +1,8 @@
 package debugger
 
 import (
-	"github.com/exaroth/narrative/bubbles/key"
-	"github.com/exaroth/narrative/bubbles/viewport"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/viewport"
 )
 
 func GetSentenceListKeymap() viewport.KeyMap {

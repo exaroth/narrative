@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/list"
-	"github.com/exaroth/narrative/bubbles/viewport"
 )
 
 // sentence list styles
