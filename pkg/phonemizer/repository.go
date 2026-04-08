@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"maps"
 	"os"
 	"sort"
 	"strings"
@@ -45,6 +46,14 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 }
 
 func (r *PhonemizerRepository) Reload(request DictionaryReloadRequest) error {
+
+	lang_words := make(map[string]map[string]uint32)
+	lang_tags := make(map[uint32]string)
+	word_tags := make(map[[2]string]uint32)
+	r.langWords = &lang_words
+	r.langTags = &lang_tags
+	r.wordTags = &word_tags
+
 	var dict_r, aux_r, ext_r bool
 	var err error
 	switch request {
@@ -195,21 +204,16 @@ func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32
 	var foundCopy map[string]uint32
 	if len(found) > 0 {
 		foundCopy = make(map[string]uint32)
-		for k, v := range found {
-			foundCopy[k] = v
-		}
+		maps.Copy(foundCopy, found)
 	}
 	r.mut.RUnlock()
 
 	if len(foundCopy) == 0 {
 		return nil
 	}
-	var m = make(map[string]uint32)
-	for k, v := range foundCopy {
-		m[k] = v
-	}
-	m[word+" "] = 0
-	ret = append(ret, m)
+
+	foundCopy[word+" "] = 0
+	ret = append(ret, foundCopy)
 	return
 }
 
@@ -234,13 +238,13 @@ func (r *PhonemizerRepository) LookupTags(word1, word2 string) []string {
 }
 
 func NewPhonemizerRepository(external_dict_path string) *PhonemizerRepository {
-	langWords := make(map[string]map[string]uint32)
-	langTags := make(map[uint32]string)
+	lang_words := make(map[string]map[string]uint32)
+	lang_tags := make(map[uint32]string)
 	word_tags := make(map[[2]string]uint32)
 
 	return &PhonemizerRepository{
-		langWords:        &langWords,
-		langTags:         &langTags,
+		langWords:        &lang_words,
+		langTags:         &lang_tags,
 		wordTags:         &word_tags,
 		externalDictPath: external_dict_path,
 		mut:              &sync.RWMutex{},
@@ -264,7 +268,8 @@ func parseTags(cell string) (ret map[uint32]string) {
 	if err != nil {
 
 		// todo
-		fmt.Errorf("Cell tag: %s, Error: %v", cell, err)
+		// fmt.Errorf("Cell tag: %s, Error: %v", cell, err)
+		fmt.Println(err)
 	}
 	for _, v := range tags {
 		ret[hash.StringHash(0, v)] = v
