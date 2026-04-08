@@ -137,6 +137,15 @@ func (d *Debugger) play(sentence_n int) {
 	// }
 }
 
+func (d *Debugger) updateExtDict(word, phoneme string) error {
+	d.extDict.Update(word, phoneme)
+	// todo log error
+	if err := d.extDict.Save(); err != nil {
+		return err
+	}
+	return d.phonemizer.ReloadDictionaries(phonemizer.ReloadRequestExt)
+}
+
 func (d *Debugger) getSentenceData(sentence_num uint) (*sentenceData, error) {
 	n := int(sentence_num)
 

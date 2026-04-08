@@ -108,6 +108,9 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if k := msg.String(); k == "k" || k == "tab" {
 				m.selectNextPhoneme()
 			}
+			if k := msg.String(); k == "enter" {
+				m.updateExtDict()
+			}
 		} else {
 			if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
 				return m, tea.Quit
@@ -175,6 +178,22 @@ func (m debugModel) View() tea.View {
 		m.ready = true
 	}
 	return v
+}
+
+func (m *debugModel) getCurrentWord() string {
+	if val, ok := m.ctrl.sentenceData[m.currentSentence]; ok {
+		return (*val.opts.WordOrigins)[m.currentWord]
+	}
+	return ""
+}
+
+func (m *debugModel) getCurrentPhoneme() string {
+	_, _, tags := m.getPhonemeOptionsForWord(m.currentWord)
+	return slices.Sorted(maps.Keys(tags))[m.selectedPhoneme]
+}
+
+func (m *debugModel) updateExtDict() {
+	m.ctrl.updateExtDict(m.getCurrentWord(), m.getCurrentPhoneme())
 }
 
 func (m *debugModel) selectPrevSentence() {
