@@ -11,6 +11,11 @@ import (
 
 type ClosePhonemePanelCmd struct{}
 
+type UpdatePhonemeCmd struct {
+	word, phoneme string
+	sentence_num  int
+}
+
 type phonemePanel struct {
 	word            string
 	selectedPhoneme string
@@ -32,6 +37,7 @@ func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n int) *phonemePanel {
 		word:            origin,
 		selectedPhoneme: selected[1],
 		available:       tags,
+		sentenceNum:     sentence_n,
 		phonemesSorted:  slices.Sorted(maps.Keys(tags)),
 	}
 
@@ -61,8 +67,7 @@ func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.selectNextPhoneme()
 		}
 		if k := msg.String(); k == "enter" {
-			// p.updateExtDict()
-			// p.togglePhonemeView()
+			cmds = append(cmds, p.updatePhoneme())
 		}
 	}
 	return p, tea.Batch(cmds...)
@@ -96,6 +101,17 @@ func (p *phonemePanel) selectNextPhoneme() {
 
 func (p *phonemePanel) selectPrevPhoneme() {
 	p.selectPhoneme(p.currentPhoneme - 1)
+}
+
+func (p *phonemePanel) updatePhoneme() tea.Cmd {
+
+	return func() tea.Msg {
+		return UpdatePhonemeCmd{
+			word:         p.word,
+			phoneme:      p.phonemesSorted[p.currentPhoneme],
+			sentence_num: p.sentenceNum,
+		}
+	}
 }
 
 func (p *phonemePanel) selectDefaultPhoneme() {

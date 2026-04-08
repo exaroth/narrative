@@ -55,6 +55,9 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.setPhonemeMode(msg.currentSentence, msg.currentWord)
 	case ClosePhonemePanelCmd:
 		m.setListMode()
+	case UpdatePhonemeCmd:
+		m.updateExtDict(msg.word, msg.phoneme, msg.sentence_num)
+		m.setListMode()
 	}
 
 	switch m.mode {
@@ -70,19 +73,20 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m debugModel) View() tea.View {
+	var v tea.View
+	v.AltScreen = true
 	switch m.mode {
 	case listMode:
-		return m.sentenceList.View()
+		v = m.sentenceList.View()
 	case phonemeMode:
-		return m.phonemePanel.View()
+		v = m.phonemePanel.View()
 	}
-	// might as well default to list here.
-	return m.sentenceList.View()
+	return v
 }
 
 func (m *debugModel) updateExtDict(word, phoneme string, sentence_n int) {
 	m.ctrl.updateExtDict(word, phoneme)
-	// m.ctrl.clearCache(m.currentSentence)
+	m.ctrl.clearCache(sentence_n)
 }
 
 func (m *debugModel) setTermDimensions(w int, h int) {

@@ -62,9 +62,8 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if k := msg.String(); k == "enter" {
 			cmds = append(cmds, s.openPhonemePanel())
-			// s.togglePhonemeView()
-			// s.selectDefaultPhoneme()
 		}
+
 	case tea.WindowSizeMsg:
 		headerHeight := lipgloss.Height(s.headerView())
 		sentencePanelHeight := lipgloss.Height(s.sentencePanelView())
@@ -102,7 +101,7 @@ func (s sentenceList) View() tea.View {
 	return v
 }
 
-func (s sentenceList) openPhonemePanel() tea.Cmd {
+func (s *sentenceList) openPhonemePanel() tea.Cmd {
 	return func() tea.Msg {
 		return OpenPhonemePanelCmd{
 			currentSentence: s.currentSentence,
