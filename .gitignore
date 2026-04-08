@@ -11,10 +11,12 @@ packs
 out.bin
 scratch.go
 book.gob
-scratch
-dump
-lib
 dictionary.*
+/scratch
+/lib
+/dump
+/models
+/narrative-debugger
 
 .tts-processing.lock
 .tts-playback.lock
@@ -22,4 +24,3 @@ rtts-s
 tts-s
 dict-s
 playback-s
-narrative-debugger
