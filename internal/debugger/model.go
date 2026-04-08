@@ -1,7 +1,6 @@
 package debugger
 
 import (
-	"fmt"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
@@ -73,14 +72,13 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m debugModel) View() tea.View {
-	var v tea.View
 	switch m.mode {
 	case listMode:
-		v.SetContent(fmt.Sprintf("%s\n", m.sentenceList.View()))
+		return m.sentenceList.View()
 	case phonemeMode:
-		v.SetContent(fmt.Sprintf("%s", m.phonemePanel.View()))
+		return m.phonemePanel.View()
 	}
-	return v
+	return tea.NewView("Error")
 }
 
 func (m *debugModel) updateExtDict(word, phoneme string, sentence_n int) {

@@ -68,8 +68,7 @@ func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (p phonemePanel) View() tea.View {
 	var v tea.View
-	// v.SetContent(p.phonemePanelView())
-	v.SetContent("depro")
+	v.SetContent(p.phonemePanelView())
 	return v
 }
 
