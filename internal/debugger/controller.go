@@ -146,6 +146,10 @@ func (d *Debugger) updateExtDict(word, phoneme string) error {
 	return d.phonemizer.ReloadDictionaries(phonemizer.ReloadRequestExt)
 }
 
+func (d *Debugger) clearCache(sentence_n int) {
+	delete(d.sentenceData, sentence_n)
+}
+
 func (d *Debugger) getSentenceData(sentence_num uint) (*sentenceData, error) {
 	n := int(sentence_num)
 

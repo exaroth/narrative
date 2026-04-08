@@ -110,6 +110,7 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if k := msg.String(); k == "enter" {
 				m.updateExtDict()
+				m.togglePhonemeView()
 			}
 		} else {
 			if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
@@ -194,6 +195,7 @@ func (m *debugModel) getCurrentPhoneme() string {
 
 func (m *debugModel) updateExtDict() {
 	m.ctrl.updateExtDict(m.getCurrentWord(), m.getCurrentPhoneme())
+	m.ctrl.clearCache(m.currentSentence)
 }
 
 func (m *debugModel) selectPrevSentence() {
