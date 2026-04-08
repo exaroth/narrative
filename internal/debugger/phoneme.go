@@ -28,16 +28,18 @@ func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n int) *phonemePanel {
 	selected := s_data.selectedPhonemes[word_n]
 	tags := (*s_data.opts.Tags)[word_n]
 
-	return &phonemePanel{
+	p := &phonemePanel{
 		word:            origin,
 		selectedPhoneme: selected[1],
 		available:       tags,
 		phonemesSorted:  slices.Sorted(maps.Keys(tags)),
 	}
+
+	p.selectDefaultPhoneme()
+	return p
 }
 
 func (p phonemePanel) Init() tea.Cmd {
-	p.selectDefaultPhoneme()
 	return nil
 }
 
@@ -79,11 +81,10 @@ func (p phonemePanel) closePhonemePanel() tea.Cmd {
 }
 
 func (p *phonemePanel) selectPhoneme(n int) {
-	phonemes := slices.Sorted(maps.Keys(p.available))
 	if n < 0 {
-		n = len(phonemes) - 1
+		n = len(p.phonemesSorted) - 1
 	}
-	if n >= len(phonemes) {
+	if n >= len(p.phonemesSorted) {
 		n = 0
 	}
 	p.currentPhoneme = n
@@ -98,9 +99,8 @@ func (p *phonemePanel) selectPrevPhoneme() {
 }
 
 func (p *phonemePanel) selectDefaultPhoneme() {
-	phonemes := slices.Sorted(maps.Keys(p.available))
 
-	for idx, ph := range phonemes {
+	for idx, ph := range p.phonemesSorted {
 		if ph == p.selectedPhoneme {
 			p.selectPhoneme(idx)
 			return
@@ -118,9 +118,7 @@ func (p phonemePanel) phonemePanelView() string {
 		phonemeViewHeaderPhonemeStyle.Render(p.selectedPhoneme),
 	))
 
-	keys := slices.Sorted(maps.Keys(p.available))
-
-	for idx, phoneme := range keys {
+	for idx, phoneme := range p.phonemesSorted {
 		if idx == p.currentPhoneme {
 			builder.WriteString(lipgloss.Sprintf("%d) %s : \n", idx+1, phonemeViewSelectedPhoneme.Render(phoneme)))
 		} else {

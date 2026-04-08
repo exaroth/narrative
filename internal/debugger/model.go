@@ -40,8 +40,6 @@ func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 }
 
 func (m debugModel) Init() tea.Cmd {
-	// m.selectSentence(m.currentSentence)
-	// return tick()
 	return nil
 }
 
@@ -78,7 +76,8 @@ func (m debugModel) View() tea.View {
 	case phonemeMode:
 		return m.phonemePanel.View()
 	}
-	return tea.NewView("Error")
+	// might as well default to list here.
+	return m.sentenceList.View()
 }
 
 func (m *debugModel) updateExtDict(word, phoneme string, sentence_n int) {
