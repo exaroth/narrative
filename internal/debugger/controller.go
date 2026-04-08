@@ -29,14 +29,13 @@ type Debugger struct {
 	// all sentences from the input
 	source []string
 	// phonemization data for each sentence
-	sentenceData    map[int]*sentenceData
-	model           tea.Model
-	config          *Config
-	extDictPath     string
-	missingDictPath string
-	ttsClient       *kitten.Kitten
-	phonemizer      *phonemizer.Phonemizer
-	preprocessor    *preprocessor.Preprocessor
+	sentenceData map[int]*sentenceData
+	model        tea.Model
+	config       *Config
+	extDict      *CsvDict
+	ttsClient    *kitten.Kitten
+	phonemizer   *phonemizer.Phonemizer
+	preprocessor *preprocessor.Preprocessor
 }
 
 // Initialize debugger directory along with
@@ -93,6 +92,11 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 		return nil, fmt.Errorf("debugger init err; phonemizer init: %w", err)
 	}
 
+	csv_dict, err := LoadCsvDict(paths[0])
+	if err != nil {
+		return nil, err
+	}
+
 	preprocessor := preprocessor.NewPreprocessor()
 	kitten := kitten.NewKitten(nil)
 
@@ -101,6 +105,7 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 		ttsClient:    kitten,
 		phonemizer:   phonemizer,
 		preprocessor: preprocessor,
+		extDict:      csv_dict,
 		model:        nil,
 		source:       sentencizer.Sentencize(input),
 		sentenceData: make(map[int]*sentenceData),
