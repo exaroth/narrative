@@ -200,7 +200,7 @@ func (p *phonemePanel) updatePhonemeSelected() tea.Cmd {
 	return p.updatePhoneme(
 		p.word,
 		p.getCurrentPhoneme(),
-		false,
+		true,
 	)
 }
 
