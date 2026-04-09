@@ -10,6 +10,8 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+var phonemePanelHelp = "<j/k>:Nav <Enter>:Replace Default  <ctrl+a>Add Phoneme  <Space>:Play  ?:Help"
+
 type ClosePhonemePanelCmd struct{}
 
 type UpdatePhonemeCmd struct {
@@ -30,11 +32,11 @@ type phonemePanel struct {
 	input           textinput.Model
 	showInput       bool
 	inputQuitting   bool
-
-	sentenceData *[]map[string][]string
+	width           int
+	height          int
 }
 
-func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n int) *phonemePanel {
+func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n, width, height int) *phonemePanel {
 
 	s_data := ctrl.sentenceData[sentence_n]
 	origin := (*s_data.opts.WordOrigins)[word_n]
@@ -48,7 +50,8 @@ func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n int) *phonemePanel {
 		available:       tags,
 		sentenceNum:     sentence_n,
 		phonemesSorted:  slices.Sorted(maps.Keys(tags)),
-		sentenceData:    s_data.opts.Tags,
+		width:           width,
+		height:          height,
 	}
 
 	p.selectDefaultPhoneme()
@@ -106,26 +109,34 @@ func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (p phonemePanel) View() tea.View {
 	var v tea.View
-	mainPanel := p.phonemePanelView()
-	if !p.showInput {
-		v.SetContent(mainPanel)
-		// v.SetContent(pp.Sprintf("\n%s", p.sentenceData))
-		return v
+	var panelHeight int
+	var mainPanel string
+
+	if p.showInput {
+		panelHeight = p.height - 2
+		mainPanel = lipgloss.NewStyle().Height(panelHeight).Render(p.phonemePanelView())
+		var c *tea.Cursor
+		if !p.input.VirtualCursor() {
+			c = p.input.Cursor()
+			c.Y += lipgloss.Height(mainPanel)
+		}
+
+		str := lipgloss.Sprintf(
+			"%s\n%s\n%s",
+			mainPanel,
+			p.input.View(),
+			getStatusBar(phonemePanelHelp, p.width),
+		)
+		v.SetContent(str)
+		v.Cursor = c
+	} else {
+		panelHeight = p.height - 1
+		mainPanel = lipgloss.NewStyle().Height(panelHeight).Render(p.phonemePanelView())
+		v.SetContent(
+			lipgloss.Sprintf("%s\n%s", mainPanel, getStatusBar(phonemePanelHelp, p.width)),
+		)
 	}
 
-	var c *tea.Cursor
-	if !p.input.VirtualCursor() {
-		c = p.input.Cursor()
-		c.Y += lipgloss.Height(mainPanel)
-	}
-
-	str := lipgloss.JoinVertical(lipgloss.Top, mainPanel, p.input.View())
-	if p.inputQuitting {
-		str += "\n"
-	}
-
-	v.SetContent(str)
-	v.Cursor = c
 	return v
 
 }

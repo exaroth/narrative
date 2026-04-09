@@ -99,7 +99,7 @@ func (m *debugModel) setTermDimensions(w int, h int) {
 }
 
 func (m *debugModel) setPhonemeMode(sentence_num, word_num int) {
-	m.phonemePanel = OpenPhonemePanel(m.ctrl, sentence_num, word_num)
+	m.phonemePanel = OpenPhonemePanel(m.ctrl, sentence_num, word_num, m.width, m.height)
 	m.mode = phonemeMode
 }
 
