@@ -56,8 +56,11 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ClosePhonemePanelCmd:
 		m.setListMode()
 	case UpdatePhonemeCmd:
-		m.updateExtDict(msg.word, msg.phoneme, msg.sentence_num)
+		m.updateExtDict(msg.word, msg.phoneme, msg.sentenceNum)
 		m.setListMode()
+		if msg.reopen {
+			m.setPhonemeMode(msg.sentenceNum, msg.wordNum)
+		}
 	}
 
 	switch m.mode {
@@ -87,6 +90,7 @@ func (m debugModel) View() tea.View {
 func (m *debugModel) updateExtDict(word, phoneme string, sentence_n int) {
 	m.ctrl.updateExtDict(word, phoneme)
 	m.ctrl.clearCache(sentence_n)
+	m.ctrl.getSentenceData(uint(sentence_n))
 }
 
 func (m *debugModel) setTermDimensions(w int, h int) {

@@ -32,6 +32,7 @@ type Debugger struct {
 	sentenceData map[int]*sentenceData
 	model        tea.Model
 	config       *Config
+	extDictPath  string
 	extDict      *CsvDict
 	ttsClient    *kitten.Kitten
 	phonemizer   *phonemizer.Phonemizer
@@ -105,6 +106,7 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 		ttsClient:    kitten,
 		phonemizer:   phonemizer,
 		preprocessor: preprocessor,
+		extDictPath:  paths[0],
 		extDict:      csv_dict,
 		model:        nil,
 		source:       sentencizer.Sentencize(input),
@@ -139,11 +141,17 @@ func (d *Debugger) play(sentence_n int) {
 
 func (d *Debugger) updateExtDict(word, phoneme string) error {
 	d.extDict.Update(word, phoneme)
-	// todo log error
 	if err := d.extDict.Save(); err != nil {
 		return err
 	}
-	return d.phonemizer.ReloadDictionaries(phonemizer.ReloadRequestExt)
+	// TODO fix reload dict funct
+	// return d.phonemizer.ReloadDictionaries(phonemizer.ReloadRequestExt)
+	phonemizer, err := phonemizer.NewPhonemizer(d.extDictPath)
+	if err != nil {
+		return err
+	}
+	d.phonemizer = phonemizer
+	return nil
 }
 
 func (d *Debugger) clearCache(sentence_n int) {

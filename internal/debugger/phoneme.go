@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
@@ -13,17 +14,24 @@ type ClosePhonemePanelCmd struct{}
 
 type UpdatePhonemeCmd struct {
 	word, phoneme string
-	sentence_num  int
+	wordNum       int
+	sentenceNum   int
+	reopen        bool
 }
 
 type phonemePanel struct {
 	word            string
+	wordNum         int
 	selectedPhoneme string
 	available       map[string][]string
 	phonemesSorted  []string
 	currentPhoneme  int
 	sentenceNum     int
-	input           *input
+	input           textinput.Model
+	showInput       bool
+	inputQuitting   bool
+
+	sentenceData *[]map[string][]string
 }
 
 func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n int) *phonemePanel {
@@ -35,10 +43,12 @@ func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n int) *phonemePanel {
 
 	p := &phonemePanel{
 		word:            origin,
+		wordNum:         word_n,
 		selectedPhoneme: selected[1],
 		available:       tags,
 		sentenceNum:     sentence_n,
 		phonemesSorted:  slices.Sorted(maps.Keys(tags)),
+		sentenceData:    s_data.opts.Tags,
 	}
 
 	p.selectDefaultPhoneme()
@@ -51,32 +61,90 @@ func (p phonemePanel) Init() tea.Cmd {
 
 func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
+		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if k := msg.String(); k == "q" || k == "esc" {
-			// p.togglePhonemeView()
-			cmds = append(cmds, p.closePhonemePanel())
-		}
-		if k := msg.String(); k == "j" {
-			p.selectPrevPhoneme()
-		}
-		if k := msg.String(); k == "k" || k == "tab" {
-			p.selectNextPhoneme()
-		}
-		if k := msg.String(); k == "enter" {
-			cmds = append(cmds, p.updatePhoneme())
+		if p.showInput {
+			if k := msg.String(); k == "enter" {
+				cmds = append(cmds, p.updatePhonemeInput())
+				p.closeInput()
+			}
+			if k := msg.String(); k == "esc" || k == "ctrl-c" {
+				p.closeInput()
+			}
+		} else {
+			if k := msg.String(); k == "q" || k == "esc" {
+				cmds = append(cmds, p.closePhonemePanel())
+			}
+			if k := msg.String(); k == "j" {
+				p.selectPrevPhoneme()
+			}
+			if k := msg.String(); k == "k" || k == "tab" {
+				p.selectNextPhoneme()
+			}
+			if k := msg.String(); k == "enter" {
+				cmds = append(cmds, p.updatePhonemeSelected())
+			}
+			if k := msg.String(); k == "a" {
+				p.startInput()
+			}
+
 		}
 	}
+
+	p.input, cmd = p.input.Update(msg)
+	cmds = append(cmds, cmd)
+
 	return p, tea.Batch(cmds...)
 }
 
 func (p phonemePanel) View() tea.View {
 	var v tea.View
-	v.SetContent(p.phonemePanelView())
+	mainPanel := p.phonemePanelView()
+	if !p.showInput {
+		v.SetContent(mainPanel)
+		// v.SetContent(pp.Sprintf("\n%s", p.sentenceData))
+		return v
+	}
+
+	var c *tea.Cursor
+	if !p.input.VirtualCursor() {
+		c = p.input.Cursor()
+		c.Y += lipgloss.Height(mainPanel)
+	}
+
+	str := lipgloss.JoinVertical(lipgloss.Top, mainPanel, p.input.View())
+	if p.inputQuitting {
+		str += "\n"
+	}
+
+	v.SetContent(str)
+	v.Cursor = c
 	return v
+
+}
+
+func (p *phonemePanel) startInput() {
+
+	ti := textinput.New()
+	ti.Placeholder = p.selectedPhoneme
+	ti.SetValue(p.selectedPhoneme)
+	ti.SetVirtualCursor(false)
+	ti.Focus()
+	ti.CharLimit = 156
+	ti.SetWidth(200)
+
+	p.input = ti
+	p.showInput = true
+
+}
+
+func (p *phonemePanel) closeInput() {
+	p.inputQuitting = true
+	p.showInput = false
 }
 
 func (p phonemePanel) closePhonemePanel() tea.Cmd {
@@ -103,13 +171,31 @@ func (p *phonemePanel) selectPrevPhoneme() {
 	p.selectPhoneme(p.currentPhoneme - 1)
 }
 
-func (p *phonemePanel) updatePhoneme() tea.Cmd {
+func (p *phonemePanel) updatePhonemeInput() tea.Cmd {
+	return p.updatePhoneme(
+		p.word,
+		p.input.Value(),
+		true,
+	)
+}
+
+func (p *phonemePanel) updatePhonemeSelected() tea.Cmd {
+	return p.updatePhoneme(
+		p.word,
+		p.phonemesSorted[p.currentPhoneme],
+		false,
+	)
+}
+
+func (p *phonemePanel) updatePhoneme(word, phoneme string, reopen bool) tea.Cmd {
 
 	return func() tea.Msg {
 		return UpdatePhonemeCmd{
-			word:         p.word,
-			phoneme:      p.phonemesSorted[p.currentPhoneme],
-			sentence_num: p.sentenceNum,
+			word:        word,
+			wordNum:     p.wordNum,
+			phoneme:     phoneme,
+			sentenceNum: p.sentenceNum,
+			reopen:      reopen,
 		}
 	}
 }
