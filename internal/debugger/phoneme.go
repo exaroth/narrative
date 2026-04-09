@@ -69,10 +69,13 @@ func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		if p.showInput {
 			if k := msg.String(); k == "enter" {
-				cmds = append(cmds, p.updatePhonemeInput())
+				if len(p.input.Value()) > 0 {
+					cmds = append(cmds, p.updatePhonemeInput())
+				}
 				p.closeInput()
 			}
 			if k := msg.String(); k == "esc" || k == "ctrl-c" {
+				p.input.SetValue("")
 				p.closeInput()
 			}
 		} else {
@@ -88,7 +91,7 @@ func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if k := msg.String(); k == "enter" {
 				cmds = append(cmds, p.updatePhonemeSelected())
 			}
-			if k := msg.String(); k == "a" {
+			if k := msg.String(); k == "ctrl+a" {
 				p.startInput()
 			}
 
@@ -130,8 +133,7 @@ func (p phonemePanel) View() tea.View {
 func (p *phonemePanel) startInput() {
 
 	ti := textinput.New()
-	ti.Placeholder = p.selectedPhoneme
-	ti.SetValue(p.selectedPhoneme)
+	ti.SetValue(p.getCurrentPhoneme())
 	ti.SetVirtualCursor(false)
 	ti.Focus()
 	ti.CharLimit = 156
@@ -179,10 +181,14 @@ func (p *phonemePanel) updatePhonemeInput() tea.Cmd {
 	)
 }
 
+func (p *phonemePanel) getCurrentPhoneme() string {
+	return p.phonemesSorted[p.currentPhoneme]
+}
+
 func (p *phonemePanel) updatePhonemeSelected() tea.Cmd {
 	return p.updatePhoneme(
 		p.word,
-		p.phonemesSorted[p.currentPhoneme],
+		p.getCurrentPhoneme(),
 		false,
 	)
 }

@@ -45,6 +45,7 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 	return err
 }
 
+// TODO: Fixme
 func (r *PhonemizerRepository) Reload(request DictionaryReloadRequest) error {
 
 	lang_words := make(map[string]map[string]uint32)
