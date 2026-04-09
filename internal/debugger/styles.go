@@ -1,6 +1,15 @@
 package debugger
 
-import "charm.land/lipgloss/v2"
+import (
+	"os"
+
+	"charm.land/lipgloss/v2"
+)
+
+var (
+	hasDarkBG = lipgloss.HasDarkBackground(os.Stdin, os.Stdout)
+	lightDark = lipgloss.LightDark(hasDarkBG)
+)
 
 // sentence list styles
 var (
@@ -28,15 +37,6 @@ var (
 	}()
 )
 
-// title styles
-var (
-	titleStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Right = "├"
-		return lipgloss.NewStyle().Bold(true).BorderStyle(b).Padding(0, 1)
-	}()
-)
-
 // Phoneme view styles
 
 var (
@@ -44,4 +44,24 @@ var (
 	phonemeViewHeaderWordStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFF"))
 	phonemeViewHeaderPhonemeStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFF"))
 	phonemeViewSelectedPhoneme    = lipgloss.NewStyle().Foreground(lipgloss.Color("#F00"))
+)
+
+// status bar
+
+var (
+	statusBarStyle = lipgloss.NewStyle().
+			Foreground(lightDark(lipgloss.Color("#343433"), lipgloss.Color("#C1C6B2"))).
+			Background(lightDark(lipgloss.Color("#D9DCCF"), lipgloss.Color("#353533")))
+
+	statusStyle = lipgloss.NewStyle().
+			Inherit(statusBarStyle).
+			Foreground(lipgloss.Color("#FFFDF5")).
+			Background(lipgloss.Color("#A550DF")).
+			Padding(0, 1).
+			MarginRight(1)
+
+	statusBarStatusText  = lipgloss.NewStyle().Inherit(statusBarStyle)
+	statusBarCrumbsStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FFFDF5")).
+				Padding(0, 1).Background(lipgloss.Color("#6124DF"))
 )

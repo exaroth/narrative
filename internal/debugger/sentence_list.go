@@ -10,6 +10,8 @@ import (
 	"charm.land/lipgloss/v2/list"
 )
 
+var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  ?:Help"
+
 type OpenPhonemePanelCmd struct {
 	currentSentence int
 	currentWord     int
@@ -22,6 +24,8 @@ type sentenceList struct {
 	list            viewport.Model
 	ready           bool
 	ctrl            *Debugger
+	height          int
+	width           int
 }
 
 func NewSentenceList(ctrl *Debugger, sentence_num int) *sentenceList {
@@ -65,9 +69,9 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.WindowSizeMsg:
-		headerHeight := lipgloss.Height(s.headerView())
-		sentencePanelHeight := lipgloss.Height(s.sentencePanelView())
-		verticalMarginHeight := headerHeight + sentencePanelHeight
+		s.setTermDimensions(msg.Width, msg.Height)
+		// assume status bar is height 1
+		verticalMarginHeight := lipgloss.Height(s.sentencePanelView()) + 1
 
 		if !s.ready {
 			s.list = viewport.New(
@@ -75,7 +79,6 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				viewport.WithHeight(msg.Height-verticalMarginHeight),
 			)
 			s.list.KeyMap = GetSentenceListKeymap()
-			s.list.YPosition = headerHeight
 			s.list.SetContent(s.renderList())
 			s.ready = true
 		} else {
@@ -95,10 +98,19 @@ func (s sentenceList) View() tea.View {
 	if !s.ready {
 		v.SetContent("\n  Initializing...")
 	} else {
-		v.SetContent(lipgloss.Sprintf("%s\n%s\n%s", s.headerView(), s.list.View(), s.sentencePanelView()))
+		v.SetContent(lipgloss.Sprintf("%s\n%s\n%s",
+			s.list.View(),
+			s.sentencePanelView(),
+			getStatusBar(listHelpText, s.width),
+		))
 		s.ready = true
 	}
 	return v
+}
+
+func (s *sentenceList) setTermDimensions(w int, h int) {
+	s.width = w
+	s.height = h
 }
 
 func (s *sentenceList) openPhonemePanel() tea.Cmd {
@@ -231,10 +243,4 @@ func (s sentenceList) sentencePanelView() string {
 		s.generateSentenceTranscription(true),
 	)
 	return lipgloss.Sprint(output)
-}
-
-func (s sentenceList) headerView() string {
-	title := titleStyle.Render("Narrative Debugger v0.1")
-	line := strings.Repeat("─", max(0, s.list.Width()-lipgloss.Width(title)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }

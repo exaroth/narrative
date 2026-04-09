@@ -7,6 +7,8 @@ import (
 	"os"
 	"slices"
 	"sync"
+
+	"charm.land/lipgloss/v2"
 )
 
 type CsvDict struct {
@@ -105,4 +107,22 @@ func LoadCsvDict(path string) (*CsvDict, error) {
 		data: data,
 		mut:  &sync.Mutex{},
 	}, nil
+}
+
+func getStatusBar(contents string, width int) string {
+
+	w := lipgloss.Width
+	title := statusStyle.Render("Debugger")
+	crumbs := statusBarCrumbsStyle.Render("v0.1")
+	help := statusBarStatusText.
+		Width(width - w(title) - w(crumbs)).
+		Render(contents)
+
+	bar := lipgloss.JoinHorizontal(lipgloss.Top,
+		title,
+		help,
+		crumbs,
+	)
+
+	return lipgloss.Sprint(statusBarStyle.Width(width).Render(bar))
 }
