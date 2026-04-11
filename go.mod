@@ -26,6 +26,8 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dolthub/maphash v0.1.0 // indirect
+	github.com/ebitengine/oto/v3 v3.3.2 // indirect
+	github.com/ebitengine/purego v0.8.0 // indirect
 	github.com/gammazero/deque v0.2.1 // indirect
 	github.com/gopxl/beep v1.4.1 // indirect
 	github.com/gopxl/beep/v2 v2.1.1 // indirect

@@ -17,6 +17,10 @@ type OpenPhonemePanelCmd struct {
 	currentWord     int
 }
 
+type PlaySentenceCmd struct {
+	sentence string
+}
+
 type sentenceList struct {
 	sentences       *[]string
 	currentSentence int
@@ -67,12 +71,14 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if k := msg.String(); k == "enter" {
 			cmds = append(cmds, s.openPhonemePanel())
 		}
+		if k := msg.String(); k == "space" {
+			cmds = append(cmds, s.playCurrentSentence())
+		}
 
 	case tea.WindowSizeMsg:
 		s.setTermDimensions(msg.Width, msg.Height)
 		// assume status bar is height 1
 		verticalMarginHeight := lipgloss.Height(s.sentencePanelView()) + 1
-
 		if !s.ready {
 			s.list = viewport.New(
 				viewport.WithWidth(msg.Width),
@@ -122,6 +128,16 @@ func (s *sentenceList) openPhonemePanel() tea.Cmd {
 	}
 }
 
+func (s *sentenceList) playCurrentSentence() tea.Cmd {
+
+	sentence_data := s.ctrl.sentenceData[s.currentSentence]
+	return func() tea.Msg {
+		return PlaySentenceCmd{
+			sentence: sentence_data.phonemized,
+		}
+	}
+}
+
 func (s sentenceList) renderList() string {
 
 	l := list.New().
@@ -158,9 +174,7 @@ func (s *sentenceList) generateSentenceTranscription(use_phonemes bool) string {
 	var style lipgloss.Style
 	if use_phonemes {
 		style = sentencePanelPhonemeStyle
-		for _, e := range sentence_data.selectedPhonemes {
-			words = append(words, e[1])
-		}
+		words = s.getSelectedPhonemes()
 	} else {
 		style = sentencePanelWordStyle
 		words = *sentence_data.opts.WordOrigins
@@ -212,6 +226,16 @@ func (s *sentenceList) selectSentence(n int) {
 	s.ctrl.getSentenceData(uint(n))
 
 	s.list.SetContent(s.renderList())
+}
+
+// Get list of selected phonemes for current sentence.
+func (s *sentenceList) getSelectedPhonemes() []string {
+	result := []string{}
+	sentence_data := s.ctrl.sentenceData[s.currentSentence]
+	for _, e := range sentence_data.selectedPhonemes {
+		result = append(result, e[1])
+	}
+	return result
 }
 
 func (s *sentenceList) selectWord(w_n int) {

@@ -186,12 +186,6 @@ func (p *Phonemizer) SelectPhonemes(
 		}
 	}
 
-	// TODO
-	// trim left hyphen as it doesnt play well with kitten tts
-	// for i, p := range result {
-	// 	result[i][1] = strings.TrimLeft(p[1], "'ˈ")
-	// }
-
 	return result
 }
 

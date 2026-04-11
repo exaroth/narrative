@@ -2,11 +2,13 @@ package debugger
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
+	"github.com/exaroth/narrative/pkg/player"
 	"github.com/exaroth/narrative/pkg/preprocessor"
 	"github.com/exaroth/narrative/pkg/sentencizer"
 
@@ -37,6 +39,10 @@ type Debugger struct {
 	ttsClient    *kitten.Kitten
 	phonemizer   *phonemizer.Phonemizer
 	preprocessor *preprocessor.Preprocessor
+
+	player *player.Player
+	// whether we are plating sentence/phoneme sample atmj
+	isPlaying bool
 }
 
 // Initialize debugger directory along with
@@ -99,7 +105,7 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 	}
 
 	preprocessor := preprocessor.NewPreprocessor()
-	kitten := kitten.NewKitten(nil)
+	kitten := kitten.NewKitten(kitten.DefaultConfig())
 
 	debugger := &Debugger{
 		config:       config,
@@ -111,6 +117,7 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 		model:        nil,
 		source:       sentencizer.Sentencize(input),
 		sentenceData: make(map[int]*sentenceData),
+		player:       player.InitSpeaker(),
 	}
 
 	model := NewDebuggerModel(debugger, 0)
@@ -131,12 +138,13 @@ func (d *Debugger) Run() {
 
 }
 
-func (d *Debugger) play(sentence_n int) {
-	// todo
-	// _, err = d.ttsClient.RunInference(compacted)
-	// if err != nil {
-	// 	return err
-	// }
+func (d *Debugger) play(phonemes string) {
+	s_data, err := d.ttsClient.RunInference(phonemes)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+	d.player.AddSample(s_data)
+	d.player.Play()
 }
 
 func (d *Debugger) updateExtDict(word, phoneme string) error {
