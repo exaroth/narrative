@@ -11,6 +11,10 @@ type KittenConfig struct {
 
 	// name of the voice to use during inference.
 	Voice string
+
+	// Replace soft g's with hard ones, input dicts
+	// for some reason contain only former ones
+	ReplaceSoftG bool
 }
 
 // Return kitten config with default values.
@@ -18,5 +22,6 @@ func DefaultConfig() *KittenConfig {
 	return &KittenConfig{
 		RemoveLeadingHyphens: true,
 		Voice:                "Luna",
+		ReplaceSoftG:         true,
 	}
 }

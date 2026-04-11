@@ -20,9 +20,7 @@ func main() {
 
 	input := strings.Join(os.Args[1:], " ")
 
-	token_map := kitten.BuildTokenMap()
-
-	kitten := kitten.NewKitten(nil)
+	kitten := kitten.NewKitten(kitten.DefaultConfig())
 
 	defer kitten.Deinit()
 
@@ -30,7 +28,7 @@ func main() {
 
 	fmt.Println("Input: ", input)
 
-	waveform_data, err = kitten.RunInference(token_map.TokenizeWord(input))
+	waveform_data, err = kitten.RunInference(input)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}

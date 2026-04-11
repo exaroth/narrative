@@ -3,6 +3,7 @@ package kitten
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/sbinet/npyio/npz"
 	ort "github.com/yalue/onnxruntime_go"
@@ -52,6 +53,10 @@ func (k *Kitten) PreprocessInput(input string) string {
 	}
 	if k.cfg.RemoveLeadingHyphens {
 		input = removeTrailingHyphens(input)
+	}
+
+	if k.cfg.ReplaceSoftG {
+		input = strings.ReplaceAll(input, "g", "ɡ")
 	}
 	return input
 }

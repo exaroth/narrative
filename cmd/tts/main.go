@@ -22,21 +22,19 @@ func main() {
 
 	input := strings.Join(os.Args[1:], " ")
 
-	token_map := kitten.BuildTokenMap()
-
-	repo := phonemizer.NewPhonemizerRepository()
+	repo := phonemizer.NewPhonemizerRepository("")
 
 	if err := repo.LoadLanguage(); err != nil {
 		panic(err)
 	}
 
-	phonemizer, err := phonemizer.NewPhonemizer()
+	phonemizer, err := phonemizer.NewPhonemizer("")
 	if err != nil {
 		panic(err)
 	}
 	preprocessor := preprocessor.NewPreprocessor()
 
-	kitten := kitten.NewKitten(nil)
+	kitten := kitten.NewKitten(kitten.DefaultConfig())
 	defer kitten.Deinit()
 
 	var waveform_data []float32
@@ -52,7 +50,7 @@ func main() {
 	fmt.Println("Processed: ", input_p)
 	fmt.Println("Phonemized: ", phonemized)
 
-	waveform_data, err = kitten.RunInference(token_map.TokenizeWord(phonemized))
+	waveform_data, err = kitten.RunInference(phonemized)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}

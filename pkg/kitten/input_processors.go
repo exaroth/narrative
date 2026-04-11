@@ -1,6 +1,8 @@
 package kitten
 
-import "strings"
+import (
+	"strings"
+)
 
 // Remove trailing hyphen from each phoneme if present
 func removeTrailingHyphens(input string) string {
