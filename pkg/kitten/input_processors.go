@@ -8,7 +8,7 @@ import (
 func removeTrailingHyphens(input string) string {
 	parts := strings.Split(input, " ")
 	for idx, p := range parts {
-		parts[idx] = strings.TrimLeft(p, "'")
+		parts[idx] = strings.TrimLeft(p, "'ˈ")
 	}
 	return strings.Join(parts, " ")
 }
