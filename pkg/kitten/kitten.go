@@ -38,11 +38,22 @@ type Kitten struct {
 	token_map *TokenMap
 	voice     *vMat
 	session   *ort.DynamicAdvancedSession
+	cfg       *KittenConfig
 }
 
 func (k *Kitten) Deinit() {
 	k.session.Destroy()
 	ort.DestroyEnvironment()
+}
+
+func (k *Kitten) PreprocessInput(input string) string {
+	if k.cfg == nil {
+		return input
+	}
+	if k.cfg.RemoveLeadingHyphens {
+		input = removeTrailingHyphens(input)
+	}
+	return input
 }
 
 func (k *Kitten) createTensors(sentence []int64) (
@@ -81,7 +92,7 @@ func (k *Kitten) createTensors(sentence []int64) (
 }
 
 func (k *Kitten) RunInference(sentence string) ([]float32, error) {
-
+	sentence = k.PreprocessInput(sentence)
 	tokens := k.token_map.TokenizeWord(sentence)
 
 	input_tensor, voice_tensor, speed_tensor, err := k.createTensors(tokens)
@@ -109,7 +120,7 @@ func (k *Kitten) RunInference(sentence string) ([]float32, error) {
 	return waveform, nil
 }
 
-func NewKitten(voice_name *string) *Kitten {
+func NewKitten(config *KittenConfig) *Kitten {
 	ort.SetSharedLibraryPath("/home/exaroth/Projects/narrative/lib/libonnxruntime.so")
 
 	err := ort.InitializeEnvironment()
@@ -117,15 +128,11 @@ func NewKitten(voice_name *string) *Kitten {
 		log.Fatalf("Could intialize onnx runtime: %+v", err)
 	}
 	var voice_dtf string
-	if voice_name != nil {
-		v, ok := VOICE_MAP[*voice_name]
-		if !ok {
-			log.Fatalf("Invalid voice id %s provided", *voice_name)
-		}
-		voice_dtf = v
-	} else {
-		voice_dtf = VOICE_MAP[DEFAULT_VOICE]
+	v, ok := VOICE_MAP[config.Voice]
+	if !ok {
+		log.Fatalf("Invalid voice id %s provided", config.Voice)
 	}
+	voice_dtf = v
 
 	f, err := npz.Open("./models/kitten/voices.npz")
 	if err != nil {
@@ -158,6 +165,7 @@ func NewKitten(voice_name *string) *Kitten {
 		token_map: &token_map,
 		voice:     &voice,
 		session:   session,
+		cfg:       config,
 	}
 
 }
