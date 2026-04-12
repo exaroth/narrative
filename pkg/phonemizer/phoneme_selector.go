@@ -18,11 +18,14 @@ import (
 
 const HOMONYM_WEIGHTS_FNAME = "weights7.json.zlib"
 
+// Controller for handling phoneme selection,
+// uses goruut weights file for inference.
 type PhonemeSelector struct {
 	network *feedforward.FeedforwardNetwork
 	mut     *sync.RWMutex
 }
 
+// Select preferred phonemes for given sentence.
 func (h *PhonemeSelector) Select(sentence []map[string][2]uint32) (ret [][3]uint32) {
 
 	var ai_sentence = PhonemizerSample{
@@ -104,6 +107,7 @@ func (h *PhonemeSelector) Select(sentence []map[string][2]uint32) (ret [][3]uint
 
 }
 
+// Load weights file and initialize inference network.
 func (h *PhonemeSelector) LoadLanguage() error {
 
 	f_contents, err := dict.Language.ReadFile(HOMONYM_WEIGHTS_FNAME)
@@ -136,7 +140,8 @@ func (h *PhonemeSelector) LoadLanguage() error {
 	return h.network.ReadZlibWeights(bytesReader)
 }
 
-func NewPhonemeSelector(dict_path *string) *PhonemeSelector {
+// Initialize new phoneme selector.
+func NewPhonemeSelector() *PhonemeSelector {
 
 	return &PhonemeSelector{
 		mut:     &sync.RWMutex{},

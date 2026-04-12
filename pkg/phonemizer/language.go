@@ -2,6 +2,8 @@ package phonemizer
 
 import "unicode"
 
+// This struct contains all language settings for
+// goruut dictionaries.
 type language struct {
 	Mapping        map[string][]string `json:"Map"`
 	SrcMulti       []string            `json:"SrcMulti"`
@@ -22,6 +24,7 @@ type language struct {
 	mapDropLast       map[string]struct{}
 }
 
+// Convert slize []T into map[T]struct{}.
 func mapize(arr []string) (out map[string]struct{}) {
 	out = make(map[string]struct{})
 	for _, v := range arr {
@@ -30,9 +33,8 @@ func mapize(arr []string) (out map[string]struct{}) {
 	return
 }
 
+// Convert language options into a map
 func (l *language) mapize() {
-	// todo
-	// l.mapTokenizer = noareg.MakeDetokenizer(l.Mapping)
 	l.mapSrcMulti = mapize(l.SrcMulti)
 	l.mapDstMulti = mapize(l.DstMulti)
 	l.mapSrcMultiSuffix = mapize(l.SrcMultiSuffix)
@@ -47,7 +49,7 @@ func (l *language) mapize() {
 
 func (l *language) srcdst() {
 	for k, v := range l.Mapping {
-		if v == nil || len(v) == 0 {
+		if len(v) == 0 {
 			continue
 		}
 		if len([]rune(k)) > 1 {

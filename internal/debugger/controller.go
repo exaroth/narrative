@@ -117,7 +117,7 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 		model:        nil,
 		source:       sentencizer.Sentencize(input),
 		sentenceData: make(map[int]*sentenceData),
-		player:       player.InitSpeaker(),
+		player:       player.InitPlayer(),
 	}
 
 	model := NewDebuggerModel(debugger, 0)

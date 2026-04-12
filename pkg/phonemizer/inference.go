@@ -17,47 +17,44 @@ import (
 	dict "github.com/exaroth/narrative/dictionary"
 )
 
+// TODO: add to config
+const (
+	LANGUAGE_FILE_FNAME             = "language.json"
+	PHONEME_INFERENCE_WEIGHTS_FNAME = "weights6.json.zlib"
+)
+
+// Return new integer based hash for given word.
 func hashtronHash(str string) uint32 {
 	return hash.StringHash(0, str)
 }
 
+// Controller for handling phonemization inferrence.
 type HashtronPhonemizer struct {
-	reverse   bool
-	dict_path *string
-	mut       *sync.RWMutex
-	lang      *language
-	network   *feedforward.FeedforwardNetwork
+	mut     *sync.RWMutex
+	lang    *language
+	network *feedforward.FeedforwardNetwork
 }
 
-func NewHashtronPhonemizer(dict_path *string, reverse bool) *HashtronPhonemizer {
+// Initialize new phoneme inference controller.
+func NewHashtronPhonemizer() *HashtronPhonemizer {
 
 	return &HashtronPhonemizer{
-		reverse:   reverse,
-		dict_path: dict_path,
-		lang:      nil,
-		network:   nil,
-		mut:       &sync.RWMutex{},
+		lang:    nil,
+		network: nil,
+		mut:     &sync.RWMutex{},
 	}
 }
 
+// Initialize new inference network based on the weights file.
 func (r *HashtronPhonemizer) LoadLanguage() error {
-	var reverse string
-	if r.reverse {
-		reverse = "_reverse"
-	}
-	// Double-checked locking: acquire write lock and check again
 	r.mut.Lock()
 	defer r.mut.Unlock()
 
-	var language_file = "language" + reverse + ".json"
-
-	// log.Now().Debugf("Language %s loading file", file)
-	f_contents, err := dict.Language.ReadFile(language_file)
+	f_contents, err := dict.Language.ReadFile(LANGUAGE_FILE_FNAME)
 	if err != nil {
 		return err
 	}
 
-	// Parse the JSON data into the Language struct
 	var langone language
 	err = json.Unmarshal(f_contents, &langone)
 	if err != nil {
@@ -70,9 +67,7 @@ func (r *HashtronPhonemizer) LoadLanguage() error {
 
 	r.lang = &langone
 
-	var weights_file = "weights6" + reverse + ".json.zlib"
-
-	f_contents, err = dict.Language.ReadFile(weights_file)
+	f_contents, err = dict.Language.ReadFile(PHONEME_INFERENCE_WEIGHTS_FNAME)
 	if err != nil {
 		return err
 	}
@@ -103,6 +98,7 @@ func (r *HashtronPhonemizer) LoadLanguage() error {
 	return err
 }
 
+// Run inferrence for a single word.
 func (r *HashtronPhonemizer) PhonemizeWord(word string) (ret []map[string]uint32, err error) {
 
 	var backoffs = 10

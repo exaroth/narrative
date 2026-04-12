@@ -8,14 +8,31 @@ import (
 	"github.com/neurlang/classifier/hash"
 )
 
+// PhonemeOptions contains all phonemization
+// data associated with given sentence.
 type PhonemeOptions struct {
-	Tags         *[]map[string][]string
-	WordOrigins  *[]string
-	DictOpts     *[]*[2]string
-	PrefOpts     *[]*[2]string
+	// Map of phoneme-> tags for each word
+	// in sentence.
+	Tags *[]map[string][]string
+	// Slice of all original words passsed to
+	// phonemizer as part of the sentence.
+	WordOrigins *[]string
+	// Array of dictionary based phonemes
+	// to be used, by default the ones
+	// with longest amount of tags will be set.
+	DictOpts *[]*[2]string
+	// Array of preferred phoneme options to be used
+	// these are retrieved via inferrence and will
+	// supersede dict opts if present.
+	PrefOpts *[]*[2]string
+	// List of override phonemes for each word
+	// to be used, these will sepersede all other
+	// opts.
 	OverrideOpts *[]*[2]string
 }
 
+// Initialize new phoneme options for sentence with
+// number of words equal l.
 func NewPhonemeOpts(l int) *PhonemeOptions {
 	tags := make([]map[string][]string, l)
 	word_orig := make([]string, l)
@@ -31,13 +48,22 @@ func NewPhonemeOpts(l int) *PhonemeOptions {
 	}
 }
 
+// Main phonemizer controller.
 type Phonemizer struct {
+	// Repository containing all the dictionaries.
 	repository *PhonemizerRepository
-	hashtron   *HashtronPhonemizer
-	selector   *PhonemeSelector
-	cache      *WordCache
+	// Handler for running phonemization inferrence
+	// for words not found in dictionary.
+	hashtron *HashtronPhonemizer
+	// Selector handler, used for retrieving preferred
+	// phonemes for each word.
+	selector *PhonemeSelector
+	// Cache for phoneme retrieval.
+	cache *WordCache
 }
 
+// Phonemize given sentence. Will return sentence with all
+// words replaced by phonemes.
 func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 
 	words, punct := SplitPunctuation(sentence)
@@ -66,6 +92,10 @@ func (p *Phonemizer) Phonemize(sentence string) (string, error) {
 
 }
 
+// Retrieve Phoneme options for given sentence.
+// Accepted input is a array containing maps in a form
+// phoneme -> hash, map will also contain original word
+// which can be differentiated by the hash integer set to 0.
 func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOptions {
 
 	opts := NewPhonemeOpts(len(sentence))
@@ -135,8 +165,8 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 			if row[0] != uint32(i) {
 				continue
 			}
-			last_preferred = row[2]
 			hash_preferred = row[1]
+			last_preferred = row[2]
 			break
 		}
 
@@ -153,6 +183,9 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 	return opts
 }
 
+// Select phonemes for each word, the precedence is:
+// override -> preferred -> dict -> original.
+// original should never be selected.
 func (p *Phonemizer) SelectPhonemes(
 	sentence []map[string]uint32,
 	opts *PhonemeOptions,
@@ -189,6 +222,9 @@ func (p *Phonemizer) SelectPhonemes(
 	return result
 }
 
+// Phonemize single word, this method returns map of all phonemes associated
+// if dictionary lookup fails word phonemization will be inferred. Original
+// word will also be returned as part of the map with hash set to 0.
 func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 
 	if len(word) == 0 {
@@ -236,14 +272,16 @@ func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 
 }
 
+// Reload all the dictionaries phonemizer uses.
 func (p *Phonemizer) ReloadDictionaries(req DictionaryReloadRequest) error {
 	return p.repository.Reload(req)
 }
 
+// Initialize new phonemizer controller.
 func NewPhonemizer(external_dict_path string) (*Phonemizer, error) {
 	repo := NewPhonemizerRepository(external_dict_path)
-	pho := NewHashtronPhonemizer(nil, false)
-	selector := NewPhonemeSelector(nil)
+	pho := NewHashtronPhonemizer()
+	selector := NewPhonemeSelector()
 
 	if err := repo.LoadLanguage(); err != nil {
 		return nil, err

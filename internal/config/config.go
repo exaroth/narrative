@@ -13,6 +13,11 @@ type Config struct {
 	// remove trailing hyphenes from phonemes,
 	// ass kitten tts does not like those
 	RemoveWordTrailingHyphens bool
+
+	// TODO
+	// Speed float64
+	// TODO
+	// SentencePause float64
 }
 
 // Initialize new config based on the options provided.
