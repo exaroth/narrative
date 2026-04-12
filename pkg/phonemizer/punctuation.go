@@ -11,10 +11,19 @@ const PUNCTUATION = ";:,.!?¡¿—…\"«»“”(){}\\[\\]'"
 var DEFAULT_MARKS_RE = regexp.MustCompile("[" + PUNCTUATION + "]")
 var LETTERS_RE = regexp.MustCompile("[a-zA-Z]")
 
+// Mark represents data associated with
+// single punctuation character.
 type Mark struct {
-	char  string
+	// Punctuation character
+	char string
+	// Index of the word
 	index int
-	pad   uint8
+	// Whether punctuation belongs before
+	// the word (1) after the word (2)
+	// or is separate (eg " - ") (0).
+	// Punctuation in the middle of words
+	// is not processed.
+	pad uint8
 }
 
 type Punctuation []*Mark
@@ -42,6 +51,8 @@ func (p Punctuation) AsArr(text_len int) [][2]string {
 
 }
 
+// Strip punctuation from given sentence, returning punctuation
+// free slice of words and punctuation marks.
 func SplitPunctuation(text string) ([]string, Punctuation) {
 	text = strings.Trim(text, " ")
 	t_a := strings.Split(text, " ")
@@ -98,6 +109,7 @@ func SplitPunctuation(text string) ([]string, Punctuation) {
 	return t_a, m_a
 }
 
+// Recombine punctuation back into the sentence.
 func CompactPunctuation(text []string, punctuation Punctuation) string {
 	p_a := punctuation.AsArr(len(text))
 	result := make([]string, len(text))

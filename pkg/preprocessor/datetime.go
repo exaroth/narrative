@@ -42,6 +42,8 @@ func expandDecades(input string) (string, error) {
 	return input, nil
 }
 
+// Expand time strings (eg 10:02 am) into a
+// phonemizable words.
 func expandTime(input string) (string, error) {
 	for _, g := range TIME_RE.FindAllStringSubmatch(input, -1) {
 		hours, err := strconv.Atoi(g[1])

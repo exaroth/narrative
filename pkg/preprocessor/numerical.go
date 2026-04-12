@@ -80,6 +80,8 @@ func expandFractions(input string) (string, error) {
 	return input, nil
 }
 
+// Expand decimals without leading zero (eg .8) to make it easier
+// to process further down the pipeline.
 func expandLeadingDecimals(input string) (string, error) {
 	for _, g := range LEADING_DEC_RE.FindAllStringSubmatch(input, -1) {
 		parts := []string{g[1]}
@@ -93,6 +95,8 @@ func expandLeadingDecimals(input string) (string, error) {
 	return input, nil
 }
 
+// Replace all numeric values (float and integers) with words,
+// this function should be run at the end of processing pipeline.
 func replaceNumbers(input string) (string, error) {
 
 	if len(NUMBER_RE.FindStringIndex(input)) == 0 {
@@ -121,6 +125,7 @@ func replaceNumbers(input string) (string, error) {
 	return input, nil
 }
 
+// Convert integers up to 999 to words.
 func threeDigitsToWords(num int) string {
 	if num == 0 {
 		return ""
@@ -145,6 +150,7 @@ func threeDigitsToWords(num int) string {
 	return strings.Join(parts, " ")
 }
 
+// Convert integer to words.
 func numberToWords(num int) string {
 	if num == 0 {
 		return "zero"
@@ -179,6 +185,7 @@ func numberToWords(num int) string {
 	return strings.Join(parts, " ")
 }
 
+// Convert float to words.
 func floatToWords(base int, rest string) string {
 	base_s := numberToWords(base)
 	if len(rest) == 0 {

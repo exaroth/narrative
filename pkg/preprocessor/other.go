@@ -100,6 +100,7 @@ func expandUnits(input string) (string, error) {
 	return input, nil
 }
 
+// Expand currency (eg $20 ) to words.
 func expandCurrency(input string) (string, error) {
 	var cur string
 	var val string

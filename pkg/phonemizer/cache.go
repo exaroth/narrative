@@ -11,11 +11,14 @@ import (
 	"github.com/neurlang/classifier/hash"
 )
 
+// Cache controller for handling cache operations.
+// Cache uses gob format for storing data.
 type WordCache struct {
 	seed  uint32
 	cache otter.Cache[uint32, string]
 }
 
+// Retrieve word with given hash, returns nil if not found.
 func (c *WordCache) LoadWord(word string, hash uint32) map[string]uint32 {
 	value, _ := c.cache.Get(hash)
 
@@ -31,6 +34,8 @@ func (c *WordCache) LoadWord(word string, hash uint32) map[string]uint32 {
 	return result
 }
 
+// Store new word in cache, words are stored as map in a form
+// map[phoneme]phonemeHash.
 func (c *WordCache) StoreWord(value map[string]uint32, hash uint32) {
 
 	buf := bytes.Buffer{}
@@ -42,10 +47,12 @@ func (c *WordCache) StoreWord(value map[string]uint32, hash uint32) {
 	c.cache.Set(hash, buf.String())
 }
 
+// Generate unique hash for given word.
 func (c *WordCache) HashWord(word string) uint32 {
 	return hash.StringHash(c.seed, word+"\x00")
 }
 
+// Initialize new cache client.
 func NewWordCache() (*WordCache, error) {
 
 	var buf [4]byte
