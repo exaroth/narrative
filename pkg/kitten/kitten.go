@@ -20,8 +20,14 @@ var VOICE_MAP map[string]string = map[string]string{
 	"Leo":    "expr-voice-5-m.npy",
 }
 
-const DEFAULT_VOICE = "Luna"
-const DEFAULT_SPEED float32 = 1.2
+const (
+	// TODO: add to config
+	KITTEN_MODEL_PATH          = "./models/kitten/kitten.onnx"
+	KITTEN_VOICES_PATH         = "./models/kitten/voices.npz"
+	ONNX_LIBRARY_PATH          = "/home/exaroth/Projects/narrative/lib/libonnxruntime.so"
+	DEFAULT_VOICE              = "Luna"
+	DEFAULT_SPEED      float32 = 1.2
+)
 
 // Representation of a single voice array matrix.
 type vMat [400][256]float32
@@ -142,7 +148,7 @@ func (k *Kitten) RunInference(sentence string) ([]float32, error) {
 
 // Initialize new kitten tts controller.
 func NewKitten(config *KittenConfig) *Kitten {
-	ort.SetSharedLibraryPath("/home/exaroth/Projects/narrative/lib/libonnxruntime.so")
+	ort.SetSharedLibraryPath(ONNX_LIBRARY_PATH)
 
 	err := ort.InitializeEnvironment()
 	if err != nil {
@@ -155,7 +161,7 @@ func NewKitten(config *KittenConfig) *Kitten {
 	}
 	voice_dtf = v
 
-	f, err := npz.Open("./models/kitten/voices.npz")
+	f, err := npz.Open(KITTEN_VOICES_PATH)
 	if err != nil {
 		log.Fatalf("Could not open npz file: %+v", err)
 	}
@@ -171,7 +177,7 @@ func NewKitten(config *KittenConfig) *Kitten {
 	voice.Load(f0)
 
 	session, err := ort.NewDynamicAdvancedSession(
-		"./models/kitten/kitten.onnx",
+		KITTEN_MODEL_PATH,
 		[]string{"input_ids", "style", "speed"},
 		[]string{"waveform", "duration"},
 		nil,
