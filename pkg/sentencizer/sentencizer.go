@@ -9,6 +9,7 @@ import (
 
 var SENTENCE_WRAP_CHARS = []string{"\"", "'"}
 
+// Split input string into sentence slice.
 func Sentencize(text []byte) []string {
 	chunks := []string{}
 	segmenter := sentencizer.NewSegmenter("en")

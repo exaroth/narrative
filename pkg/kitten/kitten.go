@@ -23,8 +23,10 @@ var VOICE_MAP map[string]string = map[string]string{
 const DEFAULT_VOICE = "Luna"
 const DEFAULT_SPEED float32 = 1.2
 
+// Representation of a single voice array matrix.
 type vMat [400][256]float32
 
+// Load new voice from data.
 func (v *vMat) Load(flat []float32) {
 	if len(flat) != 102400 {
 		panic("Invalid voice matrix length, expected 102400")
@@ -35,6 +37,8 @@ func (v *vMat) Load(flat []float32) {
 
 }
 
+// Controller for handling waveform generation
+// using KittenTTS model.
 type Kitten struct {
 	token_map *TokenMap
 	voice     *vMat
@@ -42,11 +46,15 @@ type Kitten struct {
 	cfg       *KittenConfig
 }
 
+// Cleanly close the kitten session.
 func (k *Kitten) Deinit() {
 	k.session.Destroy()
 	ort.DestroyEnvironment()
 }
 
+// Preprocess phonemized input before passing it to tokenizer,
+// this is required in some particular cases in order for
+// data to work nicely with KittenTTS model.
 func (k *Kitten) PreprocessInput(input string) string {
 	if k.cfg == nil {
 		return input
@@ -61,6 +69,11 @@ func (k *Kitten) PreprocessInput(input string) string {
 	return input
 }
 
+// Create input tensors to be passed to the session,
+// these are:
+// input - tokenized string
+// voice - voice dataframe
+// speed - float based input controlling speech speed
 func (k *Kitten) createTensors(sentence []int64) (
 	input *ort.Tensor[int64],
 	voice *ort.Tensor[float32],
@@ -96,6 +109,8 @@ func (k *Kitten) createTensors(sentence []int64) (
 	return input_tensor, voice_tensor, speed_tensor, nil
 }
 
+// Run inference pipeline with given sentence (phonemized).
+// Returns float array containing waveform data.
 func (k *Kitten) RunInference(sentence string) ([]float32, error) {
 	sentence = k.PreprocessInput(sentence)
 	tokens := k.token_map.TokenizeWord(sentence)
@@ -125,6 +140,7 @@ func (k *Kitten) RunInference(sentence string) ([]float32, error) {
 	return waveform, nil
 }
 
+// Initialize new kitten tts controller.
 func NewKitten(config *KittenConfig) *Kitten {
 	ort.SetSharedLibraryPath("/home/exaroth/Projects/narrative/lib/libonnxruntime.so")
 
