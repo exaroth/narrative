@@ -138,7 +138,7 @@ func (p phonemePanel) View() tea.View {
 			"%s\n%s\n%s",
 			mainPanel,
 			p.input.View(),
-			getStatusBar(phonemePanelHelp, p.width),
+			getStatusBar(phonemePanelHelp, "", p.width),
 		)
 		v.SetContent(str)
 		v.Cursor = c
@@ -146,7 +146,7 @@ func (p phonemePanel) View() tea.View {
 		panelHeight = p.height - 1
 		mainPanel = lipgloss.NewStyle().Height(panelHeight).Render(p.phonemePanelView())
 		v.SetContent(
-			lipgloss.Sprintf("%s\n%s", mainPanel, getStatusBar(phonemePanelHelp, p.width)),
+			lipgloss.Sprintf("%s\n%s", mainPanel, getStatusBar(phonemePanelHelp, "", p.width)),
 		)
 	}
 

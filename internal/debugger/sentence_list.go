@@ -22,6 +22,8 @@ type PlaySentenceCmd struct {
 	continuous bool
 }
 
+type StopPlaybackCmd struct{}
+
 // channel controlling when we should send next sentence
 // to play.
 var playbackCh = make(chan struct{})
@@ -92,14 +94,14 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if k := msg.String(); k == "c" {
 			if s.continuousMode {
-				s.stopContinuousMode()
+				cmds = append(cmds, s.stopContinuousMode())
 			} else {
 				cmds = append(cmds, s.startContinuousPlay())
 			}
 		}
 		if k := msg.String(); k == "space" {
 			if s.continuousMode {
-				s.stopContinuousMode()
+				cmds = append(cmds, s.stopContinuousMode())
 			} else {
 				cmds = append(cmds, s.playCurrentSentence())
 			}
@@ -140,10 +142,14 @@ func (s sentenceList) View() tea.View {
 	if !s.ready {
 		v.SetContent("\n  Initializing...")
 	} else {
+		var r_contents string
+		if s.continuousMode {
+			r_contents = "C"
+		}
 		v.SetContent(lipgloss.Sprintf("%s\n%s\n%s",
 			s.list.View(),
 			s.sentencePanelView(),
-			getStatusBar(listHelpText, s.width),
+			getStatusBar(listHelpText, r_contents, s.width),
 		))
 		s.ready = true
 	}
@@ -194,8 +200,11 @@ func (s *sentenceList) startContinuousPlay() tea.Cmd {
 	}
 }
 
-func (s *sentenceList) stopContinuousMode() {
+func (s *sentenceList) stopContinuousMode() tea.Cmd {
 	s.continuousMode = false
+	return func() tea.Msg {
+		return StopPlaybackCmd{}
+	}
 }
 
 // Render sentence list.

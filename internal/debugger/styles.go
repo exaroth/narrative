@@ -64,4 +64,6 @@ var (
 	statusBarCrumbsStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FFFDF5")).
 				Padding(0, 1).Background(lipgloss.Color("#6124DF"))
+	statusBarRContentsStyle = lipgloss.NewStyle().Inherit(statusBarStyle).
+				Foreground(lipgloss.Color("#FF0000"))
 )
