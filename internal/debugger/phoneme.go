@@ -10,7 +10,7 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-var phonemePanelHelp = "<j/k>:Nav <Enter>:Replace Default  <ctrl+a>Add Phoneme  <Space>:Play  ?:Help"
+var phonemePanelHelp = "<j/k>:Nav <Enter>:Replace Default  <ctrl+a/d>Add/Del Phoneme  <Space>:Play  ?:Help"
 
 type ClosePhonemePanelCmd struct{}
 
@@ -21,19 +21,29 @@ type UpdatePhonemeCmd struct {
 	reopen        bool
 }
 
+type PlayPhonemeCmd struct {
+	phoneme string
+}
+
 type phonemePanel struct {
-	word            string
-	wordNum         int
+	word string
+	// denotes word index in sentence,
+	wordNum int
+	// default phoneme selected (by phonemizer).
 	selectedPhoneme string
-	available       map[string][]string
-	phonemesSorted  []string
-	currentPhoneme  int
-	sentenceNum     int
-	input           textinput.Model
-	showInput       bool
-	inputQuitting   bool
-	width           int
-	height          int
+	// list of available phonemes in a form map[phoneme][]tags...
+	available map[string][]string
+	// Slice containing list of sorted available phonemes.
+	phonemesSorted []string
+	// Currently selected phoonemes.
+	currentPhoneme int
+	// Index of the sentence.
+	sentenceNum   int
+	input         textinput.Model
+	showInput     bool
+	inputQuitting bool
+	width         int
+	height        int
 }
 
 func OpenPhonemePanel(ctrl *Debugger, sentence_n, word_n, width, height int) *phonemePanel {
@@ -90,6 +100,9 @@ func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if k := msg.String(); k == "k" || k == "tab" {
 				p.selectNextPhoneme()
+			}
+			if k := msg.String(); k == "space" {
+				cmds = append(cmds, p.playCurrentPhoneme())
 			}
 			if k := msg.String(); k == "enter" {
 				cmds = append(cmds, p.updatePhonemeSelected())
@@ -158,6 +171,14 @@ func (p *phonemePanel) startInput() {
 func (p *phonemePanel) closeInput() {
 	p.inputQuitting = true
 	p.showInput = false
+}
+
+func (p phonemePanel) playCurrentPhoneme() tea.Cmd {
+	return func() tea.Msg {
+		return PlayPhonemeCmd{
+			phoneme: p.getCurrentPhoneme(),
+		}
+	}
 }
 
 func (p phonemePanel) closePhonemePanel() tea.Cmd {

@@ -138,8 +138,8 @@ func (d *Debugger) Run() {
 
 }
 
-func (d *Debugger) play(phonemes string) {
-	s_data, err := d.ttsClient.RunInference(phonemes)
+func (d *Debugger) play(input, suffix string) {
+	s_data, err := d.ttsClient.RunInference(input + suffix)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
