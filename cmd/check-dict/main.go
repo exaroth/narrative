@@ -17,7 +17,7 @@ func main() {
 
 	word := os.Args[1]
 
-	repo := phonemizer.NewPhonemizerRepository()
+	repo := phonemizer.NewPhonemizerRepository("")
 
 	if err := repo.LoadLanguage(); err != nil {
 		panic(err)

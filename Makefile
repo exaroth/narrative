@@ -7,6 +7,20 @@ build:
 run:
 	go run ./cmd/narrative/main.go
 
+# Setup test env
+.PHONY: setup
+setup:
+	go get github.com/kyoh86/richgo
+	go get github.com/jstemmer/go-junit-report
+
+.PHONY: test
+test:
+	richgo test ./... -mod=readonly -v
+
+.PHONY: test-cov
+test-cov:
+	richgo test -v -race -coverpkg=./... -coverprofile=coverage.txt ./... -mod=readonly
+
 .PHONY: play
 play:
 	ffplay  -vn -v quiet -autoexit -f f32le -ar  44100 -showmode 1 out.bin
