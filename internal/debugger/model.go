@@ -56,7 +56,14 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ClosePhonemePanelCmd:
 		m.setListMode()
 	case PlaySentenceCmd:
-		m.ctrl.play(msg.sentence, "", nil)
+		if msg.continuous {
+			m.ctrl.play(msg.sentence, "", func() {
+				playbackCh <- struct{}{}
+			})
+
+		} else {
+			m.ctrl.play(msg.sentence, "", nil)
+		}
 	case PlayPhonemeCmd:
 		m.ctrl.play(msg.phoneme, ".", nil)
 	case UpdatePhonemeCmd:

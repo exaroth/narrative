@@ -18,8 +18,13 @@ type OpenPhonemePanelCmd struct {
 }
 
 type PlaySentenceCmd struct {
-	sentence string
+	sentence   string
+	continuous bool
 }
+
+// channel controlling when we should send next sentence
+// to play.
+var playbackCh = make(chan struct{})
 
 type sentenceList struct {
 	sentences       *[]string
@@ -30,6 +35,15 @@ type sentenceList struct {
 	ctrl            *Debugger
 	height          int
 	width           int
+	continuousMode  bool
+}
+
+type playNextCmd struct{}
+
+func waitForPlaybackEnd(sub chan struct{}) tea.Cmd {
+	return func() tea.Msg {
+		return playNextCmd(<-sub)
+	}
 }
 
 func NewSentenceList(ctrl *Debugger, sentence_num int) *sentenceList {
@@ -40,7 +54,10 @@ func NewSentenceList(ctrl *Debugger, sentence_num int) *sentenceList {
 }
 
 func (s sentenceList) Init() tea.Cmd {
-	return nil
+
+	return tea.Batch(
+		waitForPlaybackEnd(playbackCh),
+	)
 }
 
 func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -54,26 +71,45 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
 			return s, tea.Quit
 		}
-		if k := msg.String(); k == "j" {
-			s.selectNextSentence()
-			s.selectWord(0)
+		if !s.continuousMode {
+			if k := msg.String(); k == "j" {
+				s.selectNextSentence()
+				s.selectWord(0)
+			}
+			if k := msg.String(); k == "k" {
+				s.selectPrevSentence()
+				s.selectWord(0)
+			}
+			if k := msg.String(); k == "l" || k == "tab" {
+				s.selectNextWord()
+			}
+			if k := msg.String(); k == "h" {
+				s.selectPrevWord()
+			}
+			if k := msg.String(); k == "enter" {
+				cmds = append(cmds, s.openPhonemePanel())
+			}
 		}
-		if k := msg.String(); k == "k" {
-			s.selectPrevSentence()
-			s.selectWord(0)
-		}
-		if k := msg.String(); k == "l" || k == "tab" {
-			s.selectNextWord()
-		}
-		if k := msg.String(); k == "h" {
-			s.selectPrevWord()
-		}
-		if k := msg.String(); k == "enter" {
-			cmds = append(cmds, s.openPhonemePanel())
+		if k := msg.String(); k == "c" {
+			if s.continuousMode {
+				s.stopContinuousMode()
+			} else {
+				cmds = append(cmds, s.startContinuousPlay())
+			}
 		}
 		if k := msg.String(); k == "space" {
-			cmds = append(cmds, s.playCurrentSentence())
+			if s.continuousMode {
+				s.stopContinuousMode()
+			} else {
+				cmds = append(cmds, s.playCurrentSentence())
+			}
 		}
+
+	case playNextCmd:
+		cmds = append(
+			cmds,
+			s.playNextSentence(),
+			waitForPlaybackEnd(playbackCh))
 
 	case tea.WindowSizeMsg:
 		s.setTermDimensions(msg.Width, msg.Height)
@@ -128,16 +164,41 @@ func (s *sentenceList) openPhonemePanel() tea.Cmd {
 	}
 }
 
+// Play Current sentence only.
 func (s *sentenceList) playCurrentSentence() tea.Cmd {
 
 	sentence_data := s.ctrl.sentenceData[s.currentSentence]
 	return func() tea.Msg {
 		return PlaySentenceCmd{
-			sentence: sentence_data.phonemized,
+			sentence:   sentence_data.phonemized,
+			continuous: s.continuousMode,
 		}
 	}
 }
 
+func (s *sentenceList) playNextSentence() tea.Cmd {
+	s.selectNextSentence()
+	return s.playCurrentSentence()
+}
+
+// Start playing sentences, starting with current one.
+func (s *sentenceList) startContinuousPlay() tea.Cmd {
+
+	s.continuousMode = true
+	sentence_data := s.ctrl.sentenceData[s.currentSentence]
+	return func() tea.Msg {
+		return PlaySentenceCmd{
+			sentence:   sentence_data.phonemized,
+			continuous: true,
+		}
+	}
+}
+
+func (s *sentenceList) stopContinuousMode() {
+	s.continuousMode = false
+}
+
+// Render sentence list.
 func (s sentenceList) renderList() string {
 
 	l := list.New().
@@ -163,6 +224,7 @@ func (s sentenceList) renderList() string {
 	return lipgloss.Sprint("\n", l, "\n")
 }
 
+// Render introspection panel below the list containing words and selectable phonemes.
 func (s *sentenceList) generateSentenceTranscription(use_phonemes bool) string {
 	var builder strings.Builder
 	s.selectSentence(s.currentSentence)
