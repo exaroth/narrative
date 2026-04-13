@@ -40,7 +40,7 @@ func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 }
 
 func (m debugModel) Init() tea.Cmd {
-	return nil
+	return m.sentenceList.Init()
 }
 
 func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -56,9 +56,9 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ClosePhonemePanelCmd:
 		m.setListMode()
 	case PlaySentenceCmd:
-		m.ctrl.play(msg.sentence, "")
+		m.ctrl.play(msg.sentence, "", nil)
 	case PlayPhonemeCmd:
-		m.ctrl.play(msg.phoneme, ".")
+		m.ctrl.play(msg.phoneme, ".", nil)
 	case UpdatePhonemeCmd:
 		m.updateExtDict(msg.word, msg.phoneme, msg.sentenceNum)
 		m.setListMode()

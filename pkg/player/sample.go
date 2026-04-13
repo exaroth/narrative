@@ -42,7 +42,7 @@ func (s *Sample) Stream(samples [][2]float64) (n int, ok bool) {
 	}
 	processed := int(s.processed) + len(samples)
 	if processed > len(s.data) {
-		return len(samples), false
+		return 0, false
 	}
 	s.processed = uint(processed)
 	return len(samples), true

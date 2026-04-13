@@ -39,14 +39,23 @@ func (p *Player) AddSample(data []float32) {
 }
 
 // Play currently loaded sample (if present).
-func (p *Player) Play() {
+func (p *Player) Play(callback func()) {
 	if p.ctrl.Streamer == nil {
 		return
 	}
+
 	speaker.Lock()
 	p.ctrl.Paused = false
 	speaker.Unlock()
-	speaker.Play(p.ctrl)
+
+	sounds := []beep.Streamer{
+		p.ctrl,
+	}
+	if callback != nil {
+		sounds = append(sounds, beep.Callback(callback))
+	}
+
+	speaker.Play(beep.Seq(sounds...))
 }
 
 // Stop playing current sample.
@@ -54,6 +63,7 @@ func (p *Player) Pause() {
 	if p.ctrl.Streamer == nil {
 		return
 	}
+
 	speaker.Lock()
 	p.ctrl.Paused = true
 	speaker.Unlock()
@@ -66,7 +76,7 @@ func (p *Player) Toggle() {
 	}
 	speaker.Lock()
 	if p.ctrl.Paused == true {
-		p.Play()
+		p.Play(nil)
 	} else {
 		p.Pause()
 	}

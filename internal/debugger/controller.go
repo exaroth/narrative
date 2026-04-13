@@ -138,13 +138,13 @@ func (d *Debugger) Run() {
 
 }
 
-func (d *Debugger) play(input, suffix string) {
+func (d *Debugger) play(input, suffix string, callback func()) {
 	s_data, err := d.ttsClient.RunInference(input + suffix)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
 	d.player.AddSample(s_data)
-	d.player.Play()
+	d.player.Play(callback)
 }
 
 func (d *Debugger) updateExtDict(word, phoneme string) error {
