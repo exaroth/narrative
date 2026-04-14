@@ -38,6 +38,10 @@ func (d *CsvDict) Delete(word string) {
 	delete(d.data, word)
 }
 
+func (d *CsvDict) Items() map[string]string {
+	return d.data
+}
+
 // Save new dict in sorted order.
 func (d *CsvDict) Save() error {
 	var err error
