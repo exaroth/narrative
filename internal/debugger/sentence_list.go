@@ -12,17 +12,26 @@ import (
 
 var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  ?:Help"
 
-type OpenPhonemePanelCmd struct {
-	currentSentence int
-	currentWord     int
-}
+// Commands
 
-type PlaySentenceCmd struct {
-	sentence   string
-	continuous bool
-}
+type (
+	OpenPhonemePanelCmd struct {
+		currentSentence int
+		currentWord     int
+	}
 
-type StopPlaybackCmd struct{}
+	PlaySentenceCmd struct {
+		sentence   string
+		continuous bool
+	}
+
+	UpdateMissingDictCmd struct {
+		values map[string]string
+	}
+
+	StopPlaybackCmd struct{}
+	PlayNextCmd     struct{}
+)
 
 // channel controlling when we should send next sentence
 // to play.
@@ -40,11 +49,9 @@ type sentenceList struct {
 	continuousMode  bool
 }
 
-type playNextCmd struct{}
-
 func waitForPlaybackEnd(sub chan struct{}) tea.Cmd {
 	return func() tea.Msg {
-		return playNextCmd(<-sub)
+		return PlayNextCmd(<-sub)
 	}
 }
 
@@ -75,11 +82,11 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if !s.continuousMode {
 			if k := msg.String(); k == "j" {
-				s.selectNextSentence()
+				cmds = append(cmds, s.selectNextSentence(true))
 				s.selectWord(0)
 			}
 			if k := msg.String(); k == "k" {
-				s.selectPrevSentence()
+				cmds = append(cmds, s.selectPrevSentence(true))
 				s.selectWord(0)
 			}
 			if k := msg.String(); k == "l" || k == "tab" {
@@ -107,7 +114,7 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-	case playNextCmd:
+	case PlayNextCmd:
 		cmds = append(
 			cmds,
 			s.playNextSentence(),
@@ -183,8 +190,10 @@ func (s *sentenceList) playCurrentSentence() tea.Cmd {
 }
 
 func (s *sentenceList) playNextSentence() tea.Cmd {
-	s.selectNextSentence()
-	return s.playCurrentSentence()
+	return tea.Batch(
+		s.selectNextSentence(true),
+		s.playCurrentSentence(),
+	)
 }
 
 // Start playing sentences, starting with current one.
@@ -236,7 +245,7 @@ func (s sentenceList) renderList() string {
 // Render introspection panel below the list containing words and selectable phonemes.
 func (s *sentenceList) generateSentenceTranscription(use_phonemes bool) string {
 	var builder strings.Builder
-	s.selectSentence(s.currentSentence)
+	s.selectSentence(s.currentSentence, false)
 	sentence_data := s.ctrl.sentenceData[s.currentSentence]
 	if sentence_data == nil {
 		panic("No opts found")
@@ -278,15 +287,15 @@ func (s *sentenceList) generateSentenceTranscription(use_phonemes bool) string {
 	return lipgloss.Sprintf(" Words    %s", builder.String())
 }
 
-func (s *sentenceList) selectPrevSentence() {
-	s.selectSentence(s.currentSentence - 1)
+func (s *sentenceList) selectPrevSentence(update bool) tea.Cmd {
+	return s.selectSentence(s.currentSentence-1, update)
 }
 
-func (s *sentenceList) selectNextSentence() {
-	s.selectSentence(s.currentSentence + 1)
+func (s *sentenceList) selectNextSentence(update bool) tea.Cmd {
+	return s.selectSentence(s.currentSentence+1, update)
 }
 
-func (s *sentenceList) selectSentence(n int) {
+func (s *sentenceList) selectSentence(n int, update bool) tea.Cmd {
 	if n < 0 {
 		n = 0
 	}
@@ -297,6 +306,39 @@ func (s *sentenceList) selectSentence(n int) {
 	s.ctrl.getSentenceData(uint(n))
 
 	s.list.SetContent(s.renderList())
+	if update {
+		return s.updateMissingDict()
+	}
+	return nil
+}
+
+func (s *sentenceList) updateMissingDict() tea.Cmd {
+	sentence_data := s.ctrl.sentenceData[s.currentSentence]
+	if sentence_data == nil {
+		return nil
+	}
+	res := make(map[string]string)
+	for idx, t := range *sentence_data.opts.Tags {
+		// if theres more than 1 phoneme available
+		// inferrence would not run (kw)
+		if len(t) > 1 {
+			continue
+		}
+		for ph, tt := range t {
+			// this will happen for lone punctuation
+			if len(ph) == 0 {
+				break
+			}
+			if len(tt) == 0 {
+				res[(*sentence_data.opts.WordOrigins)[idx]] = ph
+			}
+			break
+		}
+	}
+
+	return func() tea.Msg {
+		return UpdateMissingDictCmd{res}
+	}
 }
 
 // Get list of selected phonemes for current sentence.

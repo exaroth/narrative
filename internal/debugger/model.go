@@ -1,12 +1,8 @@
 package debugger
 
 import (
-	"time"
-
 	tea "charm.land/bubbletea/v2"
 )
-
-type tickMsg time.Time
 
 type mode int
 
@@ -70,6 +66,8 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.deleteFromExtDict(msg.word, msg.sentenceNum)
 		m.setListMode()
 		m.setPhonemeMode(msg.sentenceNum, msg.wordNum)
+	case UpdateMissingDictCmd:
+		m.ctrl.updateMissingDict(msg.values)
 	}
 
 	switch m.mode {

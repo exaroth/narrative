@@ -31,14 +31,16 @@ type Debugger struct {
 	// all sentences from the input
 	source []string
 	// phonemization data for each sentence
-	sentenceData map[int]*sentenceData
-	model        tea.Model
-	config       *Config
-	extDictPath  string
-	extDict      *CsvDict
-	ttsClient    *kitten.Kitten
-	phonemizer   *phonemizer.Phonemizer
-	preprocessor *preprocessor.Preprocessor
+	sentenceData    map[int]*sentenceData
+	model           tea.Model
+	config          *Config
+	extDictPath     string
+	extDict         *CsvDict
+	missingDictPath string
+	missingDict     *CsvDict
+	ttsClient       *kitten.Kitten
+	phonemizer      *phonemizer.Phonemizer
+	preprocessor    *preprocessor.Preprocessor
 
 	player *player.Player
 	// whether we are plating sentence/phoneme sample atmj
@@ -99,7 +101,12 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 		return nil, fmt.Errorf("debugger init err; phonemizer init: %w", err)
 	}
 
-	csv_dict, err := LoadCsvDict(paths[0])
+	ext_dict, err := LoadCsvDict(paths[0])
+	if err != nil {
+		return nil, err
+	}
+
+	missing_dict, err := LoadCsvDict(paths[1])
 	if err != nil {
 		return nil, err
 	}
@@ -108,16 +115,18 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 	kitten := kitten.NewKitten(kitten.DefaultConfig())
 
 	debugger := &Debugger{
-		config:       config,
-		ttsClient:    kitten,
-		phonemizer:   phonemizer,
-		preprocessor: preprocessor,
-		extDictPath:  paths[0],
-		extDict:      csv_dict,
-		model:        nil,
-		source:       sentencizer.Sentencize(input),
-		sentenceData: make(map[int]*sentenceData),
-		player:       player.InitPlayer(),
+		config:          config,
+		ttsClient:       kitten,
+		phonemizer:      phonemizer,
+		preprocessor:    preprocessor,
+		extDictPath:     paths[0],
+		extDict:         ext_dict,
+		missingDictPath: paths[1],
+		missingDict:     missing_dict,
+		model:           nil,
+		source:          sentencizer.Sentencize(input),
+		sentenceData:    make(map[int]*sentenceData),
+		player:          player.InitPlayer(),
 	}
 
 	model := NewDebuggerModel(debugger, 0)
@@ -153,6 +162,13 @@ func (d *Debugger) updateExtDict(word, phoneme string) error {
 		return err
 	}
 	return d.reloadPhonemizer()
+}
+
+func (d *Debugger) updateMissingDict(values map[string]string) error {
+	for k, v := range values {
+		d.missingDict.Update(k, v)
+	}
+	return d.missingDict.Save()
 }
 
 func (d *Debugger) deleteFromExtDict(word string) error {
