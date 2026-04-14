@@ -81,6 +81,11 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return s, tea.Quit
 		}
 		if !s.continuousMode {
+			if k := msg.String(); k == "tab" {
+				cmds = append(cmds, s.selectNextSentence(true))
+				s.selectWord(0)
+				cmds = append(cmds, s.playCurrentSentence())
+			}
 			if k := msg.String(); k == "j" {
 				cmds = append(cmds, s.selectNextSentence(true))
 				s.selectWord(0)
@@ -89,7 +94,7 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, s.selectPrevSentence(true))
 				s.selectWord(0)
 			}
-			if k := msg.String(); k == "l" || k == "tab" {
+			if k := msg.String(); k == "l" {
 				s.selectNextWord()
 			}
 			if k := msg.String(); k == "h" {
