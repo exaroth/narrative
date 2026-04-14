@@ -33,6 +33,10 @@ debugger:
 build-debugger:
 	go build -o debugger ./cmd/debugger/main.go
 
+.PHONY: merge-dicts
+merge-dicts:
+	go run cmd/dict-merge/main.go dictionary/aux_dict.csv ./narrative-debugger/aux_dict.csv
+
 .PHONY: get-kitten-mini
 get-kitten-mini:
 	mkdir -p ./models/kitten
