@@ -30,7 +30,7 @@ var (
 		b := lipgloss.RoundedBorder()
 		return lipgloss.NewStyle().
 			MarginBottom(1).
-			Height(12).
+			Height(20).
 			BorderStyle(b).
 			BorderForeground(lipgloss.Color("237")).
 			PaddingLeft(2).PaddingTop(1).PaddingRight(1)

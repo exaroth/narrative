@@ -17,6 +17,7 @@ dictionary.*
 /dump
 /models
 /narrative-debugger
+/debugger
 
 .tts-processing.lock
 .tts-playback.lock
