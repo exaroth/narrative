@@ -29,6 +29,9 @@ play:
 debugger:
 	go run ./cmd/debugger/main.go ../dump/kafka-on-the-shore.txt
 
+.PHONY: build-debugger
+build-debugger:
+	go build -o debugger ./cmd/debugger/main.go
 
 .PHONY: get-kitten-mini
 get-kitten-mini:
