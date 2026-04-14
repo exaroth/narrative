@@ -326,7 +326,7 @@ func (s *sentenceList) updateMissingDict() tea.Cmd {
 		}
 		for ph, tt := range t {
 			// this will happen for lone punctuation
-			if len(ph) == 0 {
+			if len(ph) == 0 || len(ph) == 1 {
 				break
 			}
 			if len(tt) == 0 {
