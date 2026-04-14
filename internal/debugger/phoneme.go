@@ -10,15 +10,19 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-var phonemePanelHelp = "<j/k>:Nav <Enter>:Replace Default  <ctrl+a/d>Add/Del Phoneme  <Space>:Play  ?:Help"
+var phonemePanelHelp = "<j/k>:Nav <Enter>:Replace Default  <ctrl+a/d>Add/Del Ext. Phoneme  <Space>:Play  ?:Help"
 
 type ClosePhonemePanelCmd struct{}
 
 type UpdatePhonemeCmd struct {
-	word, phoneme string
-	wordNum       int
-	sentenceNum   int
-	reopen        bool
+	word, phoneme        string
+	wordNum, sentenceNum int
+	reopen               bool
+}
+
+type DeletePhonemeCmd struct {
+	word                 string
+	wordNum, sentenceNum int
 }
 
 type PlayPhonemeCmd struct {
@@ -110,7 +114,9 @@ func (p phonemePanel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if k := msg.String(); k == "ctrl+a" {
 				p.startInput()
 			}
-
+			if k := msg.String(); k == "ctrl+d" {
+				cmds = append(cmds, p.deleteExtPhoneme())
+			}
 		}
 	}
 
@@ -236,6 +242,26 @@ func (p *phonemePanel) updatePhoneme(word, phoneme string, reopen bool) tea.Cmd 
 			reopen:      reopen,
 		}
 	}
+}
+
+// Delete ext dict phoneme for selected word.
+func (p *phonemePanel) deleteExtPhoneme() tea.Cmd {
+	var found bool
+	for _, ph := range p.available {
+		if slices.Contains(ph, "override-ext") {
+			found = true
+		}
+	}
+	if found {
+		return func() tea.Msg {
+			return DeletePhonemeCmd{
+				word:        p.word,
+				wordNum:     p.wordNum,
+				sentenceNum: p.sentenceNum,
+			}
+		}
+	}
+	return nil
 }
 
 func (p *phonemePanel) selectDefaultPhoneme() {

@@ -152,8 +152,20 @@ func (d *Debugger) updateExtDict(word, phoneme string) error {
 	if err := d.extDict.Save(); err != nil {
 		return err
 	}
-	// TODO fix reload dict funct
-	// return d.phonemizer.ReloadDictionaries(phonemizer.ReloadRequestExt)
+	return d.reloadPhonemizer()
+}
+
+func (d *Debugger) deleteFromExtDict(word string) error {
+	d.extDict.Delete(word)
+	if err := d.extDict.Save(); err != nil {
+		return err
+	}
+	return d.reloadPhonemizer()
+}
+
+// TODO fix reload dict funct
+// return d.phonemizer.ReloadDictionaries(phonemizer.ReloadRequestExt)
+func (d *Debugger) reloadPhonemizer() error {
 	phonemizer, err := phonemizer.NewPhonemizer(d.extDictPath)
 	if err != nil {
 		return err

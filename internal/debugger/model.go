@@ -8,12 +8,6 @@ import (
 
 type tickMsg time.Time
 
-func tick() tea.Cmd {
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-		return tickMsg(t)
-	})
-}
-
 type mode int
 
 const (
@@ -72,6 +66,10 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.reopen {
 			m.setPhonemeMode(msg.sentenceNum, msg.wordNum)
 		}
+	case DeletePhonemeCmd:
+		m.deleteFromExtDict(msg.word, msg.sentenceNum)
+		m.setListMode()
+		m.setPhonemeMode(msg.sentenceNum, msg.wordNum)
 	}
 
 	switch m.mode {
@@ -100,6 +98,12 @@ func (m debugModel) View() tea.View {
 
 func (m *debugModel) updateExtDict(word, phoneme string, sentence_n int) {
 	m.ctrl.updateExtDict(word, phoneme)
+	m.ctrl.clearCache(sentence_n)
+	m.ctrl.getSentenceData(uint(sentence_n))
+}
+
+func (m *debugModel) deleteFromExtDict(word string, sentence_n int) {
+	m.ctrl.deleteFromExtDict(word)
 	m.ctrl.clearCache(sentence_n)
 	m.ctrl.getSentenceData(uint(sentence_n))
 }
