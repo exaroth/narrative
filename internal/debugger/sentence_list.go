@@ -10,7 +10,7 @@ import (
 	"charm.land/lipgloss/v2/list"
 )
 
-var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  ?:Help"
+var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  <Arrows>:Scroll  q:Quit  ?:Help"
 
 // Commands
 
