@@ -12,7 +12,7 @@ func TestExpandingContractions(t *testing.T) {
 	}{
 		{
 			input:    "He'll be, I haven't any idea",
-			expected: "He will be, I have not any idea",
+			expected: "He will be, I haven't any idea",
 		},
 		{
 			input:    "I could've done more but i won't",

@@ -15,7 +15,7 @@ var CONTRACTION_MAP = []struct {
 	{
 		re:         regexp.MustCompile(`\b(\w+)'m\b`),
 		repl:       "am",
-		exclusions: []string{},
+		exclusions: []string{"i'm"},
 	},
 	{
 		re:         regexp.MustCompile(`\b(\w+)'d\b`),
@@ -40,7 +40,7 @@ var CONTRACTION_MAP = []struct {
 	{
 		re:         regexp.MustCompile(`\b(\w+)n't\b`),
 		repl:       "not",
-		exclusions: []string{"won't", "can't"},
+		exclusions: []string{"won't", "can't", "hasn't", "haven't", "don't", "ain't"},
 	},
 }
 
