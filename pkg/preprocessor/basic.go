@@ -154,6 +154,9 @@ func processDashes(input string) (string, error) {
 
 	result := []string{}
 	for idx, word := range strings.Split(input, " ") {
+		if len(word) == 0 {
+			continue
+		}
 		// dont process dashes for first word
 		// as these might indicate dialogue
 		if idx == 0 {
