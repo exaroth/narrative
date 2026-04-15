@@ -92,8 +92,10 @@ func SplitLongSentence(text string, desired_l int, range_l int, delimiters []run
 		current.WriteRune(char)
 	}
 	rest := strings.Trim(current.String(), " ")
-	if len(rest) > 0 {
-		chunks[len(chunks)-1] += rest
+	if len(rest) > range_l {
+		chunks = append(chunks, rest)
+	} else {
+		chunks[len(chunks)-1] += " " + rest
 	}
 
 	return chunks
