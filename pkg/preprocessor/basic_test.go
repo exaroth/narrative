@@ -190,3 +190,37 @@ func TestTrimmingSentenceQuotes(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessingDashes(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "He -did something- stupid.",
+			expected: "He ; did something ; stupid.",
+		},
+		{
+			input:    "- dialogue",
+			expected: "- dialogue",
+		},
+		{
+			input:    "-dialogue",
+			expected: "-dialogue",
+		},
+		{
+			input:    "half-life",
+			expected: "half-life",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("process dashes : %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := processDashes(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}

@@ -146,3 +146,31 @@ func trimSentenceQuotes(input string) (string, error) {
 	}
 	return input, nil
 }
+
+// Process trailing and leading dashed splitting them from
+// the word and replace them with ; for better phonemization
+// result.
+func processDashes(input string) (string, error) {
+
+	result := []string{}
+	for idx, word := range strings.Split(input, " ") {
+		// dont process dashes for first word
+		// as these might indicate dialogue
+		if idx == 0 {
+			result = append(result, word)
+			continue
+		}
+		if word == "-" {
+			result = append(result, ";")
+			continue
+		}
+		if word[0] == '-' {
+			word = "; " + word[1:]
+		}
+		if word[len(word)-1] == '-' {
+			word = word[:len(word)-1] + " ;"
+		}
+		result = append(result, word)
+	}
+	return strings.Join(result, " "), nil
+}
