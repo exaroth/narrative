@@ -2,12 +2,26 @@ package sentencizer
 
 import (
 	"bufio"
+	"bytes"
+	"slices"
 	"strings"
 
 	"github.com/sentencizer/sentencizer"
 )
 
+// TODO add to config
+
+// max number of tokens that can be passed to KittenTTS model.
+// excludes spaces?
+const MAX_SENTENCE_LENGTH int = 398
+
+var SENTENCE_DELIMITERS = []rune{',', ';', '.'}
 var SENTENCE_WRAP_CHARS = []string{"\"", "'"}
+
+const (
+	SENTENCE_DESIRED_L = 299
+	SENTENCE_DESIRED_R = 50
+)
 
 // Split input string into sentence slice.
 func Sentencize(text []byte) []string {
@@ -37,9 +51,48 @@ func Sentencize(text []byte) []string {
 					}
 				}
 			}
-			chunks = append(chunks, sentence)
 
+			if len([]rune(sentence))-strings.Count(sentence, " ") > MAX_SENTENCE_LENGTH {
+
+				chunks = append(chunks,
+					SplitLongSentence(sentence,
+						SENTENCE_DESIRED_L,
+						SENTENCE_DESIRED_R,
+						SENTENCE_DELIMITERS)...)
+			} else {
+				chunks = append(chunks, sentence)
+			}
 		}
 	}
+	return chunks
+}
+
+// Split long sentence, necessary in order not to exceed maximum token len allowable by
+// the kitten tts model.
+func SplitLongSentence(text string, desired_l int, range_l int, delimiters []rune) []string {
+	var chunks []string
+	current := new(bytes.Buffer)
+
+	for _, char := range text {
+		is_delimiter := slices.Contains(delimiters, char)
+
+		if char == ' ' && current.Len() >= desired_l+range_l {
+			chunks = append(chunks, current.String())
+			current.Reset()
+			continue
+		}
+
+		if is_delimiter && current.Len() >= desired_l-range_l {
+			current.WriteRune(char)
+			chunks = append(chunks, strings.Trim(current.String(), " "))
+			current.Reset()
+			continue
+		}
+
+		current.WriteRune(char)
+	}
+
+	chunks = append(chunks, strings.Trim(current.String(), " "))
+
 	return chunks
 }
