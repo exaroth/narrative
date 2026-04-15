@@ -2,10 +2,12 @@ package debugger
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"maps"
 	"os"
 	"slices"
+	"strings"
 	"sync"
 )
 
@@ -79,6 +81,9 @@ func (d *CsvDict) Save() error {
 	keys := slices.Sorted((maps.Keys(d.data)))
 	rows := [][]string{}
 	for _, k := range keys {
+		if strings.Contains(d.data[k], " ") {
+			return fmt.Errorf("Whitespace found in phoneme %s", d.data[k])
+		}
 		row := []string{k, d.data[k]}
 		rows = append(rows, row)
 	}
