@@ -26,6 +26,10 @@ func TestExpandingContractions(t *testing.T) {
 			input:    "I'd like some",
 			expected: "I would like some",
 		},
+		{
+			input:    "Haven't done",
+			expected: "Haven't done",
+		},
 	}
 	for idx, test := range tests {
 		testname := fmt.Sprintf("expand contractions: %d", idx)

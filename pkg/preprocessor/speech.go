@@ -40,7 +40,7 @@ var CONTRACTION_MAP = []struct {
 	{
 		re:         regexp.MustCompile(`\b(\w+)n't\b`),
 		repl:       "not",
-		exclusions: []string{"won't", "can't", "hasn't", "haven't", "don't", "ain't"},
+		exclusions: []string{"won't", "can't", "hasn't", "haven't", "don't", "ain't", "isn't"},
 	},
 }
 
@@ -51,7 +51,7 @@ func expandContractions(input string) (string, error) {
 		}
 		groups := c.re.FindAllStringSubmatch(input, -1)
 		for _, g := range groups {
-			if slices.Index(c.exclusions, g[0]) > -1 {
+			if slices.Index(c.exclusions, strings.ToLower(g[0])) > -1 {
 				continue
 			}
 			input = strings.ReplaceAll(input, g[0], fmt.Sprintf("%s %s", g[1], c.repl))
