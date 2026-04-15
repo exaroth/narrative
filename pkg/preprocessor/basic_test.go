@@ -5,6 +5,28 @@ import (
 	"testing"
 )
 
+func TestNormalizingUnicode(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "žůžo Shōgun",
+			expected: "zuzo Shogun",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("Normalize unicode: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := normalizeUnicode(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}
+
 func TestNormalizingPunctuation(t *testing.T) {
 	tests := []struct {
 		input    string

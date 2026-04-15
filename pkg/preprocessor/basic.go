@@ -4,6 +4,11 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"unicode"
+
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 var (
@@ -46,6 +51,14 @@ var PUNCT_REPLACEMENT_MAP = []struct {
 		re:   regexp.MustCompile("[_]"),
 		repl: "",
 	},
+}
+
+// Normalize unicode characters into their english diactric
+// equivalents.
+func normalizeUnicode(input string) (string, error) {
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	result, _, err := transform.String(t, input)
+	return result, err
 }
 
 // Normalize whitespace removing multiple occurences

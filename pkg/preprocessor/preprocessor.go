@@ -45,6 +45,7 @@ func NewPreprocessor() *Preprocessor {
 		funcs: []PreprocessorFunc{},
 	}
 
+	proc.RegisterFunc(normalizeUnicode)
 	proc.RegisterFunc(cleanupUnusableTextParts)
 	proc.RegisterFunc(normalizePunctuation)
 	proc.RegisterFunc(trimSentenceQuotes)
