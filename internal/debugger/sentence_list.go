@@ -2,6 +2,7 @@ package debugger
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"charm.land/bubbles/v2/viewport"
@@ -47,6 +48,8 @@ type sentenceList struct {
 	height          int
 	width           int
 	continuousMode  bool
+	// list of sentences marked for review
+	marks []int
 }
 
 func waitForPlaybackEnd(sub chan struct{}) tea.Cmd {
@@ -104,6 +107,10 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, s.openPhonemePanel())
 			}
 		}
+		if k := msg.String(); k == "m" {
+			s.markForReview()
+		}
+
 		if k := msg.String(); k == "c" {
 			if s.continuousMode {
 				cmds = append(cmds, s.stopContinuousMode())
@@ -221,14 +228,25 @@ func (s *sentenceList) stopContinuousMode() tea.Cmd {
 	}
 }
 
+func (s *sentenceList) markForReview() {
+	if slices.Contains(s.marks, s.currentSentence) {
+		// unmark if exists
+		idx := slices.Index(s.marks, s.currentSentence)
+		s.marks = append(s.marks[:idx], s.marks[idx+1:]...)
+		return
+	}
+	s.marks = append(s.marks, s.currentSentence)
+}
+
 // Render sentence list.
 func (s sentenceList) renderList() string {
-
 	l := list.New().
 		Enumerator(list.Arabic).
 		ItemStyleFunc(func(_ list.Items, i int) lipgloss.Style {
 			st := sentenceListBaseStyle
-			if s.currentSentence == i {
+			if slices.Contains(s.marks, i) {
+				return st.Foreground(sentenceListMarkedColor)
+			} else if s.currentSentence == i {
 				return st.Foreground(sentenceListHighlightColor)
 			}
 			return st.Foreground(sentenceListDimColor)

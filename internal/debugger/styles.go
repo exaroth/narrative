@@ -15,6 +15,7 @@ var (
 var (
 	sentenceListDimColor       = lipgloss.Color("250")
 	sentenceListHighlightColor = lipgloss.Color("228")
+	sentenceListMarkedColor    = lipgloss.Color("#186600")
 	sentenceListBaseStyle      = lipgloss.NewStyle().MarginBottom(1).MarginLeft(1).Inline(true)
 )
 
