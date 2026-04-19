@@ -51,6 +51,13 @@ func (d *CsvDict) Save() error {
 	d.mut.Lock()
 	defer d.mut.Unlock()
 
+	keys := slices.Sorted((maps.Keys(d.data)))
+	for _, k := range keys {
+		if strings.Contains(d.data[k], " ") {
+			return fmt.Errorf("Whitespace found in phoneme %s", d.data[k])
+		}
+	}
+
 	f_reader, err := os.OpenFile(d.path, os.O_RDWR, 0666)
 	if err != nil {
 		return err
@@ -78,12 +85,8 @@ func (d *CsvDict) Save() error {
 	var writer = csv.NewWriter(f_reader)
 	writer.Comma = ' '
 
-	keys := slices.Sorted((maps.Keys(d.data)))
 	rows := [][]string{}
 	for _, k := range keys {
-		if strings.Contains(d.data[k], " ") {
-			return fmt.Errorf("Whitespace found in phoneme %s", d.data[k])
-		}
 		row := []string{k, d.data[k]}
 		rows = append(rows, row)
 	}
