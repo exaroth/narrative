@@ -2,7 +2,6 @@ package debugger
 
 import (
 	"github.com/exaroth/narrative/internal/config"
-	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -20,7 +19,6 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		mainConfig: &config.Config{
-			LogLevel:                     log.InfoLevel,
 			DebuggerMode:                 true,
 			UsePhonemeSelectionInference: true,
 			RemoveWordTrailingHyphens:    false,

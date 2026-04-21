@@ -1,88 +1,85 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
-	"math"
 	"os"
-	"time"
 
-	"github.com/exaroth/narrative/pkg/kitten"
-	"github.com/exaroth/narrative/pkg/phonemizer"
-	"github.com/exaroth/narrative/pkg/preprocessor"
-	"github.com/exaroth/narrative/pkg/sentencizer"
-
+	"github.com/exaroth/narrative/internal/narrative"
 	log "github.com/sirupsen/logrus"
 )
 
 func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
-
 	log.SetLevel(log.WarnLevel)
 }
 
 func main() {
 
-	input, err := os.ReadFile("./dump/kafka-on-the-shore.txt")
+	ctrl, err := narrative.NewCtrl()
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(ctrl)
+	// input, err := os.ReadFile("./dump/kafka-on-the-shore.txt")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	phonemizer, err := phonemizer.NewPhonemizer("")
-	if err != nil {
-		panic(err)
-	}
+	// phonemizer, err := phonemizer.NewPhonemizer("")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	preprocessor := preprocessor.NewPreprocessor()
-	kitten := kitten.NewKitten(nil)
+	// preprocessor := preprocessor.NewPreprocessor()
+	// kitten := kitten.NewKitten(nil)
 
-	defer kitten.Deinit()
+	// defer kitten.Deinit()
 
-	var waveform_data []float32
-	var phonemized string
-	var p_sentence string
-	for _, sentence := range sentencizer.Sentencize(input) {
+	// var waveform_data []float32
+	// var phonemized string
+	// var p_sentence string
+	// for _, sentence := range sentencizer.Sentencize(input) {
 
-		_, _ = os.Create("./.tts-processing.lock")
+	// 	_, _ = os.Create("./.tts-processing.lock")
 
-		p_sentence = preprocessor.ProcessSentence(sentence)
-		phonemized, err = phonemizer.Phonemize(p_sentence)
+	// 	p_sentence = preprocessor.ProcessSentence(sentence)
+	// 	phonemized, err = phonemizer.Phonemize(p_sentence)
 
-		fmt.Println("Original: ", sentence)
-		fmt.Println("Processed: ", p_sentence)
-		fmt.Println("Phonemized: ", phonemized)
+	// 	fmt.Println("Original: ", sentence)
+	// 	fmt.Println("Processed: ", p_sentence)
+	// 	fmt.Println("Phonemized: ", phonemized)
 
-		if err != nil {
-			panic(err)
-		}
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
 
-		waveform_data, err = kitten.RunInference(phonemized)
-		if err != nil {
-			log.Fatalf("%+v", err)
-		}
+	// 	waveform_data, err = kitten.RunInference(phonemized)
+	// 	if err != nil {
+	// 		log.Fatalf("%+v", err)
+	// 	}
 
-		fname := "out.bin"
-		file, _ := os.Create(fname)
+	// 	fname := "out.bin"
+	// 	file, _ := os.Create(fname)
 
-		for _, sample := range waveform_data {
-			var buf [8]byte
-			binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
-			_, err := file.Write(buf[:])
-			if err != nil {
-				panic(err)
-			}
-		}
+	// 	for _, sample := range waveform_data {
+	// 		var buf [8]byte
+	// 		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
+	// 		_, err := file.Write(buf[:])
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 	}
 
-		_ = os.Remove("./.tts-processing.lock")
-		time.Sleep(1 * time.Second)
+	// 	_ = os.Remove("./.tts-processing.lock")
+	// 	time.Sleep(1 * time.Second)
 
-		for {
-			if f, _ := os.Stat("./.tts-playback.lock"); f != nil {
-				time.Sleep(1 * time.Second)
-			} else {
-				break
-			}
-		}
-	}
+	// 	for {
+	// 		if f, _ := os.Stat("./.tts-playback.lock"); f != nil {
+	// 			time.Sleep(1 * time.Second)
+	// 		} else {
+	// 			break
+	// 		}
+	// 	}
+	// }
 }
