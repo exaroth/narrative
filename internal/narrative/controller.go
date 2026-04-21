@@ -9,6 +9,8 @@ import (
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/player"
 	"github.com/exaroth/narrative/pkg/preprocessor"
+
+	tea "charm.land/bubbletea/v2"
 )
 
 type NarrativeCtrl struct {
@@ -18,8 +20,10 @@ type NarrativeCtrl struct {
 	player       *player.Player
 	cfg          *config.Config
 	paths        *NarrativePaths
+	model        *narrativeModel
 }
 
+// Create basic directory structure for narrative.
 func initDirectoryStructure() *NarrativePaths {
 	paths := InitPaths()
 	MakePath(paths.ConfigDir)
@@ -29,6 +33,7 @@ func initDirectoryStructure() *NarrativePaths {
 	return paths
 }
 
+// Initialize new narrative controller.
 func NewCtrl() (*NarrativeCtrl, error) {
 
 	phonemizer, err := phonemizer.NewPhonemizer("")
@@ -56,17 +61,30 @@ func NewCtrl() (*NarrativeCtrl, error) {
 			)
 		}
 	}
-
-	return &NarrativeCtrl{
+	ctrl := &NarrativeCtrl{
 		ttsClient:    kitten,
 		phonemizer:   phonemizer,
 		preprocessor: preprocessor,
 		player:       player.InitPlayer(),
 		cfg:          cfg,
 		paths:        paths,
-	}, nil
+	}
+	model := NewModel(ctrl)
+	ctrl.model = model
+	return ctrl, nil
 }
 
-func Run() {
+// Run the model.
+func (c *NarrativeCtrl) Run() error {
+	p := tea.NewProgram(c.model)
+	if _, err := p.Run(); err != nil {
+		return err
+	}
+	return nil
+}
 
+// TODO
+func (c *NarrativeCtrl) Deinit() {
+	defer c.cfg.Save(c.paths.ConfigPath)
+	defer c.ttsClient.Deinit()
 }

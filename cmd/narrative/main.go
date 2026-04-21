@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/exaroth/narrative/internal/narrative"
@@ -20,7 +19,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(ctrl)
+	err = ctrl.Run()
+	if err != nil {
+		panic(err)
+	}
 	// input, err := os.ReadFile("./dump/kafka-on-the-shore.txt")
 	// if err != nil {
 	// 	panic(err)
