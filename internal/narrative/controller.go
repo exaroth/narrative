@@ -15,15 +15,16 @@ import (
 )
 
 type NarrativeCtrl struct {
-	phonemizer   *phonemizer.Phonemizer
-	preprocessor *preprocessor.Preprocessor
-	ttsClient    *kitten.Kitten
-	player       *player.Player
-	cfg          *config.Config
-	dataCfg      *DataConfig
-	paths        *NarrativePaths
-	model        *narrativeModel
-	args         *NarrativeArgs
+	phonemizer    *phonemizer.Phonemizer
+	preprocessor  *preprocessor.Preprocessor
+	ttsClient     *kitten.Kitten
+	player        *player.Player
+	cfg           *config.Config
+	dataCfg       *DataConfig
+	paths         *NarrativePaths
+	model         *narrativeModel
+	args          *NarrativeArgs
+	currentSource *Source
 }
 
 // Create basic directory structure for narrative.
@@ -110,24 +111,48 @@ func (c *NarrativeCtrl) addNewSource() error {
 	return c.dataCfg.Save(c.paths.DataConfigPath)
 }
 
+func (c *NarrativeCtrl) LoadSource(id string) error {
+	if s, ok := c.dataCfg.Sources[id]; !ok {
+		return fmt.Errorf("Text source with id %s not found", id)
+	} else {
+		var sentence_n int
+		if sn, ok := c.dataCfg.LastSentence[id]; ok {
+			sentence_n = sn
+		}
+		ss, err := InitSource(s.Path, sentence_n, c.preprocessor)
+		if err != nil {
+			return fmt.Errorf("Error initializing source @ %s: %w", s.Path, err)
+		}
+		c.currentSource = ss
+	}
+	return nil
+}
+
 // Process command line arguments.
 func (c *NarrativeCtrl) handleArguments() (bool, error) {
 	if len(c.args.Source) > 0 {
-		return true, c.addNewSource()
+		return false, c.addNewSource()
 	}
-	return true, nil
+	return false, nil
 }
 
 // Run the model.
 func (c *NarrativeCtrl) Run() error {
-	cont, err := c.handleArguments()
-	if err != nil {
+	exit, err := c.handleArguments()
+	if exit || err != nil {
 		return err
 	}
-	if !cont {
-		return nil
+	if len(c.dataCfg.Sources) > 0 {
+		var s_id string
+		if len(c.dataCfg.LastSource) > 0 {
+			s_id = c.dataCfg.LastSource
+		} else if len(c.dataCfg.Sources) > 0 {
+			s_id = c.dataCfg.Sources.DateOrdered()[0].Id
+		}
+		if err := c.LoadSource(s_id); err != nil {
+			return err
+		}
 	}
-
 	p := tea.NewProgram(c.model)
 	if _, err := p.Run(); err != nil {
 		return err

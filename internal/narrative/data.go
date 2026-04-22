@@ -3,9 +3,12 @@ package narrative
 import (
 	"encoding/json"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+	"time"
 )
 
 type SourceType int
@@ -57,6 +60,16 @@ func GetSourceType(input string) (remote bool, t SourceType) {
 type TextSource struct {
 	Id, Title, Author, Path string
 	SourceType              SourceType
+	Added                   int64
+}
+
+type Sources map[string]*TextSource
+
+// Return source list ordered by date.
+func (s Sources) DateOrdered() []*TextSource {
+	return slices.SortedFunc(maps.Values(s), func(s1, s2 *TextSource) int {
+		return int(s1.Added - s2.Added)
+	})
 }
 
 // DataConfig stores information about data
@@ -66,7 +79,10 @@ type DataConfig struct {
 	Libs          []string
 	SelectedModel string
 	SelectedLib   string
-	Sources       map[string]*TextSource
+	Bookmarks     map[string][]string
+	LastSource    string
+	LastSentence  map[string]int
+	Sources       Sources
 }
 
 // Add new source of text.
@@ -77,6 +93,7 @@ func (c *DataConfig) AddSource(source_type SourceType, title, author, id, path s
 		Author:     author,
 		SourceType: source_type,
 		Path:       path,
+		Added:      time.Now().Unix(),
 	}
 	c.Sources[id] = t
 }
@@ -102,6 +119,9 @@ func NewDataConfig() *DataConfig {
 		Libs:          []string{},
 		SelectedModel: "",
 		SelectedLib:   "",
+		LastSource:    "",
+		LastSentence:  make(map[string]int),
+		Bookmarks:     make(map[string][]string),
 		Sources:       make(map[string]*TextSource),
 	}
 }
