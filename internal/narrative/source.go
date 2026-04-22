@@ -26,7 +26,7 @@ func InitSource(path string, sentence_n int, pproc *preprocessor.Preprocessor) (
 	}
 
 	return &Source{
-		data:            sentencizer.Sentencize(data.Data),
+		data:            data.Data,
 		pproc:           pproc,
 		currentSentence: sentence_n,
 	}, nil
@@ -34,14 +34,14 @@ func InitSource(path string, sentence_n int, pproc *preprocessor.Preprocessor) (
 
 type SourceData struct {
 	Id   string
-	Data []byte
+	Data []string
 }
 
 // Save text source as gob file.
 func SaveTextSource(path, id string, data []byte) (string, error) {
 	var buf bytes.Buffer
 	err := gob.NewEncoder(&buf).Encode(SourceData{
-		Data: data,
+		Data: sentencizer.Sentencize(data),
 		Id:   id,
 	})
 	if err != nil {
