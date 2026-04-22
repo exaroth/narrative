@@ -14,6 +14,10 @@ const (
 	DEFAULT_LIB_DIR_NAME = "lib"
 	// default config filename.
 	DEFAULT_CONFIG_FNAME = "config.yaml"
+	// default data config filename.
+	DEFAULT_DATA_CONFIG_FNAME = "config.json"
+	// default sources dir name
+	DEFAULT_SOURCES_DIR_NAME = "sources"
 	// default dir name for ~/.local/share and ~/.config.
 	DEFAULT_CONFIG_DIR_NAME = "narrative"
 )
@@ -35,19 +39,22 @@ var (
 	localCache  string
 )
 
+// Contains all filesystem paths used by narrative.
 type NarrativePaths struct {
 	ConfigDir, DataDir, CacheDir, ConfigPath, ModelPath,
-	LibPath string
+	LibPath, DataConfigPath, SourcesPath string
 }
 
 func InitPaths() *NarrativePaths {
 	return &NarrativePaths{
-		ConfigDir:  LocalConfig(),
-		DataDir:    LocalData(),
-		CacheDir:   LocalCache(),
-		ConfigPath: LocalConfig(DEFAULT_CONFIG_FNAME),
-		ModelPath:  LocalData(DEFAULT_MODEL_DIR_NAME),
-		LibPath:    LocalData(DEFAULT_LIB_DIR_NAME),
+		ConfigDir:      LocalConfig(),
+		DataDir:        LocalData(),
+		CacheDir:       LocalCache(),
+		ConfigPath:     LocalConfig(DEFAULT_CONFIG_FNAME),
+		ModelPath:      LocalData(DEFAULT_MODEL_DIR_NAME),
+		LibPath:        LocalData(DEFAULT_LIB_DIR_NAME),
+		DataConfigPath: LocalData(DEFAULT_DATA_CONFIG_FNAME),
+		SourcesPath:    LocalData(DEFAULT_SOURCES_DIR_NAME),
 	}
 }
 

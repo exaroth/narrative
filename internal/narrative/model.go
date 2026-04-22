@@ -9,8 +9,6 @@ type mode int
 const (
 	// Default display mode (sources + transcript).
 	modeDefault mode = iota
-	// Default mode without transcript.
-	modeDefaultMin
 	// Wizard mode for downloading models/libs during init.
 	modeDownloader
 	// Mode used for converting sources to mp3.
@@ -20,15 +18,17 @@ const (
 
 // Main model used by narrative, used primarily for dispatching.
 type narrativeModel struct {
-	mode mode
-	ctrl *NarrativeCtrl
+	mode     mode
+	ctrl     *NarrativeCtrl
+	mainView tea.Model
 }
 
 // Initialize new narrative model.
 func NewModel(ctrl *NarrativeCtrl) *narrativeModel {
 	return &narrativeModel{
-		ctrl: ctrl,
-		mode: modeDefault,
+		ctrl:     ctrl,
+		mode:     modeDefault,
+		mainView: NewMainViewModel(),
 	}
 }
 
@@ -37,10 +37,18 @@ func (m narrativeModel) Init() tea.Cmd {
 }
 
 func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return m, nil
+	var cmd tea.Cmd
+
+	switch m.mode {
+	case modeDefault:
+		m.mainView, cmd = m.mainView.Update(msg)
+	}
+
+	return m, cmd
 }
 
 func (m narrativeModel) View() tea.View {
-	var v tea.View
-	return v
+	return m.mainView.View()
+	// var v tea.View
+	// return v
 }

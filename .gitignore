@@ -18,6 +18,7 @@ dictionary.*
 /models
 /narrative-debugger
 /debugger
+/narrative
 /temp
 
 .tts-processing.lock

@@ -9,6 +9,7 @@ import (
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/player"
 	"github.com/exaroth/narrative/pkg/preprocessor"
+	"github.com/exaroth/narrative/pkg/reader"
 
 	tea "charm.land/bubbletea/v2"
 )
@@ -19,8 +20,10 @@ type NarrativeCtrl struct {
 	ttsClient    *kitten.Kitten
 	player       *player.Player
 	cfg          *config.Config
+	dataCfg      *DataConfig
 	paths        *NarrativePaths
 	model        *narrativeModel
+	args         *NarrativeArgs
 }
 
 // Create basic directory structure for narrative.
@@ -30,6 +33,7 @@ func initDirectoryStructure() *NarrativePaths {
 	MakePath(paths.DataDir)
 	MakePath(paths.ModelPath)
 	MakePath(paths.LibPath)
+	MakePath(paths.SourcesPath)
 	return paths
 }
 
@@ -61,21 +65,69 @@ func NewCtrl() (*NarrativeCtrl, error) {
 			)
 		}
 	}
+	data_cfg, err := LoadDataConfig(paths.DataConfigPath)
+	if err != nil {
+		data_cfg = NewDataConfig()
+		if err := data_cfg.Save(paths.DataConfigPath); err != nil {
+			return nil, fmt.Errorf("Error creating data cfg: %w", err)
+		}
+	}
+
 	ctrl := &NarrativeCtrl{
 		ttsClient:    kitten,
 		phonemizer:   phonemizer,
 		preprocessor: preprocessor,
 		player:       player.InitPlayer(),
 		cfg:          cfg,
+		dataCfg:      data_cfg,
 		paths:        paths,
+		args:         ParseArgs(),
 	}
 	model := NewModel(ctrl)
 	ctrl.model = model
 	return ctrl, nil
 }
 
+// Add new text source based on the argument provided.
+func (c *NarrativeCtrl) addNewSource() error {
+	_, t := GetSourceType(c.args.Source)
+	var r reader.SourceReader
+	var err error
+	switch t {
+	case SourceTypeText:
+		r, err = reader.TextReader{}.Read(c.args.Source)
+	default:
+		return fmt.Errorf("Unable to find reader for file type: %s", t)
+	}
+	if err != nil {
+		return fmt.Errorf("Error reading text data: %w", err)
+	}
+	path, err := SaveTextSource(c.paths.SourcesPath, r.Id(), r.Data())
+	if err != nil {
+		return fmt.Errorf("Error creating source file: %w", err)
+	}
+	c.dataCfg.AddSource(t, r.Title(), r.Author(), r.Id(), path)
+	return c.dataCfg.Save(c.paths.DataConfigPath)
+}
+
+// Process command line arguments.
+func (c *NarrativeCtrl) handleArguments() (bool, error) {
+	if len(c.args.Source) > 0 {
+		return true, c.addNewSource()
+	}
+	return true, nil
+}
+
 // Run the model.
 func (c *NarrativeCtrl) Run() error {
+	cont, err := c.handleArguments()
+	if err != nil {
+		return err
+	}
+	if !cont {
+		return nil
+	}
+
 	p := tea.NewProgram(c.model)
 	if _, err := p.Run(); err != nil {
 		return err
@@ -86,5 +138,6 @@ func (c *NarrativeCtrl) Run() error {
 // TODO
 func (c *NarrativeCtrl) Deinit() {
 	defer c.cfg.Save(c.paths.ConfigPath)
+	defer c.dataCfg.Save(c.paths.DataConfigPath)
 	defer c.ttsClient.Deinit()
 }
