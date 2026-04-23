@@ -28,7 +28,7 @@ func NewModel(ctrl *NarrativeCtrl) *narrativeModel {
 	return &narrativeModel{
 		ctrl:     ctrl,
 		mode:     modeDefault,
-		mainView: NewMainViewModel(),
+		mainView: NewMainViewModel(ctrl.dataCfg.Sources, ctrl.currentSource),
 	}
 }
 

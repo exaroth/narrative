@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"charm.land/bubbles/v2/list"
 )
 
 type SourceType int
@@ -31,9 +33,7 @@ var SourceTypeName = map[SourceType]string{
 	SourceTypeMarkdown: "markdown",
 }
 
-func (t SourceType) String() string {
-	return SourceTypeName[t]
-}
+func (t SourceType) String() string { return SourceTypeName[t] }
 
 // Retrieve source type and indicator whether data is remote
 // and should be downloaded before processing.
@@ -63,6 +63,8 @@ type TextSource struct {
 	Added                   int64
 }
 
+func (t TextSource) FilterValue() string { return t.Title }
+
 type Sources map[string]*TextSource
 
 // Return source list ordered by date.
@@ -70,6 +72,15 @@ func (s Sources) DateOrdered() []*TextSource {
 	return slices.SortedFunc(maps.Values(s), func(s1, s2 *TextSource) int {
 		return int(s1.Added - s2.Added)
 	})
+}
+
+// Return text sources as bubbletea compatible list.
+func (s Sources) ListItems() []list.Item {
+	var result []list.Item
+	for _, i := range s.DateOrdered() {
+		result = append(result, i)
+	}
+	return result
 }
 
 // DataConfig stores information about data
