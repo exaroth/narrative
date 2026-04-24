@@ -16,6 +16,7 @@ type Source struct {
 	pproc           *preprocessor.Preprocessor
 	data            []string
 	currentSentence int
+	id              string
 }
 
 // Initialize new source instance.
@@ -27,11 +28,13 @@ func InitSource(path string, sentence_n int, pproc *preprocessor.Preprocessor) (
 
 	return &Source{
 		data:            data.Data,
+		id:              data.Id,
 		pproc:           pproc,
 		currentSentence: sentence_n,
 	}, nil
 }
 
+// Representation of source as saved on disk.
 type SourceData struct {
 	Id   string
 	Data []string

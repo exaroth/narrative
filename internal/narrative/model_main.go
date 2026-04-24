@@ -8,6 +8,10 @@ import (
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
+const (
+	appTitle = "Narrative v0.1"
+)
+
 // This is a model for main narrative view containing
 // file list, transcription, playback info etc.
 type mainViewModel struct {
@@ -22,7 +26,7 @@ type mainViewModel struct {
 func NewMainViewModel(source_list Sources, source *Source) *mainViewModel {
 	l := list.New(source_list.ListItems(), NewDelegate(), 0, 0)
 	l.SetShowHelp(false)
-	l.Title = "Narrative v0.1"
+	l.Title = appTitle
 	l.Styles.Title = TitleStyle
 
 	p := NewProgress(WithDefaultBlend())
@@ -44,6 +48,11 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if k := msg.String(); k == "ctrl+c" || k == "q" {
+			return m, tea.Quit
+		}
+		if k := msg.String(); k == "enter" {
+			// if current selected play/pause
+			// if not load source and play
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
