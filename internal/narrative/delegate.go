@@ -232,19 +232,3 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	result := base.Render(lipgloss.Sprintf("%s\n%s", title_row, author))
 	fmt.Fprint(w, result)
 }
-
-// ShortHelp returns the delegate's short help.
-func (d SourceListDelegate) ShortHelp() []key.Binding {
-	if d.ShortHelpFunc != nil {
-		return d.ShortHelpFunc()
-	}
-	return nil
-}
-
-// FullHelp returns the delegate's full help.
-func (d SourceListDelegate) FullHelp() [][]key.Binding {
-	if d.FullHelpFunc != nil {
-		return d.FullHelpFunc()
-	}
-	return nil
-}

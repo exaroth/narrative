@@ -6,6 +6,8 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+var docStyle = lipgloss.NewStyle().Margin(1, 2)
+
 // This is a model for main narrative view containing
 // file list, transcription, playback info etc.
 type mainViewModel struct {
@@ -13,18 +15,24 @@ type mainViewModel struct {
 	sources        Sources
 	currentSource  *Source
 	list           list.Model
+	progress       ProgressModel
 }
 
 // Initialize new narrative model.
 func NewMainViewModel(source_list Sources, source *Source) *mainViewModel {
 	l := list.New(source_list.ListItems(), NewDelegate(), 0, 0)
+	l.SetShowHelp(false)
 	l.Title = "Narrative v0.1"
 	l.Styles.Title = TitleStyle
+
+	p := NewProgress(WithDefaultBlend())
+
 	return &mainViewModel{
 		showTranscript: true,
 		sources:        source_list,
 		currentSource:  source,
 		list:           l,
+		progress:       p,
 	}
 }
 
@@ -40,7 +48,9 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+
+		m.progress.SetWidth(msg.Width - 5)
+		m.list.SetSize(msg.Width-h, msg.Height-v-10) // 10 is progress
 	}
 
 	var cmd tea.Cmd
@@ -48,10 +58,12 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
 func (m mainViewModel) View() tea.View {
-	v := tea.NewView(docStyle.Render(m.list.View()))
+	// v := tea.NewView(docStyle.Render(m.list.View()))
+	list := docStyle.Render(m.list.View())
+	progress := docStyle.Render(m.progress.View())
+	var v tea.View
+	v.SetContent(list + "\n" + progress)
 	v.AltScreen = true
 	return v
 }
