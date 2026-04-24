@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"io"
+	"strings"
 
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/list"
@@ -36,6 +37,11 @@ var col = ColorPalette{
 	ColorDim:   lipgloss.Color("#A49FA5"),
 }
 
+var TitleStyle = lipgloss.NewStyle().
+	Foreground(col.Foreground).
+	Background(col.Color3).
+	Padding(0, 1)
+
 type ListStyles struct {
 	Base         lipgloss.Style
 	BaseSelected lipgloss.Style
@@ -53,7 +59,8 @@ type ListStyles struct {
 	DimmedDesc  lipgloss.Style
 
 	// Characters matching the current filter, if any.
-	FilterMatch lipgloss.Style
+	FilterMatch     lipgloss.Style
+	SourceTypeStyle lipgloss.Style
 }
 
 func NewListStyles(isDark bool) (s ListStyles) {
@@ -61,7 +68,7 @@ func NewListStyles(isDark bool) (s ListStyles) {
 	// lightDark := lipgloss.LightDark(isDark)
 
 	s.Base = lipgloss.NewStyle().
-		Background(col.Background).
+		// Background(col.Background).
 		Border(lipgloss.NormalBorder(), true, true, true, true).
 		BorderForeground(col.Color3)
 
@@ -79,7 +86,7 @@ func NewListStyles(isDark bool) (s ListStyles) {
 		Padding(0, 0, 0, 1)
 
 	s.SelectedDesc = s.SelectedTitle.
-		Foreground(col.Foreground)
+		Foreground(col.Color2)
 
 	s.DimmedTitle = lipgloss.NewStyle().
 		Foreground(col.ColorDim).
@@ -87,6 +94,8 @@ func NewListStyles(isDark bool) (s ListStyles) {
 
 	s.DimmedDesc = s.DimmedTitle.
 		Foreground(col.ColorDim)
+
+	s.SourceTypeStyle = lipgloss.NewStyle().Foreground(col.ColorDim)
 
 	s.FilterMatch = lipgloss.NewStyle().Underline(true)
 
@@ -147,6 +156,7 @@ func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
 	var (
 		title, author, stype string
+		title_s, author_s    lipgloss.Style
 		matchedRunes         []int
 		s                    = &d.Styles
 	)
@@ -159,8 +169,8 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	textwidth := m.Width() - s.NormalTitle.GetPaddingLeft() - s.NormalTitle.GetPaddingRight()
 
 	if i, ok := item.(*TextSource); ok {
-		title = ansi.Truncate(i.Title, textwidth, ellipsis)
-		author = ansi.Truncate(i.Author, textwidth, ellipsis)
+		title = i.Title
+		author = i.Author
 		stype = i.SourceType.String()
 	} else {
 		// should not ever happen
@@ -177,11 +187,12 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	if isFiltered {
 		matchedRunes = m.MatchesForItem(index)
 	}
+	// author = "J.R.R Tokien"
 
 	var base lipgloss.Style
 	if emptyFilter {
-		title = s.DimmedTitle.Render(title)
-		author = s.DimmedDesc.Render(author)
+		title_s = s.DimmedTitle
+		author_s = s.DimmedDesc
 		base = s.Base
 	} else if isSelected && m.FilterState() != list.Filtering {
 		if isFiltered {
@@ -190,8 +201,8 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 			title = lipgloss.StyleRunes(title, matchedRunes, matched, unmatched)
 		}
 		base = s.BaseSelected
-		title = s.SelectedTitle.Render(title)
-		author = s.SelectedDesc.Render(author)
+		title_s = s.SelectedTitle
+		author_s = s.SelectedDesc
 	} else {
 		if isFiltered {
 			unmatched := s.NormalTitle.Inline(true)
@@ -199,12 +210,26 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 			title = lipgloss.StyleRunes(title, matchedRunes, matched, unmatched)
 		}
 		base = s.Base
-		title = s.NormalTitle.Render(title)
-		author = s.NormalDesc.Render(author)
+		title_s = s.NormalTitle
+		author_s = s.NormalDesc
 	}
 
 	base = base.Width(m.Width())
-	result := base.Render(lipgloss.Sprintf("%s\n%s%s", title, author, stype))
+
+	stype = s.SourceTypeStyle.Render(strings.ToUpper(stype))
+	// get width of the title - length of the stype
+
+	title_row_l := textwidth - lipgloss.Width(stype) - 4 // padding
+	title = ansi.Truncate(title, title_row_l, ellipsis)
+	author = ansi.Truncate(author, textwidth, ellipsis)
+
+	title = title_s.Width(title_row_l).Render(title)
+	author = author_s.Render(author)
+	title_row := lipgloss.JoinHorizontal(lipgloss.Top,
+		title,
+		stype,
+	)
+	result := base.Render(lipgloss.Sprintf("%s\n%s", title_row, author))
 	fmt.Fprint(w, result)
 }
 

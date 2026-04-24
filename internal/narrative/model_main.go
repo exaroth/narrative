@@ -18,6 +18,8 @@ type mainViewModel struct {
 // Initialize new narrative model.
 func NewMainViewModel(source_list Sources, source *Source) *mainViewModel {
 	l := list.New(source_list.ListItems(), NewDelegate(), 0, 0)
+	l.Title = "Narrative v0.1"
+	l.Styles.Title = TitleStyle
 	return &mainViewModel{
 		showTranscript: true,
 		sources:        source_list,
