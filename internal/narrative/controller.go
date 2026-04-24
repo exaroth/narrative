@@ -153,6 +153,7 @@ func (c *NarrativeCtrl) Run() error {
 			return err
 		}
 	}
+	c.model.SetSource(c.currentSource)
 	p := tea.NewProgram(c.model)
 	if _, err := p.Run(); err != nil {
 		return err

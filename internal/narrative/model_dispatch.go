@@ -28,8 +28,12 @@ func NewModel(ctrl *NarrativeCtrl) *narrativeModel {
 	return &narrativeModel{
 		ctrl:     ctrl,
 		mode:     modeDefault,
-		mainView: NewMainViewModel(ctrl.dataCfg.Sources, ctrl.currentSource),
+		mainView: NewMainViewModel(ctrl.dataCfg.Sources),
 	}
+}
+
+func (m *narrativeModel) SetSource(source *Source) {
+	m.mainView, _ = m.mainView.Update(UpdateSourceCmd{source: source})
 }
 
 func (m narrativeModel) Init() tea.Cmd {

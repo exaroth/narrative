@@ -23,7 +23,7 @@ type mainViewModel struct {
 }
 
 // Initialize new narrative model.
-func NewMainViewModel(source_list Sources, source *Source) *mainViewModel {
+func NewMainViewModel(source_list Sources) *mainViewModel {
 	l := list.New(source_list.ListItems(), NewDelegate(), 0, 0)
 	l.SetShowHelp(false)
 	l.Title = appTitle
@@ -34,7 +34,7 @@ func NewMainViewModel(source_list Sources, source *Source) *mainViewModel {
 	return &mainViewModel{
 		showTranscript: true,
 		sources:        source_list,
-		currentSource:  source,
+		currentSource:  nil,
 		list:           l,
 		progress:       p,
 	}
@@ -50,21 +50,25 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if k := msg.String(); k == "ctrl+c" || k == "q" {
 			return m, tea.Quit
 		}
-		if k := msg.String(); k == "enter" {
-			// if current selected play/pause
-			// if not load source and play
-			return m, tea.Quit
-		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
 
 		m.progress.SetWidth(msg.Width - 5)
 		m.list.SetSize(msg.Width-h, msg.Height-v-10) // 10 is progress
+	// case ToggleSourceCmd:
+	// 	panic(m.currentSource)
+	case UpdateSourceCmd:
+		m.updateSource(msg.source)
 	}
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
+}
+
+// Update current source.
+func (m *mainViewModel) updateSource(source *Source) {
+	m.currentSource = source
 }
 
 func (m mainViewModel) View() tea.View {
