@@ -32,8 +32,27 @@ func NewModel(ctrl *NarrativeCtrl) *narrativeModel {
 	}
 }
 
-func (m *narrativeModel) SetSource(source *Source) {
+// Initialize model with given source.
+func (m *narrativeModel) InitSource(source *Source) {
 	m.mainView, _ = m.mainView.Update(UpdateSourceCmd{source: source})
+}
+
+// Update actions for main narrative model.
+func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case LoadSourceCmd:
+		m.ctrl.SwitchSource(msg.id)
+	case SetSourceCmd:
+		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
+		cmds = append(cmds, cmd)
+	}
+
+	m.mainView, cmd = m.mainView.Update(msg)
+	cmds = append(cmds, cmd)
+	return tea.Batch(cmds...)
 }
 
 func (m narrativeModel) Init() tea.Cmd {
@@ -45,9 +64,8 @@ func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch m.mode {
 	case modeDefault:
-		m.mainView, cmd = m.mainView.Update(msg)
+		cmd = m.mainUpdate(msg)
 	}
-
 	return m, cmd
 }
 

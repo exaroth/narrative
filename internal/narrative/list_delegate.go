@@ -60,13 +60,33 @@ func (d SourceListDelegate) Spacing() int {
 }
 
 func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
-	if d.UpdateFunc == nil {
+	var id string
+
+	if i, ok := m.SelectedItem().(*TextSource); ok {
+		id = i.Id
+	} else {
 		return nil
 	}
-	return d.UpdateFunc(msg, m)
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+
+		if k := msg.String(); k == "enter" {
+			cmds = append(cmds, ToggleSource(id))
+		}
+		// case key.Matches(msg, keys.remove):
+		// 	index := m.Index()
+		// 	m.RemoveItem(index)
+		// 	if len(m.Items()) == 0 {
+		// 		keys.remove.SetEnabled(false)
+		// 	}
+		// 	return m.NewStatusMessage(styles.statusMessage.Render("Deleted " + title))
+		// }
+	}
+	return tea.Batch(cmds...)
 }
 
-// Render prints an item.
 func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
 	var (
 		title, author, stype string

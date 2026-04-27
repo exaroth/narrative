@@ -25,6 +25,7 @@ type NarrativeCtrl struct {
 	model         *narrativeModel
 	args          *NarrativeArgs
 	currentSource *Source
+	program       *tea.Program
 }
 
 // Create basic directory structure for narrative.
@@ -136,12 +137,30 @@ func (c *NarrativeCtrl) handleArguments() (bool, error) {
 	return false, nil
 }
 
+func (c *NarrativeCtrl) SwitchSource(id string) error {
+	err := c.LoadSource(id)
+	if err != nil {
+		return err
+	}
+	c.setCurrentSource()
+	return nil
+}
+
+// Update model with currently loaded source
+func (c *NarrativeCtrl) setCurrentSource() {
+	go func() {
+		c.program.Send(SetSourceCmd{source: c.currentSource})
+	}()
+}
+
 // Run the model.
 func (c *NarrativeCtrl) Run() error {
 	exit, err := c.handleArguments()
 	if exit || err != nil {
 		return err
 	}
+	c.program = tea.NewProgram(c.model)
+
 	if len(c.dataCfg.Sources) > 0 {
 		var s_id string
 		if len(c.dataCfg.LastSource) > 0 {
@@ -153,11 +172,12 @@ func (c *NarrativeCtrl) Run() error {
 			return err
 		}
 	}
-	c.model.SetSource(c.currentSource)
-	p := tea.NewProgram(c.model)
-	if _, err := p.Run(); err != nil {
+	c.model.InitSource(c.currentSource)
+
+	if _, err := c.program.Run(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -166,4 +186,5 @@ func (c *NarrativeCtrl) Deinit() {
 	defer c.cfg.Save(c.paths.ConfigPath)
 	defer c.dataCfg.Save(c.paths.DataConfigPath)
 	defer c.ttsClient.Deinit()
+	defer c.program.Quit()
 }
