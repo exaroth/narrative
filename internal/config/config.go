@@ -12,6 +12,8 @@ const (
 	DEFAULT_TTS_SPEED float64 = 1.0
 	// Pause between sentences
 	DEFAULT_TTS_PAUSE = 0
+	// Number of sentneces to buffer during playback
+	DEFAULT_BUFFER_SIZE = 5
 )
 
 // Config stores all configuration
@@ -22,9 +24,13 @@ type Config struct {
 	UsePhonemeSelectionInference bool `yaml:"use_phoneme_selection"`
 	// remove trailing hyphenes from phonemes,
 	// ass kitten tts does not like those
-	RemoveWordTrailingHyphens bool    `yaml:"remove_trailing_hyphens"`
-	Speed                     float64 `yaml:"speed"`
-	Pause                     float64 `yaml:"pause"`
+	RemoveWordTrailingHyphens bool `yaml:"remove_trailing_hyphens"`
+	// Speed of playback
+	Speed float64 `yaml:"speed"`
+	// Pause between sentences
+	Pause float64 `yaml:"pause"`
+	// Number of sentences to cache to keep in cache.
+	BufferSize int `yaml:"buffer_size"`
 }
 
 // Save config as yaml file.
@@ -58,6 +64,7 @@ func NewConfig(
 	remove_word_trailing_hyphens bool,
 	speed float64,
 	pause float64,
+	buffer_size int,
 ) *Config {
 
 	return &Config{
@@ -66,6 +73,7 @@ func NewConfig(
 		RemoveWordTrailingHyphens:    remove_word_trailing_hyphens,
 		Speed:                        speed,
 		Pause:                        pause,
+		BufferSize:                   buffer_size,
 	}
 }
 
@@ -77,5 +85,6 @@ func DefaultConfig() *Config {
 		true,
 		DEFAULT_TTS_SPEED,
 		DEFAULT_TTS_PAUSE,
+		DEFAULT_BUFFER_SIZE,
 	)
 }

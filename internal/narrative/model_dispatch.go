@@ -33,7 +33,7 @@ func NewModel(ctrl *NarrativeCtrl) *narrativeModel {
 }
 
 // Initialize model with given source.
-func (m *narrativeModel) InitSource(source *Source) {
+func (m *narrativeModel) initSource(source *Source) {
 	m.mainView, _ = m.mainView.Update(UpdateSourceCmd{source: source})
 }
 
@@ -44,7 +44,7 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case LoadSourceCmd:
-		m.ctrl.SwitchSource(msg.id)
+		m.ctrl.switchSource(msg.id)
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
 		cmds = append(cmds, cmd)

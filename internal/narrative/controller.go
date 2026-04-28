@@ -120,7 +120,10 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 		if sn, ok := c.dataCfg.LastSentence[id]; ok {
 			sentence_n = sn
 		}
-		ss, err := InitSource(s.Path, sentence_n, c.preprocessor)
+		ss, err := InitSource(s.Path, sentence_n,
+			c.cfg.BufferSize, c.preprocessor,
+			c.phonemizer, c.ttsClient,
+		)
 		if err != nil {
 			return fmt.Errorf("Error initializing source @ %s: %w", s.Path, err)
 		}
@@ -137,7 +140,8 @@ func (c *NarrativeCtrl) handleArguments() (bool, error) {
 	return false, nil
 }
 
-func (c *NarrativeCtrl) SwitchSource(id string) error {
+// Switch text source in the model
+func (c *NarrativeCtrl) switchSource(id string) error {
 	err := c.LoadSource(id)
 	if err != nil {
 		return err
@@ -146,11 +150,18 @@ func (c *NarrativeCtrl) SwitchSource(id string) error {
 	return nil
 }
 
-// Update model with currently loaded source
+// Update model with currently loaded source.
 func (c *NarrativeCtrl) setCurrentSource() {
 	go func() {
 		c.program.Send(SetSourceCmd{source: c.currentSource})
 	}()
+}
+
+func (c *NarrativeCtrl) processSentence() {
+
+}
+
+func (c *NarrativeCtrl) startPlayback() {
 }
 
 // Run the model.
@@ -172,7 +183,7 @@ func (c *NarrativeCtrl) Run() error {
 			return err
 		}
 	}
-	c.model.InitSource(c.currentSource)
+	c.model.initSource(c.currentSource)
 
 	if _, err := c.program.Run(); err != nil {
 		return err
@@ -181,7 +192,6 @@ func (c *NarrativeCtrl) Run() error {
 	return nil
 }
 
-// TODO
 func (c *NarrativeCtrl) Deinit() {
 	defer c.cfg.Save(c.paths.ConfigPath)
 	defer c.dataCfg.Save(c.paths.DataConfigPath)
