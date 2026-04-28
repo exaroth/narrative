@@ -26,7 +26,7 @@ type Source struct {
 	// Id of the text source
 	id string
 	// Sentence waveform data cache
-	cache_buf map[int][]float32
+	cache_buf BufferCacheLRU
 	// Buffer size
 	buf_size int
 	mut      *sync.Mutex
@@ -34,7 +34,8 @@ type Source struct {
 
 // Initialize new source instance.
 func InitSource(
-	path string, sentence_n, buf_size int,
+	path string, sentence_n int,
+	buf_size int, max_buf_size int,
 	pproc *preprocessor.Preprocessor,
 	phonemizer *phonemizer.Phonemizer,
 	ttsClient *kitten.Kitten,
@@ -51,7 +52,7 @@ func InitSource(
 		phonemizer:  phonemizer,
 		ttsClient:   ttsClient,
 		sentenceNum: sentence_n,
-		cache_buf:   make(map[int][]float32),
+		cache_buf:   NewBufferCacheLRU(max_buf_size),
 		buf_size:    buf_size,
 		mut:         &sync.Mutex{},
 	}, nil
@@ -96,8 +97,8 @@ func (s *Source) generateWaveformData(n int) ([]float32, error) {
 func (s *Source) getBufferedData(n int) []float32 {
 	s.mut.Lock()
 	defer s.mut.Unlock()
-	if v, ok := s.cache_buf[n]; ok {
-		return v
+	if v := s.cache_buf.Get(n); v != nil {
+		return v.Data
 	}
 	return nil
 }
@@ -106,7 +107,7 @@ func (s *Source) getBufferedData(n int) []float32 {
 func (s *Source) updateBufferedData(n int, data []float32) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
-	s.cache_buf[n] = data
+	s.cache_buf.Put(n, data)
 }
 
 // Retrieve waveform data for given sentence
@@ -132,8 +133,9 @@ func (s *Source) getCurrentSentenceWaveformData() ([]float32, error) {
 func (s *Source) updateCacheBuffer() error {
 	var wg sync.WaitGroup
 	var errs []error
+	var v *BufferCacheVal
 	for i := range s.buf_size {
-		if _, ok := s.cache_buf[s.sentenceNum+i]; !ok {
+		if v = s.cache_buf.Get(s.sentenceNum + i); v != nil {
 			wg.Go(func() {
 				_, err := s.getWaveformData(i)
 				errs = append(errs, err)
@@ -147,16 +149,6 @@ func (s *Source) updateCacheBuffer() error {
 		}
 	}
 	return nil
-}
-
-// Clean old entries from buffer cache.
-func (s *Source) cleanBufferCache() {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-	for i := range s.sentenceNum {
-		delete(s.cache_buf, i)
-	}
-	// TODO clean records ahead as well.
 }
 
 // Increment current sentence number returning updated

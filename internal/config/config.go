@@ -14,6 +14,8 @@ const (
 	DEFAULT_TTS_PAUSE = 0
 	// Number of sentneces to buffer during playback
 	DEFAULT_BUFFER_SIZE = 5
+	// Maximum number of items allowed to be stored in buffer cache
+	DEFAULT_MAX_BUFFER_SIZE = 30
 )
 
 // Config stores all configuration
@@ -31,6 +33,8 @@ type Config struct {
 	Pause float64 `yaml:"pause"`
 	// Number of sentences to cache to keep in cache.
 	BufferSize int `yaml:"buffer_size"`
+	// Maximum number of items to be stored in buffer cache
+	MaxBufferSize int `yaml:"max_buffer_size"`
 }
 
 // Save config as yaml file.
@@ -65,6 +69,7 @@ func NewConfig(
 	speed float64,
 	pause float64,
 	buffer_size int,
+	max_buffer_size int,
 ) *Config {
 
 	return &Config{
@@ -74,6 +79,7 @@ func NewConfig(
 		Speed:                        speed,
 		Pause:                        pause,
 		BufferSize:                   buffer_size,
+		MaxBufferSize:                max_buffer_size,
 	}
 }
 
@@ -86,5 +92,6 @@ func DefaultConfig() *Config {
 		DEFAULT_TTS_SPEED,
 		DEFAULT_TTS_PAUSE,
 		DEFAULT_BUFFER_SIZE,
+		DEFAULT_MAX_BUFFER_SIZE,
 	)
 }
