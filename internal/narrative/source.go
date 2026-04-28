@@ -73,7 +73,7 @@ func (s *Source) getCurrentRawSentence() string {
 
 // Retrieve phonemized version of sentence at index n.
 func (s *Source) getPhonemes(n int) (string, error) {
-	p_sentence := s.pproc.ProcessSentence(s.getCurrentRawSentence())
+	p_sentence := s.pproc.ProcessSentence(s.getRawSentence(n))
 	return s.phonemizer.Phonemize(p_sentence)
 }
 
