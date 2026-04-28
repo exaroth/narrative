@@ -113,7 +113,6 @@ func (s *Source) updateBufferedData(n int, data []float32) {
 // Retrieve waveform data for given sentence
 func (s *Source) getWaveformData(n int) ([]float32, error) {
 	if v := s.getBufferedData(n); v != nil {
-		fmt.Println(v)
 		return v, nil
 	}
 	d, err := s.generateWaveformData(n)
@@ -129,17 +128,29 @@ func (s *Source) getCurrentSentenceWaveformData() ([]float32, error) {
 	return s.getWaveformData(s.sentenceNum)
 }
 
-// Update buffer cache with sentence data.
+// Update buffer cache with sentence data, based
+// on current sentence index.
 func (s *Source) updateCacheBuffer() error {
 	var wg sync.WaitGroup
 	var errs []error
 	var v *BufferCacheVal
+	var snum int
 	for i := range s.buf_size {
-		if v = s.cache_buf.Get(s.sentenceNum + i); v != nil {
-			wg.Go(func() {
-				_, err := s.getWaveformData(i)
-				errs = append(errs, err)
-			})
+		snum = s.sentenceNum + i
+		if snum > len(s.data)-1 {
+			continue
+		}
+		f := func(sn int) func() {
+			return func() {
+				_, err := s.getWaveformData(sn)
+				if err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}(snum)
+
+		if v = s.cache_buf.Get(snum); v == nil {
+			wg.Go(f)
 		}
 	}
 	wg.Wait()
@@ -149,6 +160,22 @@ func (s *Source) updateCacheBuffer() error {
 		}
 	}
 	return nil
+}
+
+// Retrieve current buffer size based on
+// current sentence index.
+func (s *Source) BufferSize() int {
+	var result int
+	var i = s.sentenceNum
+	for i < len(s.data) {
+		if v := s.cache_buf.Get(i); v == nil {
+			break
+		} else {
+			i++
+			result++
+		}
+	}
+	return result
 }
 
 // Increment current sentence number returning updated

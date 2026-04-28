@@ -75,7 +75,7 @@ func (c *BufferCacheLRU) Put(sentence_idx int, data []float32) {
 		SentenceIdx: sentence_idx,
 		Data:        data,
 	}
-	c.l.PushBack(n)
+	c.l.PushBack(&n)
 	elem := c.l.Back()
 	c.elements[sentence_idx] = elem
 	c.size++
