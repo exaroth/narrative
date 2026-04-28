@@ -120,7 +120,8 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 		if sn, ok := c.dataCfg.LastSentence[id]; ok {
 			sentence_n = sn
 		}
-		ss, err := InitSource(s.Path, sentence_n,
+		ss, err := InitSource(
+			s.Path, sentence_n,
 			c.cfg.BufferSize, c.preprocessor,
 			c.phonemizer, c.ttsClient,
 		)
@@ -183,6 +184,7 @@ func (c *NarrativeCtrl) Run() error {
 			return err
 		}
 	}
+	c.currentSource.updateCacheBuffer()
 	c.model.initSource(c.currentSource)
 
 	if _, err := c.program.Run(); err != nil {
