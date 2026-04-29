@@ -12,13 +12,6 @@ const (
 	appTitle = "Narrative v0.1"
 )
 
-type playbackStatus int
-
-const (
-	playbackPlaying playbackStatus = iota
-	playbackPaused
-)
-
 // This is a model for main narrative view containing
 // file list, transcription, playback info etc.
 type mainViewModel struct {
@@ -27,7 +20,6 @@ type mainViewModel struct {
 	list           list.Model
 	progress       ProgressModel
 	showTranscript bool
-	playbackStatus playbackStatus
 }
 
 // Initialize new narrative model.
@@ -67,10 +59,13 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(msg.Width-h, msg.Height-v-10) // 10 is progress
 	case ToggleSourceCmd:
 		if msg.id == m.currentSource.id {
-			if m.playbackStatus == playbackPlaying {
+			switch PSM.Status() {
+			case playbackPlaying:
 				cmds = append(cmds, m.pausePlayback())
-			} else {
+			case playbackPaused:
 				cmds = append(cmds, m.startPlayback())
+			case playbackIdle:
+				cmds = append(cmds, LoadSource(msg.id))
 			}
 		} else {
 			cmds = append(cmds, LoadSource(msg.id))
@@ -87,13 +82,13 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // Start playback of current source.
 func (m *mainViewModel) startPlayback() tea.Cmd {
-	m.playbackStatus = playbackPlaying
+	PSM.SetStatus(playbackPlaying)
 	return PlaySource()
 }
 
 // Pause current playback.
 func (m *mainViewModel) pausePlayback() tea.Cmd {
-	m.playbackStatus = playbackPaused
+	PSM.SetStatus(playbackPaused)
 	return PauseSource()
 }
 
@@ -107,7 +102,7 @@ func (m mainViewModel) View() tea.View {
 	list := docStyle.Render(m.list.View())
 	progress := docStyle.Render(m.progress.View())
 	var v tea.View
-	v.SetContent(list + "\n" + progress + "\n" + m.currentSource.id)
+	v.SetContent(list + "\n" + progress + "\n" + m.currentSource.id + "/" + PSM.Status().String())
 	v.AltScreen = true
 	return v
 }

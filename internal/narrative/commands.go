@@ -1,6 +1,10 @@
 package narrative
 
-import tea "charm.land/bubbletea/v2"
+import (
+	"time"
+
+	tea "charm.land/bubbletea/v2"
+)
 
 // Simple wrapper for returning tea commands.
 func teaCmd(payload interface{}) tea.Cmd {
@@ -57,4 +61,27 @@ type UpdateSourceCmd struct {
 // Command for setting current source in the model.
 type SetSourceCmd struct {
 	source *Source
+}
+
+type UpdateTickMsg time.Time
+
+func UpdateTick() tea.Cmd {
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return UpdateTickMsg(t)
+	})
+}
+
+// Command to start playback
+type StartPlaybackCmd struct{}
+type PausePlaybackCmd struct{}
+
+// 0 - pause
+// 1 - play next
+// -1 - stop
+type PlaybackCmd int
+
+func WaitForPlaybackCmd(sub chan int) tea.Cmd {
+	return func() tea.Msg {
+		return PlaybackCmd(<-sub)
+	}
 }

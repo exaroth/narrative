@@ -1,6 +1,8 @@
 package narrative
 
 import (
+	"sync"
+
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -15,6 +17,57 @@ const (
 	modeConverter
 	modeHelp
 )
+
+type playbackStatus int
+
+const (
+	playbackPlaying playbackStatus = iota
+	playbackPaused
+	playbackBuffering
+	playbackIdle
+)
+
+func (p playbackStatus) String() string {
+	switch p {
+	case playbackPlaying:
+		return "playing"
+	case playbackPaused:
+		return "paused"
+	case playbackBuffering:
+		return "buffering"
+	case playbackIdle:
+		return "idle"
+	}
+	return "unknown"
+}
+
+type playbackSM struct {
+	status playbackStatus
+	mut    sync.Mutex
+}
+
+func (p *playbackSM) SetStatus(status playbackStatus) {
+	p.mut.Lock()
+	defer p.mut.Unlock()
+	p.status = status
+}
+
+func (p *playbackSM) Status() playbackStatus {
+	p.mut.Lock()
+	defer p.mut.Unlock()
+	return p.status
+}
+func (p *playbackSM) AllowsBuffering() bool {
+	return p.status != playbackBuffering && p.status != playbackIdle
+}
+
+var PSM = playbackSM{status: playbackIdle}
+
+// channel controlling when we should send next sentence
+// to play.
+// Value of 1 means continue playback
+// sending 0 will terminate playback
+var playbackCh = make(chan int)
 
 // Main model used by narrative, used primarily for dispatching.
 type narrativeModel struct {
@@ -43,8 +96,46 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+
+	case StartPlaybackCmd:
+		PSM.SetStatus(playbackPlaying)
+		m.ctrl.play(func() {
+			playbackCh <- 1
+		})
+
+	case PlaybackCmd:
+		if msg != 1 {
+			PSM.SetStatus(playbackPaused)
+			break
+		}
+
+		sn := m.ctrl.currentSource.incrementSentenceNum()
+		// at the end
+		if sn == -1 {
+			PSM.SetStatus(playbackPaused)
+			break
+		}
+		m.ctrl.play(func() {
+			playbackCh <- 1
+		})
+		cmds = append(
+			cmds,
+			WaitForPlaybackCmd(playbackCh),
+		)
+
+	case UpdateTickMsg:
+		if m.ctrl.currentSource != nil && PSM.AllowsBuffering() {
+			buf_size := m.ctrl.currentSource.BufferSize()
+			if buf_size < m.ctrl.cfg.BufferSize {
+				// todo handle errors
+				go m.ctrl.currentSource.updateCacheBuffer()
+			}
+		}
+		return UpdateTick()
+
 	case LoadSourceCmd:
 		m.ctrl.switchSource(msg.id)
+
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
 		cmds = append(cmds, cmd)
@@ -56,7 +147,10 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 }
 
 func (m narrativeModel) Init() tea.Cmd {
-	return nil
+	return tea.Batch(
+		UpdateTick(),
+		WaitForPlaybackCmd(playbackCh),
+	)
 }
 
 func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

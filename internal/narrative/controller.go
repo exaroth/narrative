@@ -153,16 +153,26 @@ func (c *NarrativeCtrl) switchSource(id string) error {
 
 // Update model with currently loaded source.
 func (c *NarrativeCtrl) setCurrentSource() {
+	PSM.SetStatus(playbackBuffering)
 	go func() {
 		c.program.Send(SetSourceCmd{source: c.currentSource})
+		go c.currentSource.updateCacheBufferCb(func() {
+			go c.program.Send(StartPlaybackCmd{})
+		})
 	}()
 }
 
-func (c *NarrativeCtrl) processSentence() {
-
-}
-
-func (c *NarrativeCtrl) startPlayback() {
+func (c *NarrativeCtrl) play(callback func()) {
+	if c.currentSource == nil {
+		return
+	}
+	data, err := c.currentSource.getCurrentSentenceWaveformData()
+	if err != nil {
+		// TODO
+		panic(err)
+	}
+	c.player.AddSample(data)
+	c.player.Play(callback)
 }
 
 // Run the model.
@@ -184,7 +194,6 @@ func (c *NarrativeCtrl) Run() error {
 			return err
 		}
 	}
-	c.currentSource.updateCacheBuffer()
 	c.model.initSource(c.currentSource)
 
 	if _, err := c.program.Run(); err != nil {
