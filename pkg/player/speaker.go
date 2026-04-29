@@ -46,7 +46,6 @@ func (p *Player) Play(callback func()) {
 
 	speaker.Lock()
 	p.ctrl.Paused = false
-	speaker.Unlock()
 
 	sounds := []beep.Streamer{
 		p.ctrl,
@@ -54,19 +53,41 @@ func (p *Player) Play(callback func()) {
 	if callback != nil {
 		sounds = append(sounds, beep.Callback(callback))
 	}
+	speaker.Unlock()
 
 	speaker.Play(beep.Seq(sounds...))
 }
 
-// Stop playing current sample.
+// Pause playback of current sample.
 func (p *Player) Pause() {
 	if p.ctrl.Streamer == nil {
 		return
 	}
 
 	speaker.Lock()
+	defer speaker.Unlock()
 	p.ctrl.Paused = true
-	speaker.Unlock()
+}
+
+func (p *Player) Resume() {
+	if p.ctrl.Streamer == nil {
+		return
+	}
+
+	speaker.Lock()
+	defer speaker.Unlock()
+	p.ctrl.Paused = false
+
+}
+
+// Stop playing current sample, this also
+// removes it from the ctrl.
+func (p *Player) Stop() {
+	speaker.Lock()
+	defer speaker.Unlock()
+	p.Pause()
+	p.ctrl.Streamer = nil
+	speaker.Clear()
 }
 
 // Toggle playback of current sample.
@@ -75,9 +96,6 @@ func (p *Player) Toggle() {
 		return
 	}
 	speaker.Lock()
-	if p.ctrl.Paused == true {
-		p.Play(nil)
-	} else {
-		p.Pause()
-	}
+	defer speaker.Unlock()
+	p.ctrl.Paused = !p.ctrl.Paused
 }

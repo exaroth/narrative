@@ -71,10 +71,15 @@ func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-
-		if k := msg.String(); k == "enter" {
-			cmds = append(cmds, ToggleSource(id))
+		k := msg.String()
+		switch k {
+		case "enter":
+			cmds = append(cmds, SelectSource(id))
+		case "space":
+			cmds = append(cmds, TogglePlayback())
 		}
+		// if k := msg.String(); k == "enter" {
+		// }
 		// case key.Matches(msg, keys.remove):
 		// 	index := m.Index()
 		// 	m.RemoveItem(index)

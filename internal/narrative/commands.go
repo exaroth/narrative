@@ -16,13 +16,13 @@ func teaCmd(payload interface{}) tea.Cmd {
 // Command used for toggling source with given id.
 // This command will switch current source and start
 // automatic playback.
-type ToggleSourceCmd struct {
+type SelectSourceCmd struct {
 	id string
 }
 
 // Toggle source with given id
-func ToggleSource(id string) tea.Cmd {
-	return teaCmd(ToggleSourceCmd{
+func SelectSource(id string) tea.Cmd {
+	return teaCmd(SelectSourceCmd{
 		id: id,
 	})
 }
@@ -38,20 +38,20 @@ func LoadSource(id string) tea.Cmd {
 	})
 }
 
-// Command for starting playback for currently selected
-// source. If already playing will do nothing.
-type PlaySourceCmd struct{}
+// // Command for starting playback for currently selected
+// // source. If already playing will do nothing.
+// type PlaySourceCmd struct{}
 
-func PlaySource() tea.Cmd {
-	return teaCmd(PlaySourceCmd{})
-}
+// func PlaySource() tea.Cmd {
+// 	return teaCmd(PlaySourceCmd{})
+// }
 
-// Pause source playback (unless paused).
-type PauseSourceCmd struct{}
+// // Pause source playback (unless paused).
+// type PauseSourceCmd struct{}
 
-func PauseSource() tea.Cmd {
-	return teaCmd(PauseSourceCmd{})
-}
+// func PauseSource() tea.Cmd {
+// 	return teaCmd(PauseSourceCmd{})
+// }
 
 // Update current source
 type UpdateSourceCmd struct {
@@ -73,14 +73,22 @@ func UpdateTick() tea.Cmd {
 
 // Command to start playback
 type StartPlaybackCmd struct{}
-type PausePlaybackCmd struct{}
 
+// Enable disable playback
+type TogglePlaybackCmd struct{}
+
+func TogglePlayback() tea.Cmd {
+	return teaCmd(TogglePlaybackCmd{})
+}
+
+type PlaybackCmd int
+
+// Wait for playback command to be passed
+// Commands are integer based, available values:
 // 0 - pause
 // 1 - play next
 // -1 - stop
-type PlaybackCmd int
-
-func WaitForPlaybackCmd(sub chan int) tea.Cmd {
+func WaitForPlayback(sub chan int) tea.Cmd {
 	return func() tea.Msg {
 		return PlaybackCmd(<-sub)
 	}

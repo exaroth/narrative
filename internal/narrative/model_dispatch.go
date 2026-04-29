@@ -1,9 +1,11 @@
 package narrative
 
 import (
+	"strconv"
 	"sync"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/sirupsen/logrus"
 )
 
 type mode int
@@ -63,10 +65,7 @@ func (p *playbackSM) AllowsBuffering() bool {
 
 var PSM = playbackSM{status: playbackIdle}
 
-// channel controlling when we should send next sentence
-// to play.
-// Value of 1 means continue playback
-// sending 0 will terminate playback
+// channel controlling playback.
 var playbackCh = make(chan int)
 
 // Main model used by narrative, used primarily for dispatching.
@@ -77,7 +76,7 @@ type narrativeModel struct {
 }
 
 // Initialize new narrative model.
-func NewModel(ctrl *NarrativeCtrl) *narrativeModel {
+func InitNarrativeModel(ctrl *NarrativeCtrl) *narrativeModel {
 	return &narrativeModel{
 		ctrl:     ctrl,
 		mode:     modeDefault,
@@ -104,24 +103,7 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 		})
 
 	case PlaybackCmd:
-		if msg != 1 {
-			PSM.SetStatus(playbackPaused)
-			break
-		}
-
-		sn := m.ctrl.currentSource.incrementSentenceNum()
-		// at the end
-		if sn == -1 {
-			PSM.SetStatus(playbackPaused)
-			break
-		}
-		m.ctrl.play(func() {
-			playbackCh <- 1
-		})
-		cmds = append(
-			cmds,
-			WaitForPlaybackCmd(playbackCh),
-		)
+		cmds = append(cmds, m.handlePlayback(int(msg)))
 
 	case UpdateTickMsg:
 		if m.ctrl.currentSource != nil && PSM.AllowsBuffering() {
@@ -132,9 +114,8 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 			}
 		}
 		return UpdateTick()
-
 	case LoadSourceCmd:
-		m.ctrl.switchSource(msg.id)
+		m.ctrl.selectSource(msg.id)
 
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
@@ -146,10 +127,49 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// Process playback command.
+func (m *narrativeModel) handlePlayback(playbackC int) tea.Cmd {
+	switch playbackC {
+	// continuous playback
+	case 1:
+		if PSM.Status() == playbackPaused {
+			logrus.Info("handlePlayback: resume")
+			PSM.SetStatus(playbackPlaying)
+			m.ctrl.resume()
+		} else {
+			logrus.Info("handlePlayback: play")
+			sn := m.ctrl.currentSource.incrementSentenceNum()
+			// at the end of playback.
+			if sn == -1 {
+				m.ctrl.stop()
+				break
+			}
+			PSM.SetStatus(playbackPlaying)
+			m.ctrl.play(func() {
+				playbackCh <- 1
+			})
+		}
+	// pause
+	case 0:
+		logrus.Info("handlePlayback: pause")
+		PSM.SetStatus(playbackPaused)
+		m.ctrl.pause()
+	// stop
+	case -1:
+		logrus.Info("handlePlayback: stop")
+		PSM.SetStatus(playbackIdle)
+		// todo
+		m.ctrl.stop()
+	default:
+		panic("Invalid playback cmd passed: " + strconv.Itoa(playbackC))
+	}
+	return WaitForPlayback(playbackCh)
+}
+
 func (m narrativeModel) Init() tea.Cmd {
 	return tea.Batch(
 		UpdateTick(),
-		WaitForPlaybackCmd(playbackCh),
+		WaitForPlayback(playbackCh),
 	)
 }
 

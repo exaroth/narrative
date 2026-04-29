@@ -1,9 +1,13 @@
 package narrative
 
 import (
+	"fmt"
+	"reflect"
+
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/sirupsen/logrus"
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
@@ -47,6 +51,8 @@ func (m mainViewModel) Init() tea.Cmd {
 func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	logrus.Info(fmt.Sprintf("Msg: %v", reflect.TypeOf(msg)))
+	logrus.Info(msg)
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if k := msg.String(); k == "ctrl+c" || k == "q" {
@@ -57,19 +63,21 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.progress.SetWidth(msg.Width - 5)
 		m.list.SetSize(msg.Width-h, msg.Height-v-10) // 10 is progress
-	case ToggleSourceCmd:
+	case SelectSourceCmd:
 		if msg.id == m.currentSource.id {
-			switch PSM.Status() {
-			case playbackPlaying:
-				cmds = append(cmds, m.pausePlayback())
-			case playbackPaused:
-				cmds = append(cmds, m.startPlayback())
-			case playbackIdle:
-				cmds = append(cmds, LoadSource(msg.id))
-			}
+			cmds = append(cmds, TogglePlayback())
 		} else {
 			cmds = append(cmds, LoadSource(msg.id))
 			// cmds = append(cmds, m.startPlayback())
+		}
+	case TogglePlaybackCmd:
+		switch PSM.Status() {
+		case playbackPlaying:
+			playbackCh <- 0
+		case playbackPaused:
+			playbackCh <- 1
+		case playbackIdle:
+			cmds = append(cmds, LoadSource(m.currentSource.id))
 		}
 	case UpdateSourceCmd:
 		m.updateSource(msg.source)
@@ -78,18 +86,6 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.list, cmd = m.list.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
-}
-
-// Start playback of current source.
-func (m *mainViewModel) startPlayback() tea.Cmd {
-	PSM.SetStatus(playbackPlaying)
-	return PlaySource()
-}
-
-// Pause current playback.
-func (m *mainViewModel) pausePlayback() tea.Cmd {
-	PSM.SetStatus(playbackPaused)
-	return PauseSource()
 }
 
 // Update current source.

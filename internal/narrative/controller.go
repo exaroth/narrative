@@ -85,9 +85,13 @@ func NewCtrl() (*NarrativeCtrl, error) {
 		paths:        paths,
 		args:         ParseArgs(),
 	}
-	model := NewModel(ctrl)
+	model := InitNarrativeModel(ctrl)
 	ctrl.model = model
 	return ctrl, nil
+}
+
+func (c NarrativeCtrl) Source() *Source {
+	return c.currentSource
 }
 
 // Add new text source based on the argument provided.
@@ -112,6 +116,8 @@ func (c *NarrativeCtrl) addNewSource() error {
 	return c.dataCfg.Save(c.paths.DataConfigPath)
 }
 
+// Initialize text source for playback and set it as current
+// source in the controller.
 func (c *NarrativeCtrl) LoadSource(id string) error {
 	if s, ok := c.dataCfg.Sources[id]; !ok {
 		return fmt.Errorf("Text source with id %s not found", id)
@@ -142,17 +148,22 @@ func (c *NarrativeCtrl) handleArguments() (bool, error) {
 }
 
 // Switch text source in the model
-func (c *NarrativeCtrl) switchSource(id string) error {
+func (c *NarrativeCtrl) selectSource(id string) error {
 	err := c.LoadSource(id)
 	if err != nil {
 		return err
 	}
-	c.setCurrentSource()
+	c.initSourcePlayback()
 	return nil
 }
 
-// Update model with currently loaded source.
-func (c *NarrativeCtrl) setCurrentSource() {
+// Initialize source data for playback, this will buffer
+// audio data before playing anything.
+func (c *NarrativeCtrl) initSourcePlayback() {
+	if c.currentSource == nil {
+		return
+	}
+
 	PSM.SetStatus(playbackBuffering)
 	go func() {
 		c.program.Send(SetSourceCmd{source: c.currentSource})
@@ -162,6 +173,12 @@ func (c *NarrativeCtrl) setCurrentSource() {
 	}()
 }
 
+// Resume paused playback
+func (c *NarrativeCtrl) resume() {
+	c.player.Resume()
+}
+
+// Play current sentence of the source loaded in the controller.
 func (c *NarrativeCtrl) play(callback func()) {
 	if c.currentSource == nil {
 		return
@@ -173,6 +190,16 @@ func (c *NarrativeCtrl) play(callback func()) {
 	}
 	c.player.AddSample(data)
 	c.player.Play(callback)
+}
+
+// Pause playback.
+func (c *NarrativeCtrl) pause() {
+	c.player.Pause()
+}
+
+func (c *NarrativeCtrl) stop() {
+	PSM.SetStatus(playbackIdle)
+	c.player.Stop()
 }
 
 // Run the model.
@@ -193,8 +220,8 @@ func (c *NarrativeCtrl) Run() error {
 		if err := c.LoadSource(s_id); err != nil {
 			return err
 		}
+		c.model.initSource(c.currentSource)
 	}
-	c.model.initSource(c.currentSource)
 
 	if _, err := c.program.Run(); err != nil {
 		return err
@@ -203,6 +230,7 @@ func (c *NarrativeCtrl) Run() error {
 	return nil
 }
 
+// Cleanly close the app.
 func (c *NarrativeCtrl) Deinit() {
 	defer c.cfg.Save(c.paths.ConfigPath)
 	defer c.dataCfg.Save(c.paths.DataConfigPath)
