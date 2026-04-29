@@ -73,10 +73,11 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case TogglePlaybackCmd:
 		switch PSM.Status() {
 		case playbackPlaying:
-			playbackCh <- 0
+			PlaybackCh <- 0
 		case playbackPaused:
-			playbackCh <- 1
+			PlaybackCh <- 1
 		case playbackIdle:
+
 			cmds = append(cmds, LoadSource(m.currentSource.id))
 		}
 	case UpdateSourceCmd:

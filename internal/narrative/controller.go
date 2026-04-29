@@ -26,6 +26,7 @@ type NarrativeCtrl struct {
 	args          *NarrativeArgs
 	currentSource *Source
 	program       *tea.Program
+	remote        *Remote
 }
 
 // Create basic directory structure for narrative.
@@ -116,6 +117,14 @@ func (c *NarrativeCtrl) addNewSource() error {
 	return c.dataCfg.Save(c.paths.DataConfigPath)
 }
 
+// Process command line arguments.
+func (c *NarrativeCtrl) handleArguments() (bool, error) {
+	if len(c.args.Source) > 0 {
+		return false, c.addNewSource()
+	}
+	return false, nil
+}
+
 // Initialize text source for playback and set it as current
 // source in the controller.
 func (c *NarrativeCtrl) LoadSource(id string) error {
@@ -135,16 +144,9 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 			return fmt.Errorf("Error initializing source @ %s: %w", s.Path, err)
 		}
 		c.currentSource = ss
+		c.remote = NewRemote(c.currentSource, c.player)
 	}
 	return nil
-}
-
-// Process command line arguments.
-func (c *NarrativeCtrl) handleArguments() (bool, error) {
-	if len(c.args.Source) > 0 {
-		return false, c.addNewSource()
-	}
-	return false, nil
 }
 
 // Switch text source in the model
@@ -163,43 +165,13 @@ func (c *NarrativeCtrl) initSourcePlayback() {
 	if c.currentSource == nil {
 		return
 	}
-
 	PSM.SetStatus(playbackBuffering)
 	go func() {
 		c.program.Send(SetSourceCmd{source: c.currentSource})
 		go c.currentSource.updateCacheBufferCb(func() {
-			go c.program.Send(StartPlaybackCmd{})
+			c.remote.StartPlayback()
 		})
 	}()
-}
-
-// Resume paused playback
-func (c *NarrativeCtrl) resume() {
-	c.player.Resume()
-}
-
-// Play current sentence of the source loaded in the controller.
-func (c *NarrativeCtrl) play(callback func()) {
-	if c.currentSource == nil {
-		return
-	}
-	data, err := c.currentSource.getCurrentSentenceWaveformData()
-	if err != nil {
-		// TODO
-		panic(err)
-	}
-	c.player.AddSample(data)
-	c.player.Play(callback)
-}
-
-// Pause playback.
-func (c *NarrativeCtrl) pause() {
-	c.player.Pause()
-}
-
-func (c *NarrativeCtrl) stop() {
-	PSM.SetStatus(playbackIdle)
-	c.player.Stop()
 }
 
 // Run the model.
