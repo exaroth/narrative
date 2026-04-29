@@ -1,11 +1,12 @@
 
 .PHONY: build
 build:
-	go build -o ./build/narrative ./cmd/narrative/main.go
+	# go build -o ./build/narrative ./cmd/narrative/main.go
+	go build -o narrative ./cmd/narrative/main.go
 
 .PHONY: run
 run:
-	go run ./cmd/narrative/main.go
+	DEBUG=1 go run ./cmd/narrative/main.go
 
 # Setup test env
 .PHONY: setup
