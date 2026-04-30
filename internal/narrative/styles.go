@@ -16,6 +16,11 @@ type ColorPalette struct {
 	ColorDim   color.Color
 }
 
+// Predefined colors.
+var (
+	colorError = lipgloss.Color("#F25D94")
+)
+
 var col = ColorPalette{
 	Background: lipgloss.Color("#040C06"),
 	Foreground: lipgloss.Color("#EEFFCC"),
@@ -25,6 +30,25 @@ var col = ColorPalette{
 	Color4:     lipgloss.Color("#112318"),
 	ColorDim:   lipgloss.Color("#A49FA5"),
 }
+
+// Modal styles.
+var (
+	modalStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFF7DB")).
+			Padding(1, 1).
+			Border(lipgloss.NormalBorder(), true, true, true, true).
+			Align(lipgloss.Center)
+
+	modalInfoStyle = lipgloss.NewStyle().
+			Inherit(modalStyle).
+			Foreground(col.Foreground).
+			BorderForeground(col.Foreground)
+
+	modalErrorStyle = lipgloss.NewStyle().
+			Inherit(modalStyle).
+			Foreground(colorError).
+			BorderForeground(colorError)
+)
 
 // Style for app title.
 var TitleStyle = lipgloss.NewStyle().

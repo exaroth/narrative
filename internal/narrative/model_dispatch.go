@@ -6,7 +6,12 @@ import (
 )
 
 // How long we show modals for (in seconds).
-const defaultModalTimeout = 4
+const (
+	defaultModalTimeout = 4
+	defaultModalXOffset = 2
+	defaultModalYOffset = 1
+	defaultModalWidth   = 30
+)
 
 var (
 	// Channel holding errors for the app.
@@ -46,11 +51,12 @@ type Modal struct {
 
 // Main model used by narrative, used primarily for dispatching.
 type narrativeModel struct {
-	mode         mode
-	ctrl         *NarrativeCtrl
-	mainView     tea.Model
-	modal        *Modal
-	modalTimeout int
+	mode          mode
+	ctrl          *NarrativeCtrl
+	mainView      tea.Model
+	modal         *Modal
+	modalTimeout  int
+	width, height int
 }
 
 // Initialize new narrative model.
@@ -103,7 +109,6 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 		if err != nil {
 			ErrorCh <- err
 		}
-
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
 		cmds = append(cmds, cmd)
@@ -120,12 +125,43 @@ func (m *narrativeModel) handlePlayback(playbackC int) tea.Cmd {
 	return WaitForPlayback(PlaybackCh)
 }
 
+func (m *narrativeModel) setTermDimensions(width, height int) {
+	m.width = width
+	m.height = height
+}
+
+// Render modal currently attached to the model.
+func (m narrativeModel) renderModal() *lipgloss.Layer {
+	if m.modal == nil {
+		return nil
+	}
+	var style lipgloss.Style
+	switch m.modal.t {
+	case modalInfo:
+		style = modalInfoStyle
+	case modalError:
+		style = modalErrorStyle
+	default:
+		panic("Unknown modal type")
+	}
+	modal := style.Width(defaultModalWidth).Render(m.modal.content)
+	x := m.width - (lipgloss.Width(modal) + defaultModalXOffset)
+	return lipgloss.NewLayer(modal).X(x).Y(defaultModalYOffset)
+}
+
+// Attach new modal to the model.
 func (m *narrativeModel) addModal(t modalType, content string) {
 	m.modal = &Modal{
 		t:       t,
 		content: content,
 	}
 	m.modalTimeout = defaultModalTimeout
+}
+
+// Remove currently attached modal.
+func (m *narrativeModel) removeModal() {
+	m.modal = nil
+	m.modalTimeout = 0
 }
 
 func (m narrativeModel) Init() tea.Cmd {
@@ -140,6 +176,11 @@ func (m narrativeModel) Init() tea.Cmd {
 func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.setTermDimensions(msg.Width, msg.Height)
+	}
+
 	switch m.mode {
 	case modeDefault:
 		cmd = m.mainUpdate(msg)
@@ -153,6 +194,12 @@ func (m narrativeModel) View() tea.View {
 	layers := []*lipgloss.Layer{
 		lipgloss.NewLayer(main_v.Content),
 		// todo add modal
+	}
+	if m.modal != nil {
+		layers = append(
+			layers,
+			m.renderModal(),
+		)
 	}
 	comp := lipgloss.NewCompositor(layers...)
 	v.SetContent(comp.Render())
