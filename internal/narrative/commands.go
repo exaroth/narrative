@@ -101,3 +101,6 @@ func WaitForMessage(sub chan string) tea.Cmd {
 		return MessageCmd(<-sub)
 	}
 }
+
+// Remove any modal currently being displayed
+type RemoveModalCmd struct{}

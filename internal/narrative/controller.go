@@ -170,11 +170,13 @@ func (c *NarrativeCtrl) initSourcePlayback() {
 	if c.currentSource == nil {
 		return
 	}
-	PSM.SetStatus(playbackBuffering)
 	go func() {
+		PSM.SetStatus(playbackBuffering)
+		MessageCh <- "Buffering, please wait..."
 		c.program.Send(SetSourceCmd{source: c.currentSource})
 		go c.currentSource.updateCacheBufferCb(func() {
 			c.remote.StartPlayback()
+			go c.program.Send(RemoveModalCmd{})
 		})
 	}()
 }

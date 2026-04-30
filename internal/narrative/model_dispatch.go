@@ -104,6 +104,8 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 	case MessageCmd:
 		m.addModal(modalInfo, string(msg))
 		cmds = append(cmds, WaitForMessage(MessageCh))
+	case RemoveModalCmd:
+		m.removeModal()
 	case LoadSourceCmd:
 		err := m.ctrl.selectSource(msg.id)
 		if err != nil {
