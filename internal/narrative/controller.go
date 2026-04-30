@@ -151,10 +151,12 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 
 // Switch text source in the model
 func (c *NarrativeCtrl) selectSource(id string) error {
+	c.remote.Stop()
 	err := c.LoadSource(id)
 	if err != nil {
 		return err
 	}
+	// TODO: save last source sentence
 	c.initSourcePlayback()
 	return nil
 }

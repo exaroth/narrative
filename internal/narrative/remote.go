@@ -38,31 +38,42 @@ func (p playbackStatus) String() string {
 	return "unknown"
 }
 
+// Simple state machine for managing playback
+// status.
 type playbackSM struct {
+	// Current status
 	status playbackStatus
 	mut    sync.Mutex
 }
 
+// Set current playback status.
 func (p *playbackSM) SetStatus(status playbackStatus) {
 	p.mut.Lock()
 	defer p.mut.Unlock()
 	p.status = status
 }
 
+// Retrieve current playback status.
 func (p *playbackSM) Status() playbackStatus {
 	p.mut.Lock()
 	defer p.mut.Unlock()
 	return p.status
 }
+
+// Return whether we should attemptt buffering based on
+// current playback status.
 func (p *playbackSM) AllowsBuffering() bool {
 	return p.status != playbackBuffering && p.status != playbackIdle
 }
 
+// Abstraction for managing playback commands for the player.
 type Remote struct {
 	player *player.Player
 	source *Source
 }
 
+// Play current sentence, pass callback to be
+// invoked when playback finishes.
 func (r *Remote) Play(callback func()) {
 
 	PSM.SetStatus(playbackPlaying)
@@ -75,27 +86,35 @@ func (r *Remote) Play(callback func()) {
 	r.player.Play(callback)
 }
 
+// Initialize new playback for the source,
+// It will start based on last played sentence.
 func (r *Remote) StartPlayback() {
 	r.Play(func() {
 		PlaybackCh <- 1
 	})
 }
 
+// Pause playback.
 func (r *Remote) Pause() {
 	PSM.SetStatus(playbackPaused)
 	r.player.Pause()
 }
 
+// Resume playing current sample.
 func (r *Remote) Resume() {
 	PSM.SetStatus(playbackPlaying)
 	r.player.Resume()
 }
 
+// Stop playback, this will remove the sample
+// from, the player
 func (r *Remote) Stop() {
 	PSM.SetStatus(playbackIdle)
 	r.player.Stop()
 }
 
+// Handle integer based playback command, and
+// dispatch to the player.
 func (r *Remote) HandleCommand(command int) {
 	switch command {
 	// continuous playback
@@ -131,7 +150,7 @@ func (r *Remote) HandleCommand(command int) {
 	}
 }
 
-// Initialize new remote
+// Initialize new remote.
 func NewRemote(source *Source, player *player.Player) *Remote {
 	return &Remote{
 		source: source,

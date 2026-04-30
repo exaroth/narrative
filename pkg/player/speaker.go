@@ -84,9 +84,8 @@ func (p *Player) Resume() {
 // removes it from the ctrl.
 func (p *Player) Stop() {
 	speaker.Lock()
-	defer speaker.Unlock()
-	p.Pause()
 	p.ctrl.Streamer = nil
+	speaker.Unlock()
 	speaker.Clear()
 }
 
