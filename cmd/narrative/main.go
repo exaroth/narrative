@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/exaroth/narrative/internal/narrative"
@@ -12,7 +11,6 @@ func init() {
 	debug := os.Getenv("DEBUG")
 	if len(debug) > 0 {
 		f, err := os.OpenFile("./narrative.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0655)
-		fmt.Println(f)
 		if err != nil {
 			panic(err)
 		}

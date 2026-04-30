@@ -86,20 +86,23 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 			}
 		}
 		if m.modal != nil {
-			m.modalTimeout -= 1
 			if m.modalTimeout < 0 {
 				m.modal = nil
 			}
+			m.modalTimeout -= 1
 		}
 		cmds = append(cmds, UpdateTick())
 	case ErrorCmd:
-		m.addModal(modalError, error(msg).Error())
+		m.addModal(modalError, msg.Error())
 		cmds = append(cmds, WaitForError(ErrorCh))
 	case MessageCmd:
 		m.addModal(modalInfo, string(msg))
 		cmds = append(cmds, WaitForMessage(MessageCh))
 	case LoadSourceCmd:
-		m.ctrl.selectSource(msg.id)
+		err := m.ctrl.selectSource(msg.id)
+		if err != nil {
+			ErrorCh <- err
+		}
 
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})

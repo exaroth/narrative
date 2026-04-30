@@ -83,8 +83,8 @@ func (r *Remote) Play(callback func()) {
 	PSM.SetStatus(playbackPlaying)
 	data, err := r.source.getCurrentSentenceWaveformData()
 	if err != nil {
-		// TODO
-		panic(err)
+		ErrorCh <- err
+		return
 	}
 	r.player.AddSample(data)
 	r.player.Play(callback)

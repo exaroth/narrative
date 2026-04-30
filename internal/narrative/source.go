@@ -12,8 +12,11 @@ import (
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/preprocessor"
 	"github.com/exaroth/narrative/pkg/sentencizer"
+	"github.com/sirupsen/logrus"
 )
 
+// Stores locks used to manage synchronization
+// when processing buffer entries.
 var lock = BufferCacheLock{
 	procs: make(map[int]struct{}),
 	mut:   sync.Mutex{},
@@ -155,6 +158,7 @@ func (s *Source) updateCacheBuffer() error {
 				_, err := s.getWaveformData(sn)
 				if err != nil {
 					errs = append(errs, err)
+					logrus.Error(err)
 				}
 			}
 		}(snum)
@@ -164,10 +168,8 @@ func (s *Source) updateCacheBuffer() error {
 		}
 	}
 	wg.Wait()
-	for _, e := range errs {
-		if e != nil {
-			return e
-		}
+	if len(errs) > 0 {
+		ErrorCh <- errs[0]
 	}
 	return nil
 }
@@ -220,6 +222,17 @@ func (s *Source) decrementSentenceNum() int {
 	return s.sentenceNum
 }
 
+// Update current sentence number.
+func (s *Source) setSentenceNum(n int) int {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+	if n < 0 || n > len(s.data)-1 {
+		return -1
+	}
+	s.sentenceNum = n
+	return s.sentenceNum
+}
+
 // Representation of source as saved on disk.
 type SourceData struct {
 	Id   string
@@ -234,6 +247,7 @@ func SaveTextSource(path, id string, data []byte) (string, error) {
 		Id:   id,
 	})
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	p := filepath.Join(path, fmt.Sprintf("%s.gob", id))
@@ -243,10 +257,11 @@ func SaveTextSource(path, id string, data []byte) (string, error) {
 // Load raw source from file.
 func LoadTextSource(path string) (*SourceData, error) {
 	f, err := os.OpenFile(path, os.O_RDONLY, 0644)
-	defer f.Close()
 	if err != nil {
+		logrus.Error(err)
 		return nil, err
 	}
+	defer f.Close()
 	var result SourceData
 	err = gob.NewDecoder(f).Decode(&result)
 	return &result, err
