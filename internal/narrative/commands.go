@@ -38,21 +38,6 @@ func LoadSource(id string) tea.Cmd {
 	})
 }
 
-// // Command for starting playback for currently selected
-// // source. If already playing will do nothing.
-// type PlaySourceCmd struct{}
-
-// func PlaySource() tea.Cmd {
-// 	return teaCmd(PlaySourceCmd{})
-// }
-
-// // Pause source playback (unless paused).
-// type PauseSourceCmd struct{}
-
-// func PauseSource() tea.Cmd {
-// 	return teaCmd(PauseSourceCmd{})
-// }
-
 // Update current source
 type UpdateSourceCmd struct {
 	source *Source
@@ -95,10 +80,24 @@ func WaitForPlayback(sub chan int) tea.Cmd {
 	}
 }
 
+// Stores errors send in the app
+// to be shown to the user.
 type ErrorCmd error
 
+// ErrorCmd receiver func.
 func WaitForError(sub chan error) tea.Cmd {
 	return func() tea.Msg {
 		return ErrorCmd(<-sub)
+	}
+}
+
+// Stores messages to be be sent and shown
+// to the user.
+type MessageCmd string
+
+// MessageCmd receiver func.
+func WaitForMessage(sub chan string) tea.Cmd {
+	return func() tea.Msg {
+		return MessageCmd(<-sub)
 	}
 }

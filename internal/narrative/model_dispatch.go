@@ -8,8 +8,13 @@ import (
 // How long we show modals for (in seconds).
 const defaultModalTimeout = 4
 
-// Channel holding errors for the app.
-var ErrorCh = make(chan error)
+var (
+	// Channel holding errors for the app.
+	ErrorCh = make(chan error)
+	// Channel for sending messages to be shown
+	// to the user
+	MessageCh = make(chan string)
+)
 
 // Defines mode app is running.
 type mode int
@@ -90,7 +95,9 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 	case ErrorCmd:
 		m.addModal(modalError, error(msg).Error())
 		cmds = append(cmds, WaitForError(ErrorCh))
-
+	case MessageCmd:
+		m.addModal(modalInfo, string(msg))
+		cmds = append(cmds, WaitForMessage(MessageCh))
 	case LoadSourceCmd:
 		m.ctrl.selectSource(msg.id)
 
@@ -123,6 +130,7 @@ func (m narrativeModel) Init() tea.Cmd {
 		UpdateTick(),
 		WaitForPlayback(PlaybackCh),
 		WaitForError(ErrorCh),
+		WaitForMessage(MessageCh),
 	)
 }
 
