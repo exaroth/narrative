@@ -66,6 +66,10 @@ func (p *playbackSM) AllowsBuffering() bool {
 	return p.status != playbackBuffering && p.status != playbackIdle
 }
 
+func (p *playbackSM) AllowsSourceSwitching() bool {
+	return p.status != playbackBuffering
+}
+
 // Abstraction for managing playback commands for the player.
 type Remote struct {
 	player *player.Player

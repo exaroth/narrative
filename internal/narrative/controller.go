@@ -151,6 +151,9 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 
 // Switch text source in the model
 func (c *NarrativeCtrl) selectSource(id string) error {
+	if !PSM.AllowsSourceSwitching() {
+		return nil
+	}
 	c.remote.Stop()
 	err := c.LoadSource(id)
 	if err != nil {

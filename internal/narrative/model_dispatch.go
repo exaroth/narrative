@@ -4,6 +4,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+var ErrorCh = make(chan error)
+
 type mode int
 
 const (
@@ -55,7 +57,11 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 				go m.ctrl.currentSource.updateCacheBuffer()
 			}
 		}
-		return UpdateTick()
+		cmds = append(cmds, UpdateTick())
+	case ErrorCmd:
+		// TODO handle
+		cmds = append(cmds, WaitForError(ErrorCh))
+
 	case LoadSourceCmd:
 		m.ctrl.selectSource(msg.id)
 
@@ -79,6 +85,7 @@ func (m narrativeModel) Init() tea.Cmd {
 	return tea.Batch(
 		UpdateTick(),
 		WaitForPlayback(PlaybackCh),
+		WaitForError(ErrorCh),
 	)
 }
 

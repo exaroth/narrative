@@ -86,10 +86,19 @@ type PlaybackCmd int
 // Wait for playback command to be passed
 // Commands are integer based, available values:
 // 0 - pause
-// 1 - play next
+// 1 - play
 // -1 - stop
+// 2 - start new playback
 func WaitForPlayback(sub chan int) tea.Cmd {
 	return func() tea.Msg {
 		return PlaybackCmd(<-sub)
+	}
+}
+
+type ErrorCmd error
+
+func WaitForError(sub chan error) tea.Cmd {
+	return func() tea.Msg {
+		return ErrorCmd(<-sub)
 	}
 }
