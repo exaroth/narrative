@@ -2,10 +2,16 @@ package narrative
 
 import (
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
+// How long we show modals for (in seconds).
+const defaultModalTimeout = 4
+
+// Channel holding errors for the app.
 var ErrorCh = make(chan error)
 
+// Defines mode app is running.
 type mode int
 
 const (
@@ -15,14 +21,31 @@ const (
 	modeDownloader
 	// Mode used for converting sources to mp3.
 	modeConverter
+	// Show detailed help.
 	modeHelp
 )
 
+// Defines available types of the modal popup.
+type modalType int
+
+const (
+	modalInfo modalType = iota
+	modalError
+)
+
+// Contains information stored in the modal popup.
+type Modal struct {
+	t       modalType
+	content string
+}
+
 // Main model used by narrative, used primarily for dispatching.
 type narrativeModel struct {
-	mode     mode
-	ctrl     *NarrativeCtrl
-	mainView tea.Model
+	mode         mode
+	ctrl         *NarrativeCtrl
+	mainView     tea.Model
+	modal        *Modal
+	modalTimeout int
 }
 
 // Initialize new narrative model.
@@ -57,9 +80,15 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 				go m.ctrl.currentSource.updateCacheBuffer()
 			}
 		}
+		if m.modal != nil {
+			m.modalTimeout -= 1
+			if m.modalTimeout < 0 {
+				m.modal = nil
+			}
+		}
 		cmds = append(cmds, UpdateTick())
 	case ErrorCmd:
-		// TODO handle
+		m.addModal(modalError, error(msg).Error())
 		cmds = append(cmds, WaitForError(ErrorCh))
 
 	case LoadSourceCmd:
@@ -81,6 +110,14 @@ func (m *narrativeModel) handlePlayback(playbackC int) tea.Cmd {
 	return WaitForPlayback(PlaybackCh)
 }
 
+func (m *narrativeModel) addModal(t modalType, content string) {
+	m.modal = &Modal{
+		t:       t,
+		content: content,
+	}
+	m.modalTimeout = defaultModalTimeout
+}
+
 func (m narrativeModel) Init() tea.Cmd {
 	return tea.Batch(
 		UpdateTick(),
@@ -100,7 +137,14 @@ func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m narrativeModel) View() tea.View {
-	return m.mainView.View()
-	// var v tea.View
-	// return v
+	var v tea.View
+	main_v := m.mainView.View()
+	layers := []*lipgloss.Layer{
+		lipgloss.NewLayer(main_v.Content),
+		// todo add modal
+	}
+	comp := lipgloss.NewCompositor(layers...)
+	v.SetContent(comp.Render())
+	v.AltScreen = true
+	return v
 }

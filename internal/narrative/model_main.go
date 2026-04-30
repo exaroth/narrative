@@ -100,6 +100,5 @@ func (m mainViewModel) View() tea.View {
 	progress := docStyle.Render(m.progress.View())
 	var v tea.View
 	v.SetContent(list + "\n" + progress + "\n" + m.currentSource.id + "/" + PSM.Status().String())
-	v.AltScreen = true
 	return v
 }
