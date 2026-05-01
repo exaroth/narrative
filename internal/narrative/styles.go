@@ -13,12 +13,12 @@ type ColorPalette struct {
 	Color2     color.Color
 	Color3     color.Color
 	Color4     color.Color
-	ColorDim   color.Color
 }
 
 // Predefined colors.
 var (
 	colorError = lipgloss.Color("#F25D94")
+	colorDim   = lipgloss.Color("#A49FA5")
 )
 
 var col = ColorPalette{
@@ -28,7 +28,6 @@ var col = ColorPalette{
 	Color2:     lipgloss.Color("#4D8061"),
 	Color3:     lipgloss.Color("#305D42"),
 	Color4:     lipgloss.Color("#112318"),
-	ColorDim:   lipgloss.Color("#A49FA5"),
 }
 
 // Main list style
@@ -37,7 +36,6 @@ var docStyle = lipgloss.NewStyle().Margin(1, 2)
 // Modal styles.
 var (
 	modalStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFF7DB")).
 			Padding(1, 1).
 			Border(lipgloss.NormalBorder(), true, true, true, true).
 			Align(lipgloss.Center)
@@ -52,6 +50,10 @@ var (
 			Foreground(colorError).
 			BorderForeground(colorError)
 )
+
+// Style for % read text.
+var percReadStyle = lipgloss.NewStyle().
+	Foreground(col.Color1)
 
 // Style for app title.
 var TitleStyle = lipgloss.NewStyle().
@@ -108,13 +110,13 @@ func NewListStyles(isDark bool) (s ListStyles) {
 		Foreground(col.Color2)
 
 	s.DimmedTitle = lipgloss.NewStyle().
-		Foreground(col.ColorDim).
+		Foreground(colorDim).
 		Padding(0, 0, 0, 1)
 
 	s.DimmedDesc = s.DimmedTitle.
-		Foreground(col.ColorDim)
+		Foreground(colorDim)
 
-	s.SourceTypeStyle = lipgloss.NewStyle().Foreground(col.ColorDim)
+	s.SourceTypeStyle = lipgloss.NewStyle().Foreground(colorDim)
 
 	s.FilterMatch = lipgloss.NewStyle().Underline(true)
 	return s

@@ -180,7 +180,7 @@ func (s *Source) updateCacheBuffer() error {
 // This is same as updateCacheBudffer but
 // allows passing callback to be called after processing
 // is done.
-func (s *Source) updateCacheBufferCb(cb func()) {
+func (s *Source) UpdateCacheBuffer(cb func()) {
 	s.updateCacheBuffer()
 	cb()
 }
@@ -203,7 +203,7 @@ func (s *Source) BufferSize() int {
 
 // Increment current sentence number returning updated
 // value, returns -1 if number cannot be incremented.
-func (s *Source) incrementSentenceNum() int {
+func (s *Source) IncrementSentenceNum() int {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	if s.sentenceNum > len(s.data)-1 {
@@ -215,7 +215,7 @@ func (s *Source) incrementSentenceNum() int {
 
 // Decrement sentence num returning updated value,
 // returns -1 if value cannot be decremented.
-func (s *Source) decrementSentenceNum() int {
+func (s *Source) DecrementSentenceNum() int {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	if s.sentenceNum == 0 {
@@ -226,7 +226,7 @@ func (s *Source) decrementSentenceNum() int {
 }
 
 // Update current sentence number.
-func (s *Source) setSentenceNum(n int) int {
+func (s *Source) SetSentenceNum(n int) int {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	if n < 0 || n > len(s.data)-1 {

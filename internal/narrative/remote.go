@@ -128,11 +128,11 @@ func (r *Remote) HandleCommand(command int) {
 			r.Resume()
 		} else {
 			logrus.Info("handlePlayback: play")
-			sn := r.source.incrementSentenceNum()
+			sn := r.source.IncrementSentenceNum()
 			// at the end of playback.
 			if sn == -1 {
-				// todo -> rewind
 				r.Stop()
+				r.source.SetSentenceNum(0)
 				break
 			}
 			r.StartPlayback()
