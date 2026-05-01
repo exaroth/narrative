@@ -47,11 +47,11 @@ func (p playbackStatus) StatusString() string {
 	case playbackPaused:
 		return "⏸ PAUSE"
 	case playbackBuffering:
-		return "BUF"
+		return " BUF"
 	case playbackIdle:
-		return "IDLE"
+		return " IDLE"
 	}
-	return "unknown"
+	return " ERR"
 }
 
 // Simple state machine for managing playback

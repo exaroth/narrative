@@ -151,3 +151,19 @@ var (
 	statusBarStatusStyle = lipgloss.NewStyle().Width(9).Foreground(col.Color4)
 	statusBarStatusText  = lipgloss.NewStyle().Foreground(colorDim)
 )
+
+// Progress bar styles
+// ==================a
+
+func ProgressBarColorFunc(total, current float64) color.Color {
+	if total <= 0.25 {
+		return col.Color1
+	}
+	if total <= 0.50 {
+		return col.Color2
+	}
+	if total <= 0.50 {
+		return col.Color3
+	}
+	return col.Color4
+}
