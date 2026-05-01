@@ -206,10 +206,11 @@ func (s *Source) BufferSize() int {
 func (s *Source) IncrementSentenceNum() int {
 	s.mut.Lock()
 	defer s.mut.Unlock()
-	if s.sentenceNum > len(s.data)-1 {
+	sn := s.sentenceNum + 1
+	if sn > len(s.data)-1 {
 		return -1
 	}
-	s.sentenceNum += 1
+	s.sentenceNum = sn
 	return s.sentenceNum
 }
 
@@ -218,10 +219,11 @@ func (s *Source) IncrementSentenceNum() int {
 func (s *Source) DecrementSentenceNum() int {
 	s.mut.Lock()
 	defer s.mut.Unlock()
-	if s.sentenceNum == 0 {
+	sn := s.sentenceNum - 1
+	if sn <= 0 {
 		return -1
 	}
-	s.sentenceNum -= 1
+	s.sentenceNum = sn
 	return s.sentenceNum
 }
 

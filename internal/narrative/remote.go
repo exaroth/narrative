@@ -133,6 +133,7 @@ func (r *Remote) HandleCommand(command int) {
 			if sn == -1 {
 				r.Stop()
 				r.source.SetSentenceNum(0)
+				MessageCh <- "Playback finished."
 				break
 			}
 			r.StartPlayback()
