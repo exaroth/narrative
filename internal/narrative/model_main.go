@@ -55,11 +55,16 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
-		cmds = append(cmds, m.progress.SetPercent(0.2))
 		h, v := docStyle.GetFrameSize()
 
 		m.progress.SetWidth(msg.Width - 5)
 		m.list.SetSize(msg.Width-h, msg.Height-v-10) // 10 is progress
+	case UpdateTickMsg:
+		cmds = append(
+			cmds,
+			m.progress.SetPercent(m.currentSource.PercRead()),
+		)
+
 	case SelectSourceCmd:
 		if msg.id == m.currentSource.id {
 			cmds = append(cmds, TogglePlayback())
@@ -74,7 +79,6 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case playbackPaused:
 			PlaybackCh <- 1
 		case playbackIdle:
-
 			cmds = append(cmds, LoadSource(m.currentSource.id))
 		}
 	case UpdateSourceCmd:
