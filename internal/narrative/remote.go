@@ -43,9 +43,9 @@ func (p playbackStatus) String() string {
 func (p playbackStatus) StatusString() string {
 	switch p {
 	case playbackPlaying:
-		return "PLAY"
+		return "▶ PLAY"
 	case playbackPaused:
-		return "PAUSE"
+		return "⏸ PAUSE"
 	case playbackBuffering:
 		return "BUF"
 	case playbackIdle:

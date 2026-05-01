@@ -134,7 +134,7 @@ func GetStatusBarStatusColor(status playbackStatus) color.Color {
 	var c color.Color
 	switch status {
 	case playbackBuffering:
-		c = lipgloss.Color("#0099db ")
+		c = lipgloss.Color("#0099DB")
 	case playbackPaused:
 		c = lipgloss.Color("#FEAE34")
 	case playbackPlaying:
@@ -148,6 +148,6 @@ func GetStatusBarStatusColor(status playbackStatus) color.Color {
 var (
 	statusBarStyle = lipgloss.NewStyle().Background(col.Color4)
 
-	statusBarStatusStyle = lipgloss.NewStyle().Width(8).Foreground(col.Color4)
+	statusBarStatusStyle = lipgloss.NewStyle().Width(9).Foreground(col.Color4)
 	statusBarStatusText  = lipgloss.NewStyle().Foreground(colorDim)
 )
