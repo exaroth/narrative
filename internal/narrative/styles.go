@@ -31,9 +31,11 @@ var col = ColorPalette{
 }
 
 // Main list style
+// ===============
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 // Modal styles.
+// ===============
 var (
 	modalStyle = lipgloss.NewStyle().
 			Padding(1, 1).
@@ -52,10 +54,12 @@ var (
 )
 
 // Style for % read text.
+// ======================
 var percReadStyle = lipgloss.NewStyle().
 	Foreground(col.Color1)
 
 // Style for app title.
+// ====================
 var TitleStyle = lipgloss.NewStyle().
 	Foreground(col.Foreground).
 	Background(col.Color3).
@@ -121,3 +125,29 @@ func NewListStyles(isDark bool) (s ListStyles) {
 	s.FilterMatch = lipgloss.NewStyle().Underline(true)
 	return s
 }
+
+// Main status bar styles
+// ======================
+
+// Get color for the status part of the status bar
+func GetStatusBarStatusColor(status playbackStatus) color.Color {
+	var c color.Color
+	switch status {
+	case playbackBuffering:
+		c = lipgloss.Color("#0099db ")
+	case playbackPaused:
+		c = lipgloss.Color("#FEAE34")
+	case playbackPlaying:
+		c = lipgloss.Color("#E43B44")
+	case playbackIdle:
+		c = lipgloss.Color("#8b9bb4")
+	}
+	return c
+}
+
+var (
+	statusBarStyle = lipgloss.NewStyle().Background(col.Color4)
+
+	statusBarStatusStyle = lipgloss.NewStyle().Width(8).Foreground(col.Color4)
+	statusBarStatusText  = lipgloss.NewStyle().Foreground(colorDim)
+)

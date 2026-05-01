@@ -38,6 +38,22 @@ func (p playbackStatus) String() string {
 	return "unknown"
 }
 
+// Get string version of the status to be displayed
+// on the status bar
+func (p playbackStatus) StatusString() string {
+	switch p {
+	case playbackPlaying:
+		return "PLAY"
+	case playbackPaused:
+		return "PAUSE"
+	case playbackBuffering:
+		return "BUF"
+	case playbackIdle:
+		return "IDLE"
+	}
+	return "unknown"
+}
+
 // Simple state machine for managing playback
 // status.
 type playbackSM struct {

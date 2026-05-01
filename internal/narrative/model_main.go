@@ -11,7 +11,9 @@ import (
 )
 
 const (
-	appTitle = "ℕarrative v0.1"
+	appTitle        = "ℕarrative v0.1"
+	statusHelpShort = "short"
+	statusHelpLong  = "long"
 )
 
 // This is a model for main narrative view containing
@@ -22,6 +24,7 @@ type mainViewModel struct {
 	list           list.Model
 	progress       ProgressModel
 	perc           *percRead
+	statusBar      *statusBar
 	showTranscript bool
 }
 
@@ -40,6 +43,7 @@ func NewMainViewModel(source_list Sources) *mainViewModel {
 		list:           l,
 		progress:       p,
 		perc:           &percRead{},
+		statusBar:      &statusBar{},
 	}
 }
 
@@ -67,6 +71,7 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.progress.SetWidth(msg.Width - 5)
 		m.list.SetSize(msg.Width-h, msg.Height-v-10) // 10 is progress
 		m.perc = m.perc.SetWidth(msg.Width)
+		m.statusBar = m.statusBar.SetWidth(msg.Width)
 	case UpdateTickMsg:
 		cmds = append(
 			cmds,
@@ -104,7 +109,7 @@ func (m mainViewModel) View() tea.View {
 	list := docStyle.Render(m.list.View())
 	progress := docStyle.Render(m.progress.View())
 	var v tea.View
-	v.SetContent(list + "\n" + progress + "\n" + m.perc.Render())
+	v.SetContent(m.statusBar.Render() + "\n" + list + "\n" + progress + "\n" + m.perc.Render())
 	return v
 }
 
@@ -127,4 +132,30 @@ func (p *percRead) SetPerc(perc float64) *percRead {
 func (p *percRead) Render() string {
 	perc := percReadStyle.Render(fmt.Sprintf(" %3.0f%% Read", p.perc*100))
 	return lipgloss.Place(p.width, 1, lipgloss.Center, lipgloss.Center, perc)
+}
+
+// Status bar for the main app.
+type statusBar struct {
+	width  int
+	status playbackStatus
+}
+
+func (s *statusBar) SetWidth(w int) *statusBar {
+	s.width = w
+	return s
+}
+
+func (s *statusBar) Render() string {
+	col := GetStatusBarStatusColor(PSM.Status())
+	status := statusBarStatusStyle.Background(col).Render(" " + PSM.Status().StatusString())
+	w := s.width - lipgloss.Width(status)
+	h := lipgloss.Place(w, 1, lipgloss.Left, lipgloss.Center, "  "+statusHelpShort)
+
+	help := statusBarStatusText.Render(h)
+
+	bar := lipgloss.JoinHorizontal(lipgloss.Top,
+		help,
+		status,
+	)
+	return statusBarStyle.Width(s.width).Render(bar)
 }
