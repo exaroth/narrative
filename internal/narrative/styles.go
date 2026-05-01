@@ -31,6 +31,9 @@ var col = ColorPalette{
 	ColorDim:   lipgloss.Color("#A49FA5"),
 }
 
+// Main list style
+var docStyle = lipgloss.NewStyle().Margin(1, 2)
+
 // Modal styles.
 var (
 	modalStyle = lipgloss.NewStyle().

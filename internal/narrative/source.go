@@ -31,6 +31,8 @@ type Source struct {
 	data []string
 	// Current sentence number
 	sentenceNum int
+	// Total number of sentences
+	length int
 	// Id of the text source
 	id string
 	// Sentence waveform data cache
@@ -60,6 +62,7 @@ func InitSource(
 		phonemizer:  phonemizer,
 		ttsClient:   ttsClient,
 		sentenceNum: sentence_n,
+		length:      len(data.Data),
 		cache_buf:   NewBufferCacheLRU(max_buf_size),
 		buf_size:    buf_size,
 		mut:         &sync.Mutex{},
@@ -231,6 +234,21 @@ func (s *Source) setSentenceNum(n int) int {
 	}
 	s.sentenceNum = n
 	return s.sentenceNum
+}
+
+// Get total number of sentences
+func (s *Source) Length() int {
+	return s.length
+}
+
+// Get current sentence number
+func (s *Source) SNum() int {
+	return s.sentenceNum
+}
+
+// Amount of source that has been read.
+func (s *Source) PercRead() float64 {
+	return float64(s.sentenceNum) / float64(s.length)
 }
 
 // Representation of source as saved on disk.

@@ -6,14 +6,11 @@ import (
 
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
 	"github.com/sirupsen/logrus"
 )
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
 const (
-	appTitle = "Narrative v0.1"
+	appTitle = "ℕarrative v0.1"
 )
 
 // This is a model for main narrative view containing
@@ -33,8 +30,7 @@ func NewMainViewModel(source_list Sources) *mainViewModel {
 	l.Title = appTitle
 	l.Styles.Title = TitleStyle
 
-	p := NewProgress(WithDefaultBlend())
-
+	p := NewProgress(WithDefaultBlend(), WithoutPercentage())
 	return &mainViewModel{
 		showTranscript: true,
 		sources:        source_list,
@@ -59,6 +55,7 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
+		cmds = append(cmds, m.progress.SetPercent(0.2))
 		h, v := docStyle.GetFrameSize()
 
 		m.progress.SetWidth(msg.Width - 5)
@@ -85,6 +82,8 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.list, cmd = m.list.Update(msg)
+	cmds = append(cmds, cmd)
+	m.progress, cmd = m.progress.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
