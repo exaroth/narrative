@@ -65,10 +65,11 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	logrus.Info(msg)
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if k := msg.String(); k == "ctrl+c" || k == "q" {
+		k := msg.String()
+		if k == "ctrl+c" || k == "q" {
 			return m, tea.Quit
 		}
-		if k := msg.String(); k == "l" || k == "h" {
+		if PSM.AllowsRewinding() && k == "l" || k == "h" {
 			if m.fForwarder == nil {
 				m.fForwarder = newFastForwarder(
 					0,

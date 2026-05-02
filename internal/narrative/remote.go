@@ -86,6 +86,10 @@ func (p *playbackSM) AllowsSourceSwitching() bool {
 	return p.status != playbackBuffering
 }
 
+func (p *playbackSM) AllowsRewinding() bool {
+	return p.status != playbackBuffering
+}
+
 // Abstraction for managing playback commands for the player.
 type Remote struct {
 	player *player.Player
@@ -136,6 +140,8 @@ func (r *Remote) Stop() {
 // Rewind text source to particular sentence number.
 func (r *Remote) Rewind(sentenceNum int) {
 	r.Stop()
+
+	PSM.SetStatus(playbackBuffering)
 	MessageCh <- "Buffering, please wait..."
 	r.source.SetSentenceNum(sentenceNum)
 
