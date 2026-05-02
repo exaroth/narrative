@@ -53,6 +53,15 @@ var (
 			BorderForeground(colorError)
 )
 
+// Transcript styles
+// =================
+
+var (
+	transcriptStyle = lipgloss.NewStyle().
+			Padding(1, 1).Margin(0, 0, 1, 0)
+	transcriptSeparatorStyle = lipgloss.NewStyle().Foreground(col.Color2)
+)
+
 // Style for % read text.
 // ======================
 var percReadStyle = lipgloss.NewStyle().

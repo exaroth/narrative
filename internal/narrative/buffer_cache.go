@@ -53,12 +53,6 @@ func (c *BufferCacheLRU) Put(sentence_idx int, data []float32) {
 	defer c.mut.Unlock()
 	e, ok := c.elements[sentence_idx]
 	if ok {
-		// Don't need to update data, simply move to front. (kw)
-		// if update {
-		// 	n := e.Value.(*BufferCacheVal)
-		// 	n.Data = data
-		// 	e.Value = n
-		// }
 		c.l.MoveToBack(e)
 		return
 	}

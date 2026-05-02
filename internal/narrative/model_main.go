@@ -3,6 +3,7 @@ package narrative
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"charm.land/bubbles/v2/list"
@@ -12,9 +13,9 @@ import (
 )
 
 const (
-	appTitle        = "ℕarrative v0.1"
-	statusHelpShort = "short"
-	statusHelpLong  = "long"
+	appTitle         = "ℕarrative v0.1"
+	statusHelpText   = "short"
+	transcriptHeight = 4
 )
 
 // This is a model for main narrative view containing
@@ -27,6 +28,7 @@ type mainViewModel struct {
 	perc           *percRead
 	statusBar      *statusBar
 	fForwarder     *fastForwarder
+	transcript     *transcript
 	showTranscript bool
 }
 
@@ -39,13 +41,15 @@ func NewMainViewModel(source_list Sources) *mainViewModel {
 
 	p := NewProgress(col.Color2)
 	return &mainViewModel{
+		sources:       source_list,
+		currentSource: nil,
+		list:          l,
+		progress:      p,
+		perc:          &percRead{},
+		statusBar:     &statusBar{},
+		transcript:    &transcript{height: transcriptHeight},
+		// TODO
 		showTranscript: true,
-		sources:        source_list,
-		currentSource:  nil,
-		list:           l,
-		progress:       p,
-		perc:           &percRead{},
-		statusBar:      &statusBar{},
 	}
 }
 
@@ -81,8 +85,13 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
+		listWidth, listHeight := msg.Width-h, msg.Height-v-10 // 10 is progress
 		m.progress.SetWidth(msg.Width - 5)
-		m.list.SetSize(msg.Width-h, msg.Height-v-10) // 10 is progress
+		m.transcript.SetWidth(msg.Width)
+		if m.showTranscript {
+			listHeight = listHeight - lipgloss.Height(m.transcript.Render(m.currentSource))
+		}
+		m.list.SetSize(listWidth, listHeight)
 		m.perc = m.perc.SetWidth(msg.Width)
 		m.statusBar = m.statusBar.SetWidth(msg.Width)
 	case UpdateTickMsg:
@@ -129,7 +138,7 @@ func (m mainViewModel) View() tea.View {
 	list := docStyle.Render(m.list.View())
 	progress := docStyle.Render(m.progress.View())
 	var v tea.View
-	v.SetContent(m.statusBar.Render() + "\n" + list + "\n" + progress + "\n" + m.perc.Render())
+	v.SetContent(m.statusBar.Render() + "\n" + list + "\n" + m.transcript.Render(m.currentSource) + "\n" + progress + "\n" + m.perc.Render())
 	return v
 }
 
@@ -169,7 +178,7 @@ func (s *statusBar) Render() string {
 	col := GetStatusBarStatusColor(PSM.Status())
 	status := statusBarStatusStyle.Background(col).Render(" " + PSM.Status().StatusString())
 	w := s.width - lipgloss.Width(status)
-	h := lipgloss.Place(w, 1, lipgloss.Left, lipgloss.Center, "  "+statusHelpShort)
+	h := lipgloss.Place(w, 1, lipgloss.Left, lipgloss.Center, "  "+statusHelpText)
 
 	help := statusBarStatusText.Render(h)
 
@@ -237,4 +246,32 @@ func (f *fastForwarder) Tick(t time.Time) (int, bool) {
 		return f.cur, true
 	}
 	return f.cur, false
+}
+
+type transcript struct {
+	width, height int
+}
+
+func (t *transcript) SetWidth(w int) {
+	t.width = w
+}
+
+func (t *transcript) Render(source *Source) string {
+	var builder strings.Builder
+	sep := lipgloss.Place(
+		t.width,
+		1,
+		lipgloss.Center,
+		lipgloss.Center,
+		transcriptSeparatorStyle.Render("-------"))
+	builder.WriteString(sep)
+	builder.WriteString("\n")
+	contents := lipgloss.Place(
+		t.width, t.height,
+		lipgloss.Center,
+		lipgloss.Center,
+		source.getCurrentRawSentence(),
+	)
+	builder.WriteString(transcriptStyle.Width(t.width).Height(t.height).Render(contents))
+	return builder.String()
 }
