@@ -136,8 +136,14 @@ func (r *Remote) Stop() {
 // Rewind text source to particular sentence number.
 func (r *Remote) Rewind(sentenceNum int) {
 	r.Stop()
+	MessageCh <- "Buffering, please wait..."
 	r.source.SetSentenceNum(sentenceNum)
-	r.StartPlayback()
+
+	r.source.UpdateCacheBuffer(func() {
+		MessageCh <- ""
+		r.StartPlayback()
+	})
+
 }
 
 // Handle integer based playback command, and

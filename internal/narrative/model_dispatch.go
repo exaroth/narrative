@@ -105,7 +105,11 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 		m.addModal(modalError, msg.Error())
 		cmds = append(cmds, WaitForError(ErrorCh))
 	case MessageCmd:
-		m.addModal(modalInfo, string(msg))
+		if msg == "" {
+			m.removeModal()
+		} else {
+			m.addModal(modalInfo, string(msg))
+		}
 		cmds = append(cmds, WaitForMessage(MessageCh))
 	case FastForwardCmd:
 		cmds = append(cmds, m.handleRewind(int(msg)))
@@ -134,7 +138,7 @@ func (m *narrativeModel) handlePlayback(playbackC int) tea.Cmd {
 
 // Rewind playback to given sentence number.
 func (m *narrativeModel) handleRewind(sNum int) tea.Cmd {
-	m.ctrl.remote.Rewind(sNum)
+	go m.ctrl.remote.Rewind(sNum)
 	return WaitForFastForward(FastForwardCh)
 }
 
