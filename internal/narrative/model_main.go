@@ -37,7 +37,7 @@ func NewMainViewModel(source_list Sources) *mainViewModel {
 	l.Title = appTitle
 	l.Styles.Title = TitleStyle
 
-	p := NewProgress(WithoutPercentage(), WithColors(col.Color2))
+	p := NewProgress(col.Color2)
 	return &mainViewModel{
 		showTranscript: true,
 		sources:        source_list,
