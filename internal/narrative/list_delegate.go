@@ -77,17 +77,9 @@ func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			cmds = append(cmds, SelectSource(id))
 		case "space":
 			cmds = append(cmds, TogglePlayback())
+		case "d":
+			cmds = append(cmds, DeleteSource(id))
 		}
-		// if k := msg.String(); k == "enter" {
-		// }
-		// case key.Matches(msg, keys.remove):
-		// 	index := m.Index()
-		// 	m.RemoveItem(index)
-		// 	if len(m.Items()) == 0 {
-		// 		keys.remove.SetEnabled(false)
-		// 	}
-		// 	return m.NewStatusMessage(styles.statusMessage.Render("Deleted " + title))
-		// }
 	}
 	return tea.Batch(cmds...)
 }

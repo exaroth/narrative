@@ -123,6 +123,11 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
 		cmds = append(cmds, cmd)
+	case DeleteSourceCmd:
+		err := m.ctrl.deleteSource(msg.id)
+		if err != nil {
+			ErrorCh <- err
+		}
 	}
 
 	m.mainView, cmd = m.mainView.Update(msg)

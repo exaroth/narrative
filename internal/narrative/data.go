@@ -83,6 +83,28 @@ func (s Sources) ListItems() []list.Item {
 	return result
 }
 
+// Retrieve source next to source with id provided,
+// in order they are displayed.
+// If there's only one source or there are no sources
+// will return nil.
+// If source is last in order will return first source.
+func (s Sources) Next(id string) *TextSource {
+	if len(s) == 0 || len(s) == 1 {
+		return nil
+	}
+	ord := s.DateOrdered()
+	for i, s := range ord {
+		if s.Id == id {
+			if i == len(ord)-1 {
+				return ord[0]
+			}
+			return ord[i+1]
+		}
+	}
+	// not found
+	return nil
+}
+
 // DataConfig stores information about data
 // managed by narrative, such us text sources and models.
 type DataConfig struct {
@@ -110,7 +132,7 @@ func (c *DataConfig) AddSource(source_type SourceType, title, author, id, path s
 }
 
 // Delete source with given id.
-func (c *DataConfig) DelSource(id string) {
+func (c *DataConfig) DeleteSource(id string) {
 	delete(c.Sources, id)
 }
 

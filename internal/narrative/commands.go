@@ -3,6 +3,7 @@ package narrative
 import (
 	"time"
 
+	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -46,6 +47,21 @@ type UpdateSourceCmd struct {
 // Command for setting current source in the model.
 type SetSourceCmd struct {
 	source *Source
+}
+
+// Delete source with given id.
+type DeleteSourceCmd struct {
+	id string
+}
+
+func DeleteSource(id string) tea.Cmd {
+	return teaCmd(DeleteSourceCmd{
+		id: id,
+	})
+}
+
+type UpdateSourceListCmd struct {
+	items []list.Item
 }
 
 type UpdateTickMsg time.Time

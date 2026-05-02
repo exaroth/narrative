@@ -38,7 +38,6 @@ func NewMainViewModel(source_list Sources) *mainViewModel {
 	l.SetShowHelp(false)
 	l.Title = appTitle
 	l.Styles.Title = TitleStyle
-
 	p := NewProgress(col.Color2)
 	return &mainViewModel{
 		sources:       source_list,
@@ -107,6 +106,8 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.fForwarder = nil
 			}
 		}
+	case UpdateSourceListCmd:
+		cmds = append(cmds, m.list.SetItems(msg.items))
 	case SelectSourceCmd:
 		if msg.id == m.currentSource.id {
 			cmds = append(cmds, TogglePlayback())
