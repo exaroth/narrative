@@ -102,5 +102,15 @@ func WaitForMessage(sub chan string) tea.Cmd {
 	}
 }
 
+// Stores sentence number we ought to rewind
+// text source to.
+type FastForwardCmd int
+
+func WaitForFastForward(sub chan int) tea.Cmd {
+	return func() tea.Msg {
+		return FastForwardCmd(<-sub)
+	}
+}
+
 // Remove any modal currently being displayed
 type RemoveModalCmd struct{}

@@ -3,6 +3,7 @@ package narrative
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
@@ -25,6 +26,7 @@ type mainViewModel struct {
 	progress       ProgressModel
 	perc           *percRead
 	statusBar      *statusBar
+	fForwarder     *fastForwarder
 	showTranscript bool
 }
 
@@ -66,6 +68,16 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if k := msg.String(); k == "ctrl+c" || k == "q" {
 			return m, tea.Quit
 		}
+		if k := msg.String(); k == "l" || k == "h" {
+			if m.fForwarder == nil {
+				m.fForwarder = newFastForwarder(
+					0,
+					m.currentSource.Length()-1,
+					m.currentSource.SNum(),
+				)
+			}
+			m.fForwarder.Update(k == "l")
+		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
 		m.progress.SetWidth(msg.Width - 5)
@@ -78,6 +90,13 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.progress.SetPercent(m.currentSource.PercRead()),
 		)
 		m.perc = m.perc.SetPerc(m.currentSource.PercRead())
+		if m.fForwarder != nil {
+			c, done := m.fForwarder.Tick(time.Time(msg))
+			if done {
+				FastForwardCh <- c
+				m.fForwarder = nil
+			}
+		}
 	case SelectSourceCmd:
 		if msg.id == m.currentSource.id {
 			cmds = append(cmds, TogglePlayback())
@@ -158,4 +177,63 @@ func (s *statusBar) Render() string {
 		status,
 	)
 	return statusBarStyle.Width(s.width).Render(bar)
+}
+
+// Controller for grabbing fast forward (and backward)
+// data.
+type fastForwarder struct {
+	sMin, sMax, cur int
+	start           time.Time
+	lastUpd         time.Time
+}
+
+func newFastForwarder(sMin, sMax, cur int) *fastForwarder {
+	return &fastForwarder{
+		sMin:    sMin,
+		sMax:    sMax,
+		cur:     cur,
+		start:   time.Now(),
+		lastUpd: time.Now(),
+	}
+}
+
+// Increase or decrease sentence number.
+func (f *fastForwarder) Update(forward bool) {
+	now := time.Now()
+	diff := now.Sub(f.start).Seconds()
+	var change int
+	switch {
+	case diff < 2:
+		change = 1
+	case diff < 4:
+		change = 2
+	case diff < 6:
+		change = 5
+	default:
+		change = 10
+	}
+	var cur int
+	if forward {
+		cur = f.cur + change
+	} else {
+		cur = f.cur - change
+	}
+	if cur < f.sMin {
+		cur = f.sMin
+	}
+	if cur > f.sMax {
+		cur = f.sMax
+	}
+	f.cur = cur
+	MessageCh <- fmt.Sprintf("%d/%d", f.cur, f.sMax)
+	f.lastUpd = now
+}
+
+// Tick handler.
+func (f *fastForwarder) Tick(t time.Time) (int, bool) {
+	// Wait 1 second after last upd.
+	if int(t.Sub(f.lastUpd).Seconds()) > 0 {
+		return f.cur, true
+	}
+	return f.cur, false
 }

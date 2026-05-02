@@ -133,6 +133,13 @@ func (r *Remote) Stop() {
 	r.player.Stop()
 }
 
+// Rewind text source to particular sentence number.
+func (r *Remote) Rewind(sentenceNum int) {
+	r.Stop()
+	r.source.SetSentenceNum(sentenceNum)
+	r.StartPlayback()
+}
+
 // Handle integer based playback command, and
 // dispatch to the player.
 func (r *Remote) HandleCommand(command int) {

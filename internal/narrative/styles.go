@@ -120,7 +120,7 @@ func NewListStyles(isDark bool) (s ListStyles) {
 	s.DimmedDesc = s.DimmedTitle.
 		Foreground(colorDim)
 
-	s.SourceTypeStyle = lipgloss.NewStyle().Foreground(colorDim)
+	s.SourceTypeStyle = lipgloss.NewStyle().Foreground(colorDim).Bold(true)
 
 	s.FilterMatch = lipgloss.NewStyle().Underline(true)
 	return s
@@ -148,7 +148,7 @@ func GetStatusBarStatusColor(status playbackStatus) color.Color {
 var (
 	statusBarStyle = lipgloss.NewStyle().Background(col.Color4)
 
-	statusBarStatusStyle = lipgloss.NewStyle().Width(9).Foreground(col.Color4)
+	statusBarStatusStyle = lipgloss.NewStyle().Width(9).Foreground(col.Color4).Bold(true)
 	statusBarStatusText  = lipgloss.NewStyle().Foreground(colorDim)
 )
 

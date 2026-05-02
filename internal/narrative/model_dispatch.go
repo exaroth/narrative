@@ -19,6 +19,9 @@ var (
 	// Channel for sending messages to be shown
 	// to the user
 	MessageCh = make(chan string)
+	// Channel for fast forwarding or rewinding text
+	// sources.
+	FastForwardCh = make(chan int)
 )
 
 // Defines mode app is running.
@@ -104,6 +107,8 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 	case MessageCmd:
 		m.addModal(modalInfo, string(msg))
 		cmds = append(cmds, WaitForMessage(MessageCh))
+	case FastForwardCmd:
+		cmds = append(cmds, m.handleRewind(int(msg)))
 	case RemoveModalCmd:
 		m.removeModal()
 	case LoadSourceCmd:
@@ -125,6 +130,12 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 func (m *narrativeModel) handlePlayback(playbackC int) tea.Cmd {
 	m.ctrl.remote.HandleCommand(playbackC)
 	return WaitForPlayback(PlaybackCh)
+}
+
+// Rewind playback to given sentence number.
+func (m *narrativeModel) handleRewind(sNum int) tea.Cmd {
+	m.ctrl.remote.Rewind(sNum)
+	return WaitForFastForward(FastForwardCh)
 }
 
 func (m *narrativeModel) setTermDimensions(width, height int) {
@@ -172,6 +183,7 @@ func (m narrativeModel) Init() tea.Cmd {
 		WaitForPlayback(PlaybackCh),
 		WaitForError(ErrorCh),
 		WaitForMessage(MessageCh),
+		WaitForFastForward(FastForwardCh),
 	)
 }
 
