@@ -134,6 +134,11 @@ func (c *DataConfig) AddSource(source_type SourceType, title, author, id, path s
 // Delete source with given id.
 func (c *DataConfig) DeleteSource(id string) {
 	delete(c.Sources, id)
+	delete(c.LastSentence, id)
+	delete(c.Bookmarks, id)
+	if c.LastSource == id {
+		c.LastSource = ""
+	}
 }
 
 // Save data config as json file.

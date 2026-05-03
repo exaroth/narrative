@@ -167,24 +167,24 @@ func (c *NarrativeCtrl) selectSource(id string) error {
 // Delete source with given id.
 func (c *NarrativeCtrl) deleteSource(id string) error {
 
-	if s, ok := c.dataCfg.Sources[id]; !ok {
+	if _, ok := c.dataCfg.Sources[id]; !ok {
 		return fmt.Errorf("Text source with id %s not found", id)
-	} else {
-		if c.currentSource.id == id {
-			c.remote.Stop()
-			next := c.dataCfg.Sources.Next(id)
-			if next != nil {
-				c.LoadSource(next.Id)
-			}
-		}
-		err := os.Remove(s.Path)
-		// TODO: delte bookmarks, last, etc
-		// TODO: add confirmation
-		c.dataCfg.DeleteSource(id)
-		c.dataCfg.Save(c.paths.DataConfigPath)
-		go c.program.Send(UpdateSourceListCmd{items: c.dataCfg.Sources.ListItems()})
-		return err
 	}
+	s := c.dataCfg.Sources[id]
+	if c.currentSource.id == id {
+		c.remote.Stop()
+		next := c.dataCfg.Sources.Next(id)
+		if next != nil {
+			c.LoadSource(next.Id)
+		}
+	} else {
+		c.loadDummySource()
+	}
+	err := os.Remove(s.Path)
+	c.dataCfg.DeleteSource(id)
+	c.dataCfg.Save(c.paths.DataConfigPath)
+	go c.program.Send(UpdateSourceListCmd{items: c.dataCfg.Sources.ListItems()})
+	return err
 }
 
 // Initialize source data for playback, this will buffer
@@ -222,14 +222,29 @@ func (c *NarrativeCtrl) Run() error {
 		if err := c.LoadSource(s_id); err != nil {
 			return err
 		}
-		c.model.initSource(c.currentSource)
+	} else {
+		c.loadDummySource()
+		go func() {
+			MessageCh <- "Pro Tip: Add some text sources first..."
+		}()
 	}
-
+	c.model.initSource(c.currentSource)
 	if _, err := c.program.Run(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// Load fake source, in cases where there is
+// no actual source to display.
+func (c *NarrativeCtrl) loadDummySource() {
+	c.currentSource = GetDummySource(
+		c.preprocessor,
+		c.phonemizer,
+		c.ttsClient,
+	)
+	c.remote = NewRemote(c.currentSource, c.player)
 }
 
 // Cleanly close the app.

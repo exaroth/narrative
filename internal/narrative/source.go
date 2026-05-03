@@ -286,3 +286,23 @@ func LoadTextSource(path string) (*SourceData, error) {
 	err = gob.NewDecoder(f).Decode(&result)
 	return &result, err
 }
+
+// Retrieve dummy source to be used when there
+// are no sources added (to avoid pointer issues).
+func GetDummySource(pproc *preprocessor.Preprocessor,
+	phonemizer *phonemizer.Phonemizer,
+	ttsClient *kitten.Kitten,
+) *Source {
+	return &Source{
+		data:        []string{"No text sources added"},
+		id:          "1234",
+		pproc:       pproc,
+		phonemizer:  phonemizer,
+		ttsClient:   ttsClient,
+		sentenceNum: 0,
+		length:      1,
+		cache_buf:   NewBufferCacheLRU(1),
+		buf_size:    1,
+		mut:         &sync.Mutex{},
+	}
+}
