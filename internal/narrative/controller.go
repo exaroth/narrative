@@ -252,5 +252,7 @@ func (c *NarrativeCtrl) Deinit() {
 	defer c.cfg.Save(c.paths.ConfigPath)
 	defer c.dataCfg.Save(c.paths.DataConfigPath)
 	defer c.ttsClient.Deinit()
-	defer c.program.Quit()
+	if c.program != nil {
+		defer c.program.Quit()
+	}
 }

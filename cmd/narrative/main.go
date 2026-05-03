@@ -1,14 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	"charm.land/lipgloss/v2"
 	"github.com/exaroth/narrative/internal/narrative"
 	log "github.com/sirupsen/logrus"
 )
 
+var debug string
+
 func init() {
-	debug := os.Getenv("DEBUG")
+	debug = os.Getenv("DEBUG")
 	if len(debug) > 0 {
 		f, err := os.OpenFile("./narrative.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0655)
 		if err != nil {
@@ -31,6 +35,14 @@ func main() {
 	defer ctrl.Deinit()
 	err = ctrl.Run()
 	if err != nil {
-		panic(err)
+		if len(debug) > 0 {
+			panic(err)
+		} else {
+			fmt.Printf("%s%s\n",
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#FC0303")).Render("Error: "),
+				err.Error(),
+			)
+			os.Exit(1)
+		}
 	}
 }
