@@ -229,6 +229,7 @@ func (c *NarrativeCtrl) Run() error {
 		}()
 	}
 	c.model.initSource(c.currentSource)
+	go c.program.Send(UpdateSourceListCmd{items: c.dataCfg.Sources.ListItems()})
 	if _, err := c.program.Run(); err != nil {
 		return err
 	}
