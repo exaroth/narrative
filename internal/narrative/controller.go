@@ -160,7 +160,10 @@ func (c *NarrativeCtrl) selectSource(id string) error {
 	if !PSM.AllowsSourceSwitching() {
 		return nil
 	}
-	c.remote.Stop()
+	if c.currentSource != nil {
+		c.remote.Stop()
+		c.dataCfg.LastSentence[c.currentSource.id] = c.currentSource.SNum()
+	}
 	err := c.LoadSource(id)
 	if err != nil {
 		return err
