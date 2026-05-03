@@ -16,6 +16,8 @@ func init() {
 		}
 		log.SetOutput(f)
 		log.SetLevel(log.InfoLevel)
+	} else {
+		log.SetLevel(log.PanicLevel)
 	}
 }
 
@@ -26,6 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer ctrl.Deinit()
 	err = ctrl.Run()
 	if err != nil {
 		panic(err)
