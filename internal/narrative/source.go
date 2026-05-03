@@ -295,7 +295,7 @@ func GetDummySource(pproc *preprocessor.Preprocessor,
 ) *Source {
 	return &Source{
 		data:        []string{"No text sources added"},
-		id:          "1234",
+		id:          "0",
 		pproc:       pproc,
 		phonemizer:  phonemizer,
 		ttsClient:   ttsClient,

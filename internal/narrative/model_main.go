@@ -14,9 +14,18 @@ import (
 
 const (
 	appTitle         = "ℕarrative v0.1"
-	statusHelpText   = "short"
 	transcriptHeight = 4
 )
+
+var statusHelp = [][2]string{
+	{"?", "help"},
+	{"j/k", "select"},
+	{"h/l", "seek"},
+	{"d", "delete"},
+	{"q", "quit"},
+	{"ctrl-b", "set bookmark"},
+	{"b", "go to bookmark"},
+}
 
 // This is a model for main narrative view containing
 // file list, transcription, playback info etc.
@@ -179,13 +188,30 @@ func (s *statusBar) SetWidth(w int) *statusBar {
 	return s
 }
 
+// Render status bar contents.
 func (s *statusBar) Render() string {
 	col := GetStatusBarStatusColor(PSM.Status())
 	status := statusBarStatusStyle.Background(col).Render(" " + PSM.Status().StatusString())
 	w := s.width - lipgloss.Width(status)
-	h := lipgloss.Place(w, 1, lipgloss.Left, lipgloss.Center, "  "+statusHelpText)
+	var builder strings.Builder
+	var help_t, temp_t string
+	for _, h := range statusHelp {
+		builder.WriteString(
+			lipgloss.Sprintf("%s%s",
+				statusBarStatusTextCommand.Render(h[0]),
+				statusBarStatusText.Render(": "+h[1]),
+			),
+		)
+		temp_t = builder.String()
+		if lipgloss.Width(temp_t) > w {
+			break
+		} else {
+			help_t = temp_t
+		}
+		builder.WriteString(" ")
+	}
 
-	help := statusBarStatusText.Render(h)
+	help := lipgloss.Place(w, 1, lipgloss.Left, lipgloss.Center, "  "+help_t)
 
 	bar := lipgloss.JoinHorizontal(lipgloss.Top,
 		help,

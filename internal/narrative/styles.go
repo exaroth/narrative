@@ -18,7 +18,7 @@ type ColorPalette struct {
 // Predefined colors.
 var (
 	colorError = lipgloss.Color("#F25D94")
-	colorDim   = lipgloss.Color("#A49FA5")
+	colorDim   = lipgloss.Color("#5C5C5C")
 )
 
 var col = ColorPalette{
@@ -157,8 +157,9 @@ func GetStatusBarStatusColor(status playbackStatus) color.Color {
 var (
 	statusBarStyle = lipgloss.NewStyle().Background(col.Color4)
 
-	statusBarStatusStyle = lipgloss.NewStyle().Width(9).Foreground(col.Color4).Bold(true)
-	statusBarStatusText  = lipgloss.NewStyle().Foreground(colorDim)
+	statusBarStatusStyle       = lipgloss.NewStyle().Width(9).Foreground(col.Color4).Bold(true)
+	statusBarStatusText        = lipgloss.NewStyle().Foreground(colorDim)
+	statusBarStatusTextCommand = lipgloss.NewStyle().Inherit(statusBarStatusText).Bold(true)
 )
 
 // Progress bar styles
