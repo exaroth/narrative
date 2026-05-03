@@ -21,10 +21,10 @@ playback-continuous:
 	./scripts/playback-continuous
 
 check-dict WORD:
-	./scripts/check-dict {{WORD}}
+    go run ./cmd/check-dict/main.go {{WORD}}
 
 tts WORD:
-	./scripts/tts {{WORD}}
+    go run ./cmd/tts/main.go {{WORD}} && just play
 
 tts-raw PHONEME:
-	./scripts/tts {{PHONEME}}
+    go run ./cmd/tts-raw/main.go {{PHONEME}} && just play
