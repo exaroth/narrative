@@ -155,10 +155,10 @@ func GetStatusBarStatusColor(status playbackStatus) color.Color {
 }
 
 var (
-	statusBarStyle = lipgloss.NewStyle().Background(col.Color4)
+	statusBarStyle = lipgloss.NewStyle()
 
 	statusBarStatusStyle       = lipgloss.NewStyle().Width(9).Foreground(col.Color4).Bold(true)
-	statusBarStatusText        = lipgloss.NewStyle().Foreground(colorDim)
+	statusBarStatusText        = lipgloss.NewStyle().Foreground(colorDim).Background(col.Color4)
 	statusBarStatusTextCommand = lipgloss.NewStyle().Inherit(statusBarStatusText).Bold(true)
 )
 

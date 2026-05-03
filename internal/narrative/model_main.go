@@ -190,8 +190,8 @@ func (s *statusBar) SetWidth(w int) *statusBar {
 
 // Render status bar contents.
 func (s *statusBar) Render() string {
-	col := GetStatusBarStatusColor(PSM.Status())
-	status := statusBarStatusStyle.Background(col).Render(" " + PSM.Status().StatusString())
+	s_col := GetStatusBarStatusColor(PSM.Status())
+	status := statusBarStatusStyle.Background(s_col).Render(" " + PSM.Status().StatusString())
 	w := s.width - lipgloss.Width(status)
 	var builder strings.Builder
 	var help_t, temp_t string
@@ -208,15 +208,14 @@ func (s *statusBar) Render() string {
 		} else {
 			help_t = temp_t
 		}
-		builder.WriteString(" ")
+		builder.WriteString(statusBarStatusText.Render(" "))
 	}
-
-	help := lipgloss.Place(w, 1, lipgloss.Left, lipgloss.Center, "  "+help_t)
-
+	help := lipgloss.NewStyle().Width(w).Background(col.Color4).Render(help_t)
 	bar := lipgloss.JoinHorizontal(lipgloss.Top,
 		help,
 		status,
 	)
+
 	return statusBarStyle.Width(s.width).Render(bar)
 }
 
