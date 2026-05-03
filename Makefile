@@ -1,16 +1,19 @@
-
 .PHONY: build
 build:
 	# go build -o ./build/narrative ./cmd/narrative/main.go
 	go build -o narrative ./cmd/narrative/main.go
+
+.PHONY: build-debugger
+build-debugger:
+	go build -o debugger ./cmd/debugger/main.go
 
 .PHONY: run
 run:
 	DEBUG=1 go run ./cmd/narrative/main.go
 
 # Setup test env
-.PHONY: setup
-setup:
+.PHONY: test-setup
+test-setup:
 	go get github.com/kyoh86/richgo
 	go get github.com/jstemmer/go-junit-report
 
@@ -21,22 +24,6 @@ test:
 .PHONY: test-cov
 test-cov:
 	richgo test -v -race -coverpkg=./... -coverprofile=coverage.txt ./... -mod=readonly
-
-.PHONY: play
-play:
-	ffplay  -vn -v quiet -autoexit -f f32le -ar  44100 -showmode 1 out.bin
-
-.PHONY: debugger
-debugger:
-	go run ./cmd/debugger/main.go ../dump/kafka-on-the-shore.txt
-
-.PHONY: build-debugger
-build-debugger:
-	go build -o debugger ./cmd/debugger/main.go
-
-.PHONY: merge-dicts
-merge-dicts:
-	go run cmd/dict-merge/main.go dictionary/aux_dict.csv ./narrative-debugger/aux_dict.csv
 
 .PHONY: get-kitten-mini
 get-kitten-mini:
