@@ -3,11 +3,9 @@ set export
 DEBUG := "1"
 
 BIN_FILE := "out.bin"
+f := ""
 
-run:
-	go run ./cmd/narrative/main.go
-
-run-file FILE:
+run FILE=f:
 	go run ./cmd/narrative/main.go {{FILE}}
 
 debug FILE:
