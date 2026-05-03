@@ -64,9 +64,9 @@ func TestSplittingLongSentences(t *testing.T) {
 			delims:    []rune{',', '.'},
 		},
 		{
-			input:     `String 1 String 2`,
-			expected:  []string{"String 1 String", "2"},
-			desired_l: 8,
+			input:     `String 1 String 2 String 3`,
+			expected:  []string{"String 1", "String 2", "String 3"},
+			desired_l: 6,
 			range_l:   2,
 			delims:    []rune{',', '.'},
 		},
