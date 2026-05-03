@@ -70,7 +70,7 @@ type Sources map[string]*TextSource
 // Return source list ordered by date.
 func (s Sources) DateOrdered() []*TextSource {
 	return slices.SortedFunc(maps.Values(s), func(s1, s2 *TextSource) int {
-		return int(s1.Added - s2.Added)
+		return int(s2.Added - s1.Added)
 	})
 }
 
