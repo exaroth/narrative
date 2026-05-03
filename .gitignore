@@ -7,10 +7,8 @@
 *.test
 *.out
 go.work
-packs
 out.bin
 scratch.go
-book.gob
 dictionary.*
 /scratch
 /lib
@@ -23,9 +21,5 @@ dictionary.*
 
 .tts-processing.lock
 .tts-playback.lock
-rtts-s
-tts-s
-dict-s
-playback-s
 coverage.txt
 narrative.log
