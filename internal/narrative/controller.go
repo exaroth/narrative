@@ -28,6 +28,9 @@ type NarrativeCtrl struct {
 	currentSource *Source
 	program       *tea.Program
 	remote        *Remote
+
+	// Source to be automatically played on startup.
+	autoplaySource string
 }
 
 // Create basic directory structure for narrative.
@@ -115,6 +118,7 @@ func (c *NarrativeCtrl) addNewSource() error {
 		return fmt.Errorf("Error creating source file: %w", err)
 	}
 	c.dataCfg.AddSource(t, r.Title(), r.Author(), r.Id(), path)
+	c.autoplaySource = r.Id()
 	return c.dataCfg.Save(c.paths.DataConfigPath)
 }
 
@@ -216,7 +220,9 @@ func (c *NarrativeCtrl) Run() error {
 
 	if len(c.dataCfg.Sources) > 0 {
 		var s_id string
-		if len(c.dataCfg.LastSource) > 0 {
+		if len(c.autoplaySource) > 0 {
+			s_id = c.autoplaySource
+		} else if len(c.dataCfg.LastSource) > 0 {
 			s_id = c.dataCfg.LastSource
 		} else if len(c.dataCfg.Sources) > 0 {
 			s_id = c.dataCfg.Sources.DateOrdered()[0].Id
@@ -233,12 +239,19 @@ func (c *NarrativeCtrl) Run() error {
 	c.model.initSource(c.currentSource)
 	// In case any sources have been added remove via args.
 	go c.program.Send(UpdateSourceListCmd{items: c.dataCfg.Sources.ListItems()})
-	// TODO: if added via command start autoplay
-	if len(c.dataCfg.LastSource) > 0 {
-		idx := slices.Index(c.dataCfg.Sources.Ids(), c.dataCfg.LastSource)
+	if len(c.dataCfg.LastSource) > 0 || len(c.autoplaySource) > 0 {
+		var s_id string
+		var autoplay bool
+		if len(c.autoplaySource) > 0 {
+			s_id = c.autoplaySource
+			autoplay = true
+		} else {
+			s_id = c.dataCfg.LastSource
+		}
+		idx := slices.Index(c.dataCfg.Sources.Ids(), s_id)
 		go c.program.Send(SelectSourceCmd{
-			id:       c.dataCfg.LastSource,
-			autoplay: false,
+			id:       s_id,
+			autoplay: autoplay,
 			index:    idx,
 		})
 	}
