@@ -16,15 +16,21 @@ func teaCmd(payload interface{}) tea.Cmd {
 
 // Command used for toggling source with given id.
 // This command will switch current source and start
-// automatic playback.
+// automatic playback. Set idle to true to disable
+// autoplay.
 type SelectSourceCmd struct {
-	id string
+	id       string
+	index    int
+	autoplay bool
 }
 
-// Toggle source with given id
-func SelectSource(id string) tea.Cmd {
+// Toggle source with given id, also pass index to move the
+// cursor to selected source position (set it to -1 to ignore).
+func SelectSource(id string, index int) tea.Cmd {
 	return teaCmd(SelectSourceCmd{
-		id: id,
+		id:       id,
+		index:    index,
+		autoplay: true,
 	})
 }
 

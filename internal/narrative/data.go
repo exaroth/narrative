@@ -74,6 +74,15 @@ func (s Sources) DateOrdered() []*TextSource {
 	})
 }
 
+// Return list of source ids, ordered by date.
+func (s Sources) Ids() []string {
+	var result []string
+	for _, v := range s.DateOrdered() {
+		result = append(result, v.Id)
+	}
+	return result
+}
+
 // Return text sources as bubbletea compatible list.
 func (s Sources) ListItems() []list.Item {
 	var result []list.Item

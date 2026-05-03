@@ -110,10 +110,14 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, m.list.SetItems(msg.items))
 	case SelectSourceCmd:
 		if msg.id == m.currentSource.id {
-			cmds = append(cmds, TogglePlayback())
+			if msg.autoplay {
+				cmds = append(cmds, TogglePlayback())
+			}
+			if msg.index > -1 {
+				m.list.Select(msg.index)
+			}
 		} else {
 			cmds = append(cmds, LoadSource(msg.id))
-			// cmds = append(cmds, m.startPlayback())
 		}
 	case TogglePlaybackCmd:
 		switch PSM.Status() {

@@ -3,6 +3,7 @@ package narrative
 import (
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/exaroth/narrative/internal/config"
 	"github.com/exaroth/narrative/pkg/kitten"
@@ -143,6 +144,7 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 		if err != nil {
 			return fmt.Errorf("Error initializing source @ %s: %w", s.Path, err)
 		}
+		c.dataCfg.LastSource = ss.id
 		c.currentSource = ss
 		c.remote = NewRemote(c.currentSource, c.player)
 	}
@@ -229,7 +231,17 @@ func (c *NarrativeCtrl) Run() error {
 		}()
 	}
 	c.model.initSource(c.currentSource)
+	// In case any sources have been added remove via args.
 	go c.program.Send(UpdateSourceListCmd{items: c.dataCfg.Sources.ListItems()})
+	// TODO: if added via command start autoplay
+	if len(c.dataCfg.LastSource) > 0 {
+		idx := slices.Index(c.dataCfg.Sources.Ids(), c.dataCfg.LastSource)
+		go c.program.Send(SelectSourceCmd{
+			id:       c.dataCfg.LastSource,
+			autoplay: false,
+			index:    idx,
+		})
+	}
 	if _, err := c.program.Run(); err != nil {
 		return err
 	}

@@ -74,7 +74,7 @@ func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		k := msg.String()
 		switch k {
 		case "enter":
-			cmds = append(cmds, SelectSource(id))
+			cmds = append(cmds, SelectSource(id, -1))
 		case "space":
 			cmds = append(cmds, TogglePlayback())
 		case "d":
