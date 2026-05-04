@@ -47,7 +47,7 @@ func initDirectoryStructure() *NarrativePaths {
 // Initialize new narrative controller.
 func NewCtrl() (*NarrativeCtrl, error) {
 
-	go startSpinner("Loading...")
+	go startSpinner("Preparing Narrative...")
 	phonemizer, err := phonemizer.NewPhonemizer("")
 	if err != nil {
 		return nil, fmt.Errorf("init err; phonemizer init: %w", err)

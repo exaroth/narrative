@@ -11,6 +11,7 @@ const (
 	defaultModalXOffset = 2
 	defaultModalYOffset = 1
 	defaultModalWidth   = 30
+	windowTitle         = "Narrative"
 )
 
 var (
@@ -227,5 +228,6 @@ func (m narrativeModel) View() tea.View {
 	comp := lipgloss.NewCompositor(layers...)
 	v.SetContent(comp.Render())
 	v.AltScreen = true
+	v.WindowTitle = windowTitle
 	return v
 }
