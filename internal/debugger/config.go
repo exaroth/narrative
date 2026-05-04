@@ -17,11 +17,13 @@ type Config struct {
 }
 
 func DefaultConfig() *Config {
+	use_sel_inf := true
+	remove_word_hyp := false
 	return &Config{
 		mainConfig: &config.Config{
 			DebuggerMode:                 true,
-			UsePhonemeSelectionInference: true,
-			RemoveWordTrailingHyphens:    false,
+			UsePhonemeSelectionInference: &use_sel_inf,
+			RemoveWordTrailingHyphens:    &remove_word_hyp,
 		},
 		debuggerDirPathName: "./narrative-debugger",
 		externalDictFName:   "aux_dict.csv",

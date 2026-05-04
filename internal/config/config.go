@@ -16,25 +16,33 @@ const (
 	DEFAULT_BUFFER_SIZE = 5
 	// Maximum number of items allowed to be stored in buffer cache
 	DEFAULT_MAX_BUFFER_SIZE = 30
+	// Default theme to use.
+	DEFAULT_THEME_NAME = "default"
+	// Default theme to use.
+	DEFAULT_VOICE_NAME = "Luna"
 )
 
 // Config stores all configuration
 // used for Narrative operation.
 type Config struct {
-	// LogLevel                     log.Level
-	DebuggerMode                 bool `yaml:"debugger_mode"`
-	UsePhonemeSelectionInference bool `yaml:"use_phoneme_selection"`
+	DebuggerMode bool `yaml:"debugger_mode"`
+	// Enable/disable phoneme selection inference.
+	UsePhonemeSelectionInference *bool `yaml:"use_phoneme_selection,omitempty"`
 	// remove trailing hyphenes from phonemes,
-	// ass kitten tts does not like those
-	RemoveWordTrailingHyphens bool `yaml:"remove_trailing_hyphens"`
-	// Speed of playback
+	// as kitten tts does not like those.
+	RemoveWordTrailingHyphens *bool `yaml:"remove_trailing_hyphens,omitempty"`
+	// Speed of playback.
 	Speed float64 `yaml:"speed"`
-	// Pause between sentences
+	// Pause between sentences.
 	Pause float64 `yaml:"pause"`
 	// Number of sentences to cache to keep in cache.
 	BufferSize int `yaml:"buffer_size"`
-	// Maximum number of items to be stored in buffer cache
+	// Maximum number of items to be stored in buffer cache.
 	MaxBufferSize int `yaml:"max_buffer_size"`
+	// Voice to use during playback.
+	Voice string `yaml:"voice"`
+	// App theme.
+	Theme string `yaml:"theme"`
 }
 
 // Save config as yaml file.
@@ -44,6 +52,31 @@ func (c *Config) Save(path string) error {
 		return err
 	}
 	return os.WriteFile(path, m, 0644)
+}
+
+func (c *Config) DefaultOverride() {
+	def := DefaultConfig()
+	if c.UsePhonemeSelectionInference == nil {
+		c.UsePhonemeSelectionInference = def.UsePhonemeSelectionInference
+	}
+	if c.RemoveWordTrailingHyphens == nil {
+		c.RemoveWordTrailingHyphens = def.RemoveWordTrailingHyphens
+	}
+	if c.Speed == 0 {
+		c.Speed = def.Speed
+	}
+	if c.BufferSize == 0 {
+		c.BufferSize = def.BufferSize
+	}
+	if c.MaxBufferSize == 0 {
+		c.MaxBufferSize = def.MaxBufferSize
+	}
+	if c.Voice == "" {
+		c.Voice = def.Voice
+	}
+	if c.Theme == "" {
+		c.Theme = def.Theme
+	}
 }
 
 // Load Config from yaml file.
@@ -58,6 +91,7 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	var cfg Config
 	err = yaml.Unmarshal(bytes, &cfg)
+	cfg.DefaultOverride()
 	return &cfg, err
 }
 
@@ -70,16 +104,20 @@ func NewConfig(
 	pause float64,
 	buffer_size int,
 	max_buffer_size int,
+	voice_name string,
+	theme_name string,
 ) *Config {
 
 	return &Config{
 		DebuggerMode:                 debug_mode,
-		UsePhonemeSelectionInference: use_selection_inference,
-		RemoveWordTrailingHyphens:    remove_word_trailing_hyphens,
+		UsePhonemeSelectionInference: &use_selection_inference,
+		RemoveWordTrailingHyphens:    &remove_word_trailing_hyphens,
 		Speed:                        speed,
 		Pause:                        pause,
 		BufferSize:                   buffer_size,
 		MaxBufferSize:                max_buffer_size,
+		Voice:                        voice_name,
+		Theme:                        theme_name,
 	}
 }
 
@@ -93,5 +131,7 @@ func DefaultConfig() *Config {
 		DEFAULT_TTS_PAUSE,
 		DEFAULT_BUFFER_SIZE,
 		DEFAULT_MAX_BUFFER_SIZE,
+		DEFAULT_VOICE_NAME,
+		DEFAULT_THEME_NAME,
 	)
 }
