@@ -6,6 +6,19 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+const narrativeLogo = `
+#            #
+#############
+#             #
+#   #      #  #
+#  ##     ##  #
+#############
+##     ###     ##
+###             ###
+# NARRATIVE #
+###########
+`
+
 type ColorPalette struct {
 	Background color.Color
 	Foreground color.Color
@@ -177,3 +190,13 @@ func ProgressBarColorFunc(total, current float64) color.Color {
 	}
 	return col.Color4
 }
+
+// Help panel
+// ==========
+
+var (
+	helpPanelLogoStyle    = lipgloss.NewStyle().Foreground(colorDim)
+	helpPanelTextStyle    = lipgloss.NewStyle().Foreground(col.Color2)
+	helpPanelCommandStyle = lipgloss.NewStyle().Inherit(helpPanelTextStyle).Foreground(col.Color1).Bold(true)
+	helpPanelListStyle    = lipgloss.NewStyle().MarginLeft(1).PaddingLeft(1).Foreground(col.Color2)
+)

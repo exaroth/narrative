@@ -19,6 +19,7 @@ const (
 
 var statusHelp = [][2]string{
 	{"?", "help"},
+	{"/", "search"},
 	{"j/k", "select"},
 	{"h/l", "seek"},
 	{"d", "delete"},
@@ -38,7 +39,9 @@ type mainViewModel struct {
 	statusBar      *statusBar
 	fForwarder     *fastForwarder
 	transcript     *transcript
+	helpPanel      *helpPanel
 	showTranscript bool
+	showHelp       bool
 }
 
 // Initialize new narrative model.
@@ -66,6 +69,11 @@ func (m *mainViewModel) updateSource(source *Source) {
 	m.currentSource = source
 }
 
+// Toggle help panel on/off.
+func (m *mainViewModel) toggleHelp() {
+	m.showHelp = !m.showHelp
+}
+
 func (m mainViewModel) Init() tea.Cmd {
 	return nil
 }
@@ -80,6 +88,14 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		k := msg.String()
 		if k == "ctrl+c" || k == "q" {
 			return m, tea.Quit
+		}
+		if k == "?" || k == "f1" {
+			m.toggleHelp()
+		}
+		if k == "escape" {
+			if m.showHelp {
+				m.toggleHelp()
+			}
 		}
 		if PSM.AllowsRewinding() && k == "l" || k == "h" {
 			if m.fForwarder == nil {
@@ -102,6 +118,7 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(listWidth, listHeight)
 		m.perc = m.perc.SetWidth(msg.Width)
 		m.statusBar = m.statusBar.SetWidth(msg.Width)
+		m.helpPanel = &helpPanel{msg.Width, msg.Height}
 	case UpdateTickMsg:
 		cmds = append(
 			cmds,
@@ -149,10 +166,18 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainViewModel) View() tea.View {
+	var v tea.View
+	if m.showHelp {
+		v.SetContent(m.helpPanel.Render())
+		return v
+	}
 	list := docStyle.Render(m.list.View())
 	progress := docStyle.Render(m.progress.View())
-	var v tea.View
-	v.SetContent(m.statusBar.Render() + "\n" + list + "\n" + m.transcript.Render(m.currentSource) + "\n" + progress + "\n" + m.perc.Render())
+	v.SetContent(m.statusBar.Render() + "\n" +
+		list + "\n" +
+		m.transcript.Render(m.currentSource) + "\n" +
+		progress + "\n" +
+		m.perc.Render())
 	return v
 }
 
@@ -304,4 +329,51 @@ func (t *transcript) Render(source *Source) string {
 	)
 	builder.WriteString(transcriptStyle.Width(t.width).Height(t.height).Render(contents))
 	return builder.String()
+}
+
+type helpPanel struct {
+	width, height int
+}
+
+func (h *helpPanel) commands() [][2]string {
+	return [][2]string{
+		{"j/k/Up/Down", "Select text source"},
+		{"h/l/Left/Right", "Fast-Forward/Rewind text source"},
+		{"/", "Fuzzy Search"},
+		{"d", "Delete text source"},
+		{"ctrl-b", "Create new bookmark"},
+		{"b", "Go to bookmark"},
+		{"v", "Change voice"},
+		{"t", "Change theme"},
+		{"q", "Quit application"},
+		{"F1", "Show help"},
+	}
+}
+
+func (h *helpPanel) Render() string {
+	logo := lipgloss.Place(
+		h.width,
+		lipgloss.Height(narrativeLogo),
+		lipgloss.Center,
+		lipgloss.Center,
+		narrativeLogo,
+	)
+	logo = helpPanelLogoStyle.Render(logo)
+
+	var elem string
+	var elems []string
+	for _, c := range h.commands() {
+		elem = helpPanelListStyle.Render(
+			lipgloss.Sprintf("• %s - %s",
+				helpPanelCommandStyle.Render(c[0]),
+				helpPanelTextStyle.Render(c[1]),
+			),
+		)
+		elems = append(elems, elem)
+	}
+	contents := lipgloss.JoinVertical(
+		lipgloss.Left,
+		logo,
+		lipgloss.JoinVertical(lipgloss.Left, elems...))
+	return contents
 }
