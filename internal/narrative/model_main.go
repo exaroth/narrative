@@ -20,7 +20,9 @@ const (
 var statusHelp = [][2]string{
 	{"?", "help"},
 	{"/", "search"},
-	{"j/k", "select"},
+	{"space", "play/pause"},
+	{"enter", "select"},
+	{"j/k", "nav"},
 	{"h/l", "seek"},
 	{"d", "delete"},
 	{"q", "quit"},
@@ -337,7 +339,9 @@ type helpPanel struct {
 
 func (h *helpPanel) commands() [][2]string {
 	return [][2]string{
-		{"j/k/Up/Down", "Select text source"},
+		{"j/k/Up/Down", "Navigation"},
+		{"Enter", "Select text source"},
+		{"Space", "Play/Pause"},
 		{"h/l", "Fast-Forward/Rewind text source"},
 		{"Left/Right", "Previous/Next page"},
 		{"/", "Fuzzy Search"},
