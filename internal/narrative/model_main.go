@@ -338,7 +338,8 @@ type helpPanel struct {
 func (h *helpPanel) commands() [][2]string {
 	return [][2]string{
 		{"j/k/Up/Down", "Select text source"},
-		{"h/l/Left/Right", "Fast-Forward/Rewind text source"},
+		{"h/l", "Fast-Forward/Rewind text source"},
+		{"Left/Right", "Previous/Next page"},
 		{"/", "Fuzzy Search"},
 		{"d", "Delete text source"},
 		{"ctrl-b", "Create new bookmark"},
