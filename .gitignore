@@ -12,6 +12,7 @@ scratch.go
 dictionary.*
 /scratch
 /lib
+/libs
 /dump
 /models
 /narrative-debugger
