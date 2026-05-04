@@ -25,23 +25,33 @@ func init() {
 	}
 }
 
+func printError(msg string) {
+	fmt.Printf("%s%s\n",
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#FC0303")).Render("Error: "),
+		msg,
+	)
+
+}
+
 func main() {
 
 	log.Info("-------- Running ---------")
 	ctrl, err := narrative.NewCtrl()
 	if err != nil {
-		panic(err)
+		printError(err.Error())
+		os.Exit(1)
 	}
 	defer ctrl.Deinit()
-	err = ctrl.Run()
+	message, err := ctrl.Run()
+	if len(message) > 0 {
+		fmt.Println(message)
+		os.Exit(0)
+	}
 	if err != nil {
 		if len(debug) > 0 {
 			panic(err)
 		} else {
-			fmt.Printf("%s%s\n",
-				lipgloss.NewStyle().Foreground(lipgloss.Color("#FC0303")).Render("Error: "),
-				err.Error(),
-			)
+			printError(err.Error())
 			os.Exit(1)
 		}
 	}

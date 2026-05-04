@@ -4,13 +4,15 @@ import "github.com/alexflint/go-arg"
 
 // Holds arguments used by Narrative.
 type NarrativeArgs struct {
-	Source string `arg:"positional"`
-	Help   bool
+	Source     string `arg:"positional"`
+	ListVoices bool   `arg:"--list-voices"`
+	Voice      string
+	Help       bool
 }
 
 // Parse command line arguments.
-func ParseArgs() *NarrativeArgs {
+func ParseArgs() (*NarrativeArgs, error) {
 	var args NarrativeArgs
-	arg.MustParse(&args)
-	return &args
+	err := arg.Parse(&args)
+	return &args, err
 }

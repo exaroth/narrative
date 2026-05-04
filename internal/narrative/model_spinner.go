@@ -16,6 +16,14 @@ var (
 	spinnerP         *tea.Program
 )
 
+// Gracefully close spinner.
+func CloseSpinner() {
+	go func() {
+		SpinnerCloseCh <- struct{}{}
+	}()
+	SpinnerWaitCh <- struct{}{}
+}
+
 // Model for displaying spinner during loading.
 type spinnerModel struct {
 	text     string

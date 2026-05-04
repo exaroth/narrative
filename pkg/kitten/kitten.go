@@ -20,6 +20,20 @@ var VOICE_MAP map[string]string = map[string]string{
 	"Leo":    "expr-voice-5-m.npy",
 }
 
+var MALE_VOICES = []string{
+	"Jasper",
+	"Bruno",
+	"Hugo",
+	"Leo",
+}
+
+var FEMALE_VOICES = []string{
+	"Bella",
+	"Luna",
+	"Rosie",
+	"Kiki",
+}
+
 const (
 	// TODO: add to config
 	KITTEN_MODEL_PATH          = "./models/kitten/kitten.onnx"

@@ -2,8 +2,11 @@ package narrative
 
 import (
 	"fmt"
+	"maps"
+	"math/rand"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/exaroth/narrative/internal/config"
 	"github.com/exaroth/narrative/pkg/kitten"
@@ -44,23 +47,49 @@ func initDirectoryStructure() *NarrativePaths {
 	return paths
 }
 
+// Initialize new kittenTTS client with given voice.
+func initKitten(voice string) *kitten.Kitten {
+	cfg := kitten.DefaultConfig()
+	cfg.Voice = voice
+	return kitten.NewKitten(cfg)
+}
+
+// Get currently loaded source.
+func (c NarrativeCtrl) Source() *Source {
+	return c.currentSource
+}
+
+// Get currently used voice name.
+func (c NarrativeCtrl) Voice() string {
+	return c.cfg.Voice
+}
+
 // Initialize new narrative controller.
-func NewCtrl() (*NarrativeCtrl, error) {
+func NewCtrl() (ctrl *NarrativeCtrl, err error) {
+	var ph *phonemizer.Phonemizer
+	var preproc *preprocessor.Preprocessor
+	var args *NarrativeArgs
 
 	go startSpinner("Preparing Narrative...")
-	phonemizer, err := phonemizer.NewPhonemizer("")
+
+	// if any errors occured close spinner gracefully.
+	defer func() {
+		if err != nil {
+			CloseSpinner()
+		}
+	}()
+	ph, err = phonemizer.NewPhonemizer("")
 	if err != nil {
 		return nil, fmt.Errorf("init err; phonemizer init: %w", err)
 	}
 
-	preprocessor := preprocessor.NewPreprocessor()
-	kitten := kitten.NewKitten(kitten.DefaultConfig())
+	preproc = preprocessor.NewPreprocessor()
+	// kitten := kitten.NewKitten(kitten.DefaultConfig())
 	paths := initDirectoryStructure()
-
 	var cfg *config.Config
-	if _, err := os.Stat(paths.ConfigPath); err != nil {
+	if _, err = os.Stat(paths.ConfigPath); err != nil {
 		cfg = config.DefaultConfig()
-		if err := cfg.Save(paths.ConfigPath); err != nil {
+		if err = cfg.Save(paths.ConfigPath); err != nil {
 			return nil, fmt.Errorf("Error saving config @ %s; %w",
 				paths.ConfigPath, err,
 			)
@@ -73,63 +102,32 @@ func NewCtrl() (*NarrativeCtrl, error) {
 			)
 		}
 	}
-	data_cfg, err := LoadDataConfig(paths.DataConfigPath)
+	var data_cfg *DataConfig
+	data_cfg, err = LoadDataConfig(paths.DataConfigPath)
 	if err != nil {
 		data_cfg = NewDataConfig()
-		if err := data_cfg.Save(paths.DataConfigPath); err != nil {
+		if err = data_cfg.Save(paths.DataConfigPath); err != nil {
 			return nil, fmt.Errorf("Error creating data cfg: %w", err)
 		}
 	}
 
-	ctrl := &NarrativeCtrl{
-		ttsClient:    kitten,
-		phonemizer:   phonemizer,
-		preprocessor: preprocessor,
+	args, err = ParseArgs()
+	if err != nil {
+		return
+	}
+
+	ctrl = &NarrativeCtrl{
+		phonemizer:   ph,
+		preprocessor: preproc,
 		player:       player.InitPlayer(),
 		cfg:          cfg,
 		dataCfg:      data_cfg,
 		paths:        paths,
-		args:         ParseArgs(),
+		args:         args,
 	}
 	model := InitNarrativeModel(ctrl)
 	ctrl.model = model
 	return ctrl, nil
-}
-
-func (c NarrativeCtrl) Source() *Source {
-	return c.currentSource
-}
-
-// Add new text source based on the argument provided.
-func (c *NarrativeCtrl) addNewSource() error {
-	SpinnerMessageCh <- "Initializing text source.."
-	_, t := GetSourceType(c.args.Source)
-	var r reader.SourceReader
-	var err error
-	switch t {
-	case SourceTypeText:
-		r, err = reader.TextReader{}.Read(c.args.Source)
-	default:
-		return fmt.Errorf("Unable to find reader for file type: %s", t)
-	}
-	if err != nil {
-		return fmt.Errorf("Error reading text data: %w", err)
-	}
-	path, err := SaveTextSource(c.paths.SourcesPath, r.Id(), r.Data())
-	if err != nil {
-		return fmt.Errorf("Error creating source file: %w", err)
-	}
-	c.dataCfg.AddSource(t, r.Title(), r.Author(), r.Id(), path)
-	c.autoplaySource = r.Id()
-	return c.dataCfg.Save(c.paths.DataConfigPath)
-}
-
-// Process command line arguments.
-func (c *NarrativeCtrl) handleArguments() (bool, error) {
-	if len(c.args.Source) > 0 {
-		return false, c.addNewSource()
-	}
-	return false, nil
 }
 
 // Initialize text source for playback and set it as current
@@ -219,17 +217,16 @@ func (c *NarrativeCtrl) initSourcePlayback() {
 }
 
 // Run the model.
-func (c *NarrativeCtrl) Run() error {
-	exit, err := c.handleArguments()
-	if exit || err != nil {
-		return err
-	}
+func (c *NarrativeCtrl) Run() (string, error) {
+	exit, msg, err := c.handleArguments()
 
-	go func() {
-		SpinnerCloseCh <- struct{}{}
-	}()
-	// Wait for spinner to be closed before continuing.
-	SpinnerWaitCh <- struct{}{}
+	c.ttsClient = initKitten(c.cfg.Voice)
+
+	CloseSpinner()
+
+	if exit || err != nil {
+		return msg, err
+	}
 
 	c.program = tea.NewProgram(c.model)
 
@@ -243,7 +240,7 @@ func (c *NarrativeCtrl) Run() error {
 			s_id = c.dataCfg.Sources.DateOrdered()[0].Id
 		}
 		if err := c.LoadSource(s_id); err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		c.loadDummySource()
@@ -271,10 +268,10 @@ func (c *NarrativeCtrl) Run() error {
 		})
 	}
 	if _, err := c.program.Run(); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return "", nil
 }
 
 // Load fake source, in cases where there is
@@ -296,4 +293,78 @@ func (c *NarrativeCtrl) Deinit() {
 	if c.program != nil {
 		defer c.program.Quit()
 	}
+}
+
+// Process command line arguments.
+func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
+	if len(c.args.Source) > 0 {
+		return false, "", c.addNewSource()
+	}
+	if len(c.args.Voice) > 0 {
+		return c.updateVoice()
+	}
+	if c.args.ListVoices {
+		return true, c.getVoiceList(), nil
+	}
+	return false, "", nil
+}
+
+// Add new text source based on the argument provided.
+func (c *NarrativeCtrl) addNewSource() error {
+	SpinnerMessageCh <- "Initializing text source.."
+	_, t := GetSourceType(c.args.Source)
+	var r reader.SourceReader
+	var err error
+	switch t {
+	case SourceTypeText:
+		r, err = reader.TextReader{}.Read(c.args.Source)
+	default:
+		return fmt.Errorf("Unable to find reader for file type: %s", t)
+	}
+	if err != nil {
+		return fmt.Errorf("Error reading text data: %w", err)
+	}
+	path, err := SaveTextSource(c.paths.SourcesPath, r.Id(), r.Data())
+	if err != nil {
+		return fmt.Errorf("Error creating source file: %w", err)
+	}
+	c.dataCfg.AddSource(t, r.Title(), r.Author(), r.Id(), path)
+	c.autoplaySource = r.Id()
+	return c.dataCfg.Save(c.paths.DataConfigPath)
+}
+
+// Update voice to be used in playback.
+func (c *NarrativeCtrl) updateVoice() (bool, string, error) {
+	all_voices := slices.Collect(maps.Keys(kitten.VOICE_MAP))
+	var voice string
+	switch c.args.Voice {
+	case "random":
+		voice = all_voices[rand.Intn(len(all_voices)-1)]
+	case "male":
+		voice = kitten.MALE_VOICES[rand.Intn(len(kitten.MALE_VOICES)-1)]
+	case "female":
+		voice = kitten.FEMALE_VOICES[rand.Intn(len(kitten.FEMALE_VOICES)-1)]
+	default:
+		if slices.Index(all_voices, c.args.Voice) == -1 {
+			return false, "", fmt.Errorf(
+				"Invalid voice passed: %s, available voices: %s",
+				c.args.Voice,
+				strings.Join(all_voices, ", "),
+			)
+		}
+		voice = c.args.Voice
+
+	}
+	c.cfg.Voice = voice
+	return false, "", nil
+}
+
+// Get list of all the voices.
+
+func (c *NarrativeCtrl) getVoiceList() string {
+	return fmt.Sprintf(
+		"Male voices: %s\nFemale voices: %s",
+		strings.Join(kitten.MALE_VOICES, ", "),
+		strings.Join(kitten.FEMALE_VOICES, ", "),
+	)
 }
