@@ -26,7 +26,7 @@ type spinnerModel struct {
 func startSpinner(text string) {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Style = lipgloss.NewStyle().Foreground(col.Color2)
 	model := spinnerModel{spinner: s, text: text}
 	spinnerP = tea.NewProgram(model)
 	spinnerP.Run()
