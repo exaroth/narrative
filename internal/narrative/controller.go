@@ -47,6 +47,7 @@ func initDirectoryStructure() *NarrativePaths {
 // Initialize new narrative controller.
 func NewCtrl() (*NarrativeCtrl, error) {
 
+	go startSpinner("Loading...")
 	phonemizer, err := phonemizer.NewPhonemizer("")
 	if err != nil {
 		return nil, fmt.Errorf("init err; phonemizer init: %w", err)
@@ -101,6 +102,7 @@ func (c NarrativeCtrl) Source() *Source {
 
 // Add new text source based on the argument provided.
 func (c *NarrativeCtrl) addNewSource() error {
+	SpinnerMessageCh <- "Initializing text source.."
 	_, t := GetSourceType(c.args.Source)
 	var r reader.SourceReader
 	var err error
@@ -222,6 +224,13 @@ func (c *NarrativeCtrl) Run() error {
 	if exit || err != nil {
 		return err
 	}
+
+	go func() {
+		SpinnerCloseCh <- struct{}{}
+	}()
+	// Wait for spinner to be closed before continuing.
+	SpinnerWaitCh <- struct{}{}
+
 	c.program = tea.NewProgram(c.model)
 
 	if len(c.dataCfg.Sources) > 0 {

@@ -136,3 +136,22 @@ func WaitForFastForward(sub chan int) tea.Cmd {
 
 // Remove any modal currently being displayed
 type RemoveModalCmd struct{}
+
+// Command for closing spinner loader.
+type SpinnerCloseCmd struct{}
+
+// Close currently running spinner
+func WaitForSpinnerClose(sub chan struct{}) tea.Cmd {
+	return func() tea.Msg {
+		return SpinnerCloseCmd(<-sub)
+	}
+}
+
+// Command used for updating running spinners message.
+type SpinnerMsgCmd string
+
+func WaitForSpinnerMessage(sub chan string) tea.Cmd {
+	return func() tea.Msg {
+		return SpinnerMsgCmd(<-sub)
+	}
+}
