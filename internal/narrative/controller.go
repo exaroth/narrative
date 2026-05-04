@@ -185,13 +185,14 @@ func (c *NarrativeCtrl) deleteSource(id string) error {
 		next := c.dataCfg.Sources.Next(id)
 		if next != nil {
 			c.LoadSource(next.Id)
+		} else {
+			c.loadDummySource()
 		}
-	} else {
-		c.loadDummySource()
 	}
 	err := os.Remove(s.Path)
 	c.dataCfg.DeleteSource(id)
 	c.dataCfg.Save(c.paths.DataConfigPath)
+	go c.program.Send(UpdateSourceCmd{source: c.currentSource})
 	go c.program.Send(UpdateSourceListCmd{items: c.dataCfg.Sources.ListItems()})
 	return err
 }

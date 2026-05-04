@@ -15,6 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const dummySourceId = "0"
+
 // Stores locks used to manage synchronization
 // when processing buffer entries.
 var lock = BufferCacheLock{
@@ -295,7 +297,7 @@ func GetDummySource(pproc *preprocessor.Preprocessor,
 ) *Source {
 	return &Source{
 		data:        []string{"No text sources added"},
-		id:          "0",
+		id:          dummySourceId,
 		pproc:       pproc,
 		phonemizer:  phonemizer,
 		ttsClient:   ttsClient,
