@@ -148,7 +148,9 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 		if err != nil {
 			return fmt.Errorf("Error initializing source @ %s: %w", s.Path, err)
 		}
-		c.dataCfg.LastSource = ss.id
+		if ss.id != dummySourceId {
+			c.dataCfg.LastSource = ss.id
+		}
 		c.currentSource = ss
 		c.remote = NewRemote(c.currentSource, c.player)
 	}
