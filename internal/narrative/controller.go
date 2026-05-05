@@ -295,6 +295,9 @@ func (c *NarrativeCtrl) loadDummySource() {
 
 // Cleanly close the app.
 func (c *NarrativeCtrl) Deinit() {
+	if c.currentSource.id != dummySourceId {
+		c.dataCfg.LastSentence[c.currentSource.id] = c.currentSource.SNum()
+	}
 	defer c.cfg.Save(c.paths.ConfigPath)
 	defer c.dataCfg.Save(c.paths.DataConfigPath)
 	defer c.ttsClient.Deinit()
