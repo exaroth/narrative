@@ -1,6 +1,7 @@
 package narrative
 
 import (
+	"fmt"
 	"time"
 
 	"charm.land/bubbles/v2/list"
@@ -11,6 +12,8 @@ import (
 const (
 	appTitle         = "ℕarrative v0.1"
 	transcriptHeight = 4
+	minPanelWidth    = 108
+	minPanelHeight   = 28
 )
 
 var statusHelp = [][2]string{
@@ -41,6 +44,7 @@ type mainViewModel struct {
 	prompt         *confirmPrompt
 	showTranscript bool
 	showHelp       bool
+	width, height  int
 }
 
 // Initialize new narrative model.
@@ -140,6 +144,10 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m mainViewModel) View() tea.View {
 	var v tea.View
+	if m.width < minPanelWidth || m.height < minPanelHeight {
+		v.SetContent(renderTermSizeWarning(m.width, m.height))
+		return v
+	}
 	if m.showHelp {
 		v.SetContent(m.helpPanel.Render())
 		return v
@@ -162,6 +170,8 @@ func (m mainViewModel) View() tea.View {
 
 // Update component dimensions based on terminal size.
 func (m *mainViewModel) updateTermDimensions(width, height int) {
+	m.width = width
+	m.height = height
 	h, v := docStyle.GetFrameSize()
 	listWidth, listHeight := width-h, height-v-10 // 10 is progress
 	m.progress.SetWidth(width - 5)
@@ -224,4 +234,12 @@ func (m *mainViewModel) showPrompt(msg ShowPromptCmd) {
 // Remove prompt data from the model.
 func (m *mainViewModel) closePrompt() {
 	m.prompt = nil
+}
+
+func renderTermSizeWarning(w, h int) string {
+	text := fmt.Sprintf("Minimum terminal size must be at least:\n%dx%d",
+		minPanelWidth,
+		minPanelHeight,
+	)
+	return lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, text)
 }
