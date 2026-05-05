@@ -118,7 +118,7 @@ func NewCtrl() (ctrl *NarrativeCtrl, err error) {
 		// Dont catch missing help as we
 		// handle it internally.
 		if !errors.Is(err, arg.ErrHelp) {
-			return
+			return nil, fmt.Errorf("%w\n%s", err, Usage())
 		} else {
 			args.Help = true
 		}
