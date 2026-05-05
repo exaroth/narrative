@@ -358,10 +358,10 @@ func (h *helpPanel) commands() [][2]string {
 func (h *helpPanel) Render() string {
 	logo := lipgloss.Place(
 		h.width,
-		lipgloss.Height(narrativeLogo),
+		lipgloss.Height(LOGO),
 		lipgloss.Center,
 		lipgloss.Center,
-		narrativeLogo,
+		LOGO,
 	)
 	logo = helpPanelLogoStyle.Render(logo)
 

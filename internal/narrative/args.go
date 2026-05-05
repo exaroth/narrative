@@ -8,6 +8,7 @@ type NarrativeArgs struct {
 	ListVoices bool   `arg:"--list-voices"`
 	Voice      string
 	Help       bool
+	Version    bool
 }
 
 // Parse command line arguments.

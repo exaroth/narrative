@@ -317,6 +317,9 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 	if c.args.Help {
 		return true, Usage(), nil
 	}
+	if c.args.Version {
+		return true, PrintVersion(), nil
+	}
 	return false, "", nil
 }
 
@@ -389,4 +392,8 @@ OPTIONS:
 	--add-model <model>   Add KittenTTS model, available models: nano, micro, mini.
 	--use-model <model>   Switch currently used TTS model.
 	--help                Print help.`
+}
+
+func PrintVersion() string {
+	return fmt.Sprintf("Narrative %s", VERSION)
 }

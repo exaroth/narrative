@@ -6,19 +6,6 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-const narrativeLogo = `
-#            #
-#############
-#             #
-#   #      #  #
-#  ##     ##  #
-#############
-##     ###     ##
-###             ###
-# NARRATIVE #
-###########
-`
-
 type ColorPalette struct {
 	Background color.Color
 	Foreground color.Color
