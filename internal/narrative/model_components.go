@@ -74,7 +74,7 @@ func (s *statusBar) RenderHelp() string {
 		builder.WriteString(
 			lipgloss.Sprintf("%s%s",
 				statusBarStatusTextCommand.Render(h[0]),
-				statusBarStatusText.Render(": "+h[1]),
+				statusBarStatusText.Render(":"+h[1]),
 			),
 		)
 		temp_t = builder.String()
@@ -83,7 +83,7 @@ func (s *statusBar) RenderHelp() string {
 		} else {
 			help_t = temp_t
 		}
-		builder.WriteString(statusBarStatusText.Render(" "))
+		builder.WriteString(statusBarStatusText.Render("  "))
 	}
 	return s.render(" " + help_t)
 }
