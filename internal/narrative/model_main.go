@@ -85,48 +85,9 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		k := msg.String()
-		if m.prompt != nil {
-			if k == "y" || k == "enter" {
-				cmds = append(cmds, m.prompt.Confirm(), ClosePrompt())
-			}
-			if k == "n" || k == "esc" {
-				cmds = append(cmds, m.prompt.Decline(), ClosePrompt())
-			}
-		} else {
-			if k == "ctrl+c" || k == "q" {
-				cmds = append(cmds, ShowPrompt("Quit?", tea.Quit, nil))
-			}
-			if k == "?" || k == "f1" {
-				m.toggleHelp()
-			}
-			if k == "esc" {
-				if m.showHelp {
-					m.toggleHelp()
-				}
-			}
-			if PSM.AllowsRewinding() && k == "l" || k == "h" {
-				if m.fForwarder == nil {
-					m.fForwarder = newFastForwarder(
-						0,
-						m.currentSource.Length()-1,
-						m.currentSource.SNum(),
-					)
-				}
-				m.fForwarder.Update(k == "l")
-			}
-		}
+		cmds = append(cmds, m.handleKeys(k)...)
 	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		listWidth, listHeight := msg.Width-h, msg.Height-v-10 // 10 is progress
-		m.progress.SetWidth(msg.Width - 5)
-		m.transcript.SetWidth(msg.Width)
-		if m.showTranscript {
-			listHeight = listHeight - lipgloss.Height(m.transcript.Render(m.currentSource))
-		}
-		m.list.SetSize(listWidth, listHeight)
-		m.perc = m.perc.SetWidth(msg.Width)
-		m.statusBar = m.statusBar.SetWidth(msg.Width)
-		m.helpPanel = &helpPanel{msg.Width, msg.Height}
+		m.updateTermDimensions(msg.Width, msg.Height)
 	case UpdateTickMsg:
 		cmds = append(
 			cmds,
@@ -197,6 +158,56 @@ func (m mainViewModel) View() tea.View {
 		progress + "\n" +
 		m.perc.Render())
 	return v
+}
+
+// Update component dimensions based on terminal size.
+func (m *mainViewModel) updateTermDimensions(width, height int) {
+	h, v := docStyle.GetFrameSize()
+	listWidth, listHeight := width-h, height-v-10 // 10 is progress
+	m.progress.SetWidth(width - 5)
+	m.transcript.SetWidth(width)
+	if m.showTranscript {
+		listHeight = listHeight - lipgloss.Height(m.transcript.Render(m.currentSource))
+	}
+	m.list.SetSize(listWidth, listHeight)
+	m.perc = m.perc.SetWidth(width)
+	m.statusBar = m.statusBar.SetWidth(width)
+	m.helpPanel = &helpPanel{width, height}
+}
+
+func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
+	if m.prompt != nil {
+		if key == "y" || key == "enter" {
+			cmds = append(cmds, m.prompt.Confirm(), ClosePrompt())
+		}
+		if key == "n" || key == "esc" {
+			cmds = append(cmds, m.prompt.Decline(), ClosePrompt())
+		}
+		return
+	}
+
+	if key == "ctrl+c" || key == "q" {
+		cmds = append(cmds, ShowPrompt("Quit?", tea.Quit, nil))
+	}
+	if key == "?" || key == "f1" {
+		m.toggleHelp()
+	}
+	if key == "esc" {
+		if m.showHelp {
+			m.toggleHelp()
+		}
+	}
+	if PSM.AllowsRewinding() && key == "l" || key == "h" {
+		if m.fForwarder == nil {
+			m.fForwarder = newFastForwarder(
+				0,
+				m.currentSource.Length()-1,
+				m.currentSource.SNum(),
+			)
+		}
+		m.fForwarder.Update(key == "l")
+	}
+	return
 }
 
 // Set prompt data on the model.
