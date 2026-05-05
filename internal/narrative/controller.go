@@ -1,7 +1,6 @@
 package narrative
 
 import (
-	"errors"
 	"fmt"
 	"maps"
 	"math/rand"
@@ -10,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alexflint/go-arg"
 	"github.com/exaroth/narrative/internal/config"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
@@ -68,10 +66,9 @@ func (c NarrativeCtrl) Voice() string {
 }
 
 // Initialize new narrative controller.
-func NewCtrl() (ctrl *NarrativeCtrl, err error) {
+func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 	var ph *phonemizer.Phonemizer
 	var preproc *preprocessor.Preprocessor
-	var args *NarrativeArgs
 
 	go startSpinner("Preparing Narrative...")
 
@@ -111,17 +108,6 @@ func NewCtrl() (ctrl *NarrativeCtrl, err error) {
 		data_cfg = NewDataConfig()
 		if err = data_cfg.Save(paths.DataConfigPath); err != nil {
 			return nil, fmt.Errorf("Error creating data cfg: %w", err)
-		}
-	}
-
-	args, err = ParseArgs()
-	if err != nil {
-		// Dont catch missing help as we
-		// handle it internally.
-		if !errors.Is(err, arg.ErrHelp) {
-			return nil, fmt.Errorf("%w\n%s", err, Usage())
-		} else {
-			args.Help = true
 		}
 	}
 
@@ -329,12 +315,6 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 	if c.args.ListVoices {
 		return true, c.getVoiceList(), nil
 	}
-	if c.args.Help {
-		return true, Usage(), nil
-	}
-	if c.args.Version {
-		return true, PrintVersion(), nil
-	}
 	return false, "", nil
 }
 
@@ -396,19 +376,4 @@ func (c *NarrativeCtrl) getVoiceList() string {
 		strings.Join(kitten.MALE_VOICES, ", "),
 		strings.Join(kitten.FEMALE_VOICES, ", "),
 	)
-}
-
-func Usage() string {
-	return `Usage: narrative [OPTIONS...] TEXT_SOURCE
-OPTIONS:
-	--voice <voice_name>  Set voice for playback.
-	--list-voices         List available voices.
-	--serve <port>        Start server running at <port>.
-	--add-model <model>   Add KittenTTS model, available models: nano, micro, mini.
-	--use-model <model>   Switch currently used TTS model.
-	--help                Print help.`
-}
-
-func PrintVersion() string {
-	return fmt.Sprintf("Narrative %s", VERSION)
 }
