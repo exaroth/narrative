@@ -19,7 +19,7 @@ const dummySourceId = "0"
 
 // Stores locks used to manage synchronization
 // when processing buffer entries.
-var lock = BufferCacheLock{
+var CacheLock = BufferCacheLock{
 	procs: make(map[int]struct{}),
 	mut:   sync.Mutex{},
 }
@@ -153,13 +153,13 @@ func (s *Source) updateCacheBuffer() error {
 		if snum > len(s.data)-1 {
 			continue
 		}
-		if lock.Has(snum) {
+		if CacheLock.Has(snum) {
 			continue
 		}
 		f := func(sn int) func() {
 			return func() {
-				lock.Add(sn)
-				defer lock.Rm(sn)
+				CacheLock.Add(sn)
+				defer CacheLock.Rm(sn)
 				_, err := s.getWaveformData(sn)
 				if err != nil {
 					errs = append(errs, err)

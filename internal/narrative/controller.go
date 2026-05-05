@@ -8,6 +8,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/alexflint/go-arg"
 	"github.com/exaroth/narrative/internal/config"
@@ -295,15 +296,26 @@ func (c *NarrativeCtrl) loadDummySource() {
 
 // Cleanly close the app.
 func (c *NarrativeCtrl) Deinit() {
+	fmt.Print("\033[s")
+	fmt.Println("Closing Narrative...")
 	if c.currentSource.id != dummySourceId {
 		c.dataCfg.LastSentence[c.currentSource.id] = c.currentSource.SNum()
 	}
 	defer c.cfg.Save(c.paths.ConfigPath)
 	defer c.dataCfg.Save(c.paths.DataConfigPath)
+	// Wait for all inference to finish before quitting
+	// to avoid panics.
+	for {
+		if len(CacheLock.Items()) == 0 {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 	defer c.ttsClient.Deinit()
 	if c.program != nil {
 		defer c.program.Quit()
 	}
+	fmt.Print("\033[u\033[K")
 }
 
 // Process command line arguments.
