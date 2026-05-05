@@ -1,6 +1,7 @@
 package narrative
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"math/rand"
@@ -8,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/alexflint/go-arg"
 	"github.com/exaroth/narrative/internal/config"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
@@ -113,7 +115,13 @@ func NewCtrl() (ctrl *NarrativeCtrl, err error) {
 
 	args, err = ParseArgs()
 	if err != nil {
-		return
+		// Dont catch missing help as we
+		// handle it internally.
+		if !errors.Is(err, arg.ErrHelp) {
+			return
+		} else {
+			args.Help = true
+		}
 	}
 
 	ctrl = &NarrativeCtrl{
@@ -306,6 +314,9 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 	if c.args.ListVoices {
 		return true, c.getVoiceList(), nil
 	}
+	if c.args.Help {
+		return true, Usage(), nil
+	}
 	return false, "", nil
 }
 
@@ -367,4 +378,15 @@ func (c *NarrativeCtrl) getVoiceList() string {
 		strings.Join(kitten.MALE_VOICES, ", "),
 		strings.Join(kitten.FEMALE_VOICES, ", "),
 	)
+}
+
+func Usage() string {
+	return `Usage: narrative [OPTIONS...] TEXT_SOURCE
+OPTIONS:
+	--voice <voice_name>  Set voice for playback.
+	--list-voices         List available voices.
+	--serve <port>        Start server running at <port>.
+	--add-model <model>   Add KittenTTS model, available models: nano, micro, mini.
+	--use-model <model>   Switch currently used TTS model.
+	--help                Print help.`
 }
