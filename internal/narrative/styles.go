@@ -162,7 +162,6 @@ var (
 	statusBarStatusTextCommand = lipgloss.NewStyle().Inherit(statusBarStatusText).Bold(true)
 	statusBarPromptTextStyle   = lipgloss.NewStyle().Foreground(col.Color2)
 	statusBarPromptYStyle      = lipgloss.NewStyle().Foreground(col.Color1)
-	statusBarPromptNStyle      = lipgloss.NewStyle().Foreground(colorError)
 )
 
 // Progress bar styles

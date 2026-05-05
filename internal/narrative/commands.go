@@ -155,3 +155,29 @@ func WaitForSpinnerMessage(sub chan string) tea.Cmd {
 		return SpinnerMsgCmd(<-sub)
 	}
 }
+
+// Command for displaying prompt, pass
+// funcs for yes and no, you can pass nil
+// in which case no action will be taken.
+// Also pass text to be displayed alongside
+// the prompt.
+type ShowPromptCmd struct {
+	text    string
+	okFunc  tea.Cmd
+	nayFunc tea.Cmd
+}
+
+func ShowPrompt(text string, okFunc, nayFunc tea.Cmd) tea.Cmd {
+	return teaCmd(ShowPromptCmd{
+		text:    text,
+		okFunc:  okFunc,
+		nayFunc: nayFunc,
+	})
+}
+
+// Command for closing currently displayed prompt
+type ClosePromptCmd struct{}
+
+func ClosePrompt() tea.Cmd {
+	return teaCmd(ClosePromptCmd{})
+}

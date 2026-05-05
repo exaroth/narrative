@@ -26,14 +26,6 @@ var statusHelp = [][2]string{
 	{"b", "go to bookmark"},
 }
 
-// Stores data for prompt to be displayed in
-// the status bar.
-type confirmPrompt struct {
-	text       string
-	okFunc     func()
-	cancelFunc func()
-}
-
 // This is a model for main narrative view containing
 // file list, transcription, playback info etc.
 type mainViewModel struct {
@@ -57,16 +49,16 @@ func NewMainViewModel(source_list Sources) *mainViewModel {
 	l.SetShowHelp(false)
 	l.Title = appTitle
 	l.Styles.Title = TitleStyle
+	l.KeyMap = ListKeymap()
 	p := NewProgress(col.Color2)
 	return &mainViewModel{
-		sources:       source_list,
-		currentSource: nil,
-		list:          l,
-		progress:      p,
-		perc:          &percRead{},
-		statusBar:     &statusBar{},
-		transcript:    &transcript{height: transcriptHeight},
-		// TODO
+		sources:        source_list,
+		currentSource:  nil,
+		list:           l,
+		progress:       p,
+		perc:           &percRead{},
+		statusBar:      &statusBar{},
+		transcript:     &transcript{height: transcriptHeight},
 		showTranscript: true,
 	}
 }
@@ -93,26 +85,35 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		k := msg.String()
-		if k == "ctrl+c" || k == "q" {
-			return m, tea.Quit
-		}
-		if k == "?" || k == "f1" {
-			m.toggleHelp()
-		}
-		if k == "escape" {
-			if m.showHelp {
+		if m.prompt != nil {
+			if k == "y" || k == "enter" {
+				cmds = append(cmds, m.prompt.Confirm(), ClosePrompt())
+			}
+			if k == "n" || k == "esc" {
+				cmds = append(cmds, m.prompt.Decline(), ClosePrompt())
+			}
+		} else {
+			if k == "ctrl+c" || k == "q" {
+				cmds = append(cmds, ShowPrompt("Quit?", tea.Quit, nil))
+			}
+			if k == "?" || k == "f1" {
 				m.toggleHelp()
 			}
-		}
-		if PSM.AllowsRewinding() && k == "l" || k == "h" {
-			if m.fForwarder == nil {
-				m.fForwarder = newFastForwarder(
-					0,
-					m.currentSource.Length()-1,
-					m.currentSource.SNum(),
-				)
+			if k == "esc" {
+				if m.showHelp {
+					m.toggleHelp()
+				}
 			}
-			m.fForwarder.Update(k == "l")
+			if PSM.AllowsRewinding() && k == "l" || k == "h" {
+				if m.fForwarder == nil {
+					m.fForwarder = newFastForwarder(
+						0,
+						m.currentSource.Length()-1,
+						m.currentSource.SNum(),
+					)
+				}
+				m.fForwarder.Update(k == "l")
+			}
 		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
@@ -139,6 +140,10 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.fForwarder = nil
 			}
 		}
+	case ShowPromptCmd:
+		m.showPrompt(msg)
+	case ClosePromptCmd:
+		m.closePrompt()
 	case UpdateSourceListCmd:
 		cmds = append(cmds, m.list.SetItems(msg.items))
 	case SelectSourceCmd:
@@ -184,7 +189,7 @@ func (m mainViewModel) View() tea.View {
 	if m.prompt != nil {
 		status_b = m.statusBar.Prompt(m.prompt.text)
 	} else {
-		status_b = m.statusBar.Render()
+		status_b = m.statusBar.RenderHelp()
 	}
 	v.SetContent(status_b + "\n" +
 		list + "\n" +
@@ -192,4 +197,20 @@ func (m mainViewModel) View() tea.View {
 		progress + "\n" +
 		m.perc.Render())
 	return v
+}
+
+// Set prompt data on the model.
+func (m *mainViewModel) showPrompt(msg ShowPromptCmd) {
+	if m.prompt == nil {
+		m.prompt = &confirmPrompt{
+			text:    msg.text,
+			okFunc:  msg.okFunc,
+			nayFunc: msg.nayFunc,
+		}
+	}
+}
+
+// Remove prompt data from the model.
+func (m *mainViewModel) closePrompt() {
+	m.prompt = nil
 }

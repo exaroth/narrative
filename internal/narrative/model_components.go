@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
 
@@ -65,7 +66,7 @@ func (s *statusBar) render(contents string) string {
 }
 
 // Render status bar help contents.
-func (s *statusBar) Render() string {
+func (s *statusBar) RenderHelp() string {
 	w := s.getContentWidth()
 	var builder strings.Builder
 	var help_t, temp_t string
@@ -84,17 +85,15 @@ func (s *statusBar) Render() string {
 		}
 		builder.WriteString(statusBarStatusText.Render(" "))
 	}
-	return s.render(help_t)
+	return s.render(" " + help_t)
 }
 
 // Render prompt on the status bar.
 func (s *statusBar) Prompt(text string) string {
-	contents := lipgloss.Sprintf("%s %s / %s",
-		statusBarPromptTextStyle.Render(text),
-		statusBarPromptYStyle.Render("y"),
-		statusBarPromptNStyle.Render("n"),
-	)
-	return s.render(contents)
+	yes := statusBarPromptYStyle.Render("y") + statusBarPromptTextStyle.Render("es")
+	no := statusBarPromptYStyle.Render("n") + statusBarPromptTextStyle.Render("o")
+	contents := statusBarPromptTextStyle.Render(text + " " + yes + "/" + no)
+	return s.render("  " + contents)
 }
 
 // Controller for grabbing fast forward (and backward)
@@ -234,4 +233,20 @@ func (h *helpPanel) Render() string {
 		logo,
 		lipgloss.JoinVertical(lipgloss.Left, elems...))
 	return contents
+}
+
+// Stores data for prompt to be displayed in
+// the status bar.
+type confirmPrompt struct {
+	text    string
+	okFunc  tea.Cmd
+	nayFunc tea.Cmd
+}
+
+func (c confirmPrompt) Confirm() tea.Cmd {
+	return c.okFunc
+}
+
+func (c confirmPrompt) Decline() tea.Cmd {
+	return c.nayFunc
 }
