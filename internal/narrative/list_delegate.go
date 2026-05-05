@@ -78,7 +78,7 @@ func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		case "space":
 			cmds = append(cmds, TogglePlayback())
 		case "d":
-			cmds = append(cmds, DeleteSource(id))
+			cmds = append(cmds, ShowPrompt("Delete source?", DeleteSource(id), nil))
 		}
 	}
 	return tea.Batch(cmds...)
