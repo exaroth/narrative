@@ -168,6 +168,10 @@ func (d *Debugger) play(input, suffix string, callback func()) {
 	d.player.Play(callback)
 }
 
+func (d *Debugger) stop() {
+	d.player.Stop()
+}
+
 func (d *Debugger) updateExtDict(word, phoneme string) error {
 	d.extDict.Update(word, phoneme)
 	if err := d.extDict.Save(); err != nil {

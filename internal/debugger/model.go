@@ -56,6 +56,8 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case PlayPhonemeCmd:
 		m.ctrl.play(msg.phoneme, ".", nil)
+	case StopPlaybackCmd:
+		m.ctrl.stop()
 	case UpdatePhonemeCmd:
 		m.updateExtDict(msg.word, msg.phoneme, msg.sentenceNum)
 		m.setListMode()
