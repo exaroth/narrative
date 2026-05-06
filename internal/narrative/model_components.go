@@ -142,7 +142,11 @@ func (f *fastForwarder) Update(forward bool) {
 		cur = f.sMax
 	}
 	f.cur = cur
-	MessageCh <- fmt.Sprintf("%d/%d", f.cur, f.sMax)
+	MessageCh <- fmt.Sprintf(
+		"Sentence:\n%d/%d (%3.0f%% )",
+		f.cur, f.sMax,
+		float32(f.cur)/float32(f.sMax)*100,
+	)
 	f.lastUpd = now
 }
 
