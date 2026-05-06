@@ -22,7 +22,7 @@ func main() {
 		return
 	}
 
-	debugger, err := debugger.NewDebugger(os.Args[1])
+	debugger, err := debugger.InitWithFile(os.Args[1], 0)
 	if err != nil {
 		panic(err)
 	}

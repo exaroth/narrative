@@ -84,13 +84,24 @@ func initDebuggerDir(config *Config) ([]string, error) {
 	return result, nil
 }
 
-func NewDebugger(input_fpath string) (*Debugger, error) {
-	config := DefaultConfig()
+// Initialize new debugger with file path, this is used
+// when running standalone debugger instance.
+func InitWithFile(input_fpath string, sentence_n int) (*Debugger, error) {
 
 	input, err := os.ReadFile(input_fpath)
 	if err != nil {
 		return nil, fmt.Errorf("debugger init err; invalid input %s: %w", input_fpath, err)
 	}
+
+	data := sentencizer.Sentencize(input)
+	return InitWithData(data, sentence_n)
+
+}
+
+// Init with string based data, this is used in when running
+// debugger as part of another app.
+func InitWithData(data []string, sentence_n int) (*Debugger, error) {
+	config := DefaultConfig()
 	paths, err := initDebuggerDir(config)
 	if err != nil {
 		return nil, fmt.Errorf("err initializing debugger dir: %w", err)
@@ -124,15 +135,16 @@ func NewDebugger(input_fpath string) (*Debugger, error) {
 		missingDictPath: paths[1],
 		missingDict:     missing_dict,
 		model:           nil,
-		source:          sentencizer.Sentencize(input),
+		source:          data,
 		sentenceData:    make(map[int]*sentenceData),
 		player:          player.InitPlayer(),
 	}
 
-	model := NewDebuggerModel(debugger, 0)
+	model := NewDebuggerModel(debugger, sentence_n)
 	debugger.model = model
 
 	return debugger, nil
+
 }
 
 func (d *Debugger) Deinit() {
