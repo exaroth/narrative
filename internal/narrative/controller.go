@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/exaroth/narrative/internal/config"
+	"github.com/exaroth/narrative/internal/debugger"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/player"
@@ -35,6 +36,8 @@ type NarrativeCtrl struct {
 
 	// Source to be automatically played on startup.
 	autoplaySource string
+	// Whether to run debugger after app deinit.
+	runDebugger bool
 }
 
 // Create basic directory structure for narrative.
@@ -283,7 +286,11 @@ func (c *NarrativeCtrl) loadDummySource() {
 // Cleanly close the app.
 func (c *NarrativeCtrl) Deinit() {
 	fmt.Print("\033[s")
-	fmt.Println("Closing Narrative...")
+	if c.runDebugger {
+		fmt.Println("Starting debugger")
+	} else {
+		fmt.Println("Closing Narrative...")
+	}
 	if c.currentSource.id != dummySourceId {
 		c.dataCfg.LastSentence[c.currentSource.id] = c.currentSource.SNum()
 	}
@@ -297,11 +304,28 @@ func (c *NarrativeCtrl) Deinit() {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	defer c.ttsClient.Deinit()
+	if c.runDebugger {
+		defer c.startDebugger()
+	}
 	if c.program != nil {
 		defer c.program.Quit()
 	}
+	defer c.ttsClient.Deinit()
 	fmt.Print("\033[u\033[K")
+}
+
+// Start debugger passing current source.
+func (c *NarrativeCtrl) startDebugger() {
+	if c.Source() == nil || c.Source().IsDummy() {
+		return
+	}
+
+	debugger, err := debugger.InitWithData(c.Source().data, c.Source().SNum())
+	if err != nil {
+		fmt.Printf("Error initalizing debugger:\n%s\n", err.Error())
+		return
+	}
+	debugger.Run()
 }
 
 // Process command line arguments.

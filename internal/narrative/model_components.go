@@ -207,6 +207,7 @@ func (h *helpPanel) commands() [][2]string {
 		{"v", "Change voice"},
 		{"t", "Change theme"},
 		{"q", "Quit application"},
+		{"F2", "Run debugger"},
 		{"F1", "Show help"},
 	}
 }

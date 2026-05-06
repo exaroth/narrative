@@ -250,6 +250,16 @@ func (s *Source) SNum() int {
 	return s.sentenceNum
 }
 
+// Retrieve sources id
+func (s *Source) Id() string {
+	return s.id
+}
+
+// Check if source is dummy source.
+func (s *Source) IsDummy() bool {
+	return s.id == dummySourceId
+}
+
 // Amount of source that has been read.
 func (s *Source) PercRead() float64 {
 	return float64(s.sentenceNum) / float64(s.length)

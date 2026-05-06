@@ -203,6 +203,12 @@ func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.setTermDimensions(msg.Width, msg.Height)
+	case tea.KeyPressMsg:
+		k := msg.String()
+		if k == "f2" && !m.ctrl.Source().IsDummy() {
+			m.ctrl.runDebugger = true
+			return m, tea.Quit
+		}
 	}
 
 	switch m.mode {
