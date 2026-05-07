@@ -32,7 +32,10 @@ var col = ColorPalette{
 
 // Main list style
 // ===============
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
+var (
+	docStyle = lipgloss.NewStyle().Margin(1, 2)
+	errStyle = lipgloss.NewStyle().Foreground(colorError)
+)
 
 // Modal styles.
 // ===============

@@ -45,6 +45,20 @@ type NarrativePaths struct {
 	LibPath, DataConfigPath, SourcesPath string
 }
 
+// Check if narrative requires initialization
+// on startup.
+func (p *NarrativePaths) RequiresInit() bool {
+	for _, path := range [2]string{
+		p.DataConfigPath,
+		p.ConfigPath,
+	} {
+		if _, err := os.Stat(path); err != nil {
+			return true
+		}
+	}
+	return false
+}
+
 func InitPaths() *NarrativePaths {
 	return &NarrativePaths{
 		ConfigDir:      LocalConfig(),

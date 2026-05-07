@@ -181,3 +181,21 @@ type ClosePromptCmd struct{}
 func ClosePrompt() tea.Cmd {
 	return teaCmd(ClosePromptCmd{})
 }
+
+// Message containing download progress.
+type DownloadProgressMsg float64
+
+// Message containing error that occurred during downloading.
+type DownloadProgressErr error
+
+func WaitForDownloadProgressMsg(sub chan float64) tea.Cmd {
+	return func() tea.Msg {
+		return DownloadProgressMsg(<-sub)
+	}
+}
+
+func WaitForDownloadProgressErr(sub chan error) tea.Cmd {
+	return func() tea.Msg {
+		return DownloadProgressErr(<-sub)
+	}
+}

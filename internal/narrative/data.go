@@ -117,7 +117,7 @@ func (s Sources) Next(id string) *TextSource {
 // DataConfig stores information about data
 // managed by narrative, such us text sources and models.
 type DataConfig struct {
-	Models        []string
+	Models        map[string]TTSModel
 	Libs          []string
 	SelectedModel string
 	SelectedLib   string
@@ -162,7 +162,11 @@ func (c *DataConfig) Save(path string) error {
 // Initialize new empty data config.
 func NewDataConfig() *DataConfig {
 	return &DataConfig{
-		Models:        []string{},
+		Models: map[string]TTSModel{
+			TTSModelNano.name:  TTSModelNano,
+			TTSModelMicro.name: TTSModelMicro,
+			TTSModelMini.name:  TTSModelMini,
+		},
 		Libs:          []string{},
 		SelectedModel: "",
 		SelectedLib:   "",
