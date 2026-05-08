@@ -3,6 +3,7 @@ package narrative
 import (
 	"fmt"
 	"io"
+	"runtime"
 	"strings"
 	"time"
 
@@ -166,6 +167,13 @@ func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, l
 }
 
 func ShowWelcomeScreen(paths *NarrativePaths) error {
+	lib := GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
+	if lib == nil {
+		return fmt.Errorf("Narrative is does not support %s/%s systems.",
+			runtime.GOOS,
+			runtime.GOARCH,
+		)
+	}
 	w := &Welcome{
 		paths:     paths,
 		selection: -1,
