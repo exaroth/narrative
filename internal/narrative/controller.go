@@ -73,7 +73,9 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 	var ph *phonemizer.Phonemizer
 	var preproc *preprocessor.Preprocessor
 
-	go startSpinner("Preparing Narrative...")
+	paths := initDirectoryStructure()
+
+	startSpinner("Preparing Narrative...")
 
 	// if any errors occured close spinner gracefully.
 	defer func() {
@@ -81,14 +83,21 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 			CloseSpinner()
 		}
 	}()
+
+	if paths.RequiresInit() {
+		CloseSpinner()
+		exit := ShowWelcomeScreen(paths)
+		if exit {
+			return nil, fmt.Errorf("Program terminated by user.")
+		}
+	}
+
 	ph, err = phonemizer.NewPhonemizer("")
 	if err != nil {
 		return nil, fmt.Errorf("init err; phonemizer init: %w", err)
 	}
 
 	preproc = preprocessor.NewPreprocessor()
-	// kitten := kitten.NewKitten(kitten.DefaultConfig())
-	paths := initDirectoryStructure()
 	var cfg *config.Config
 	if _, err = os.Stat(paths.ConfigPath); err != nil {
 		cfg = config.DefaultConfig()
@@ -307,11 +316,11 @@ func (c *NarrativeCtrl) Deinit() {
 	if c.runDebugger {
 		defer c.startDebugger()
 	}
+	defer fmt.Print("\033[u\033[K")
 	if c.program != nil {
 		defer c.program.Quit()
 	}
 	defer c.ttsClient.Deinit()
-	fmt.Print("\033[u\033[K")
 }
 
 // Start debugger passing current source.

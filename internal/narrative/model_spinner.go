@@ -18,10 +18,13 @@ var (
 
 // Gracefully close spinner.
 func CloseSpinner() {
-	go func() {
-		SpinnerCloseCh <- struct{}{}
-	}()
-	SpinnerWaitCh <- struct{}{}
+	if spinnerP != nil {
+		go func() {
+			SpinnerCloseCh <- struct{}{}
+		}()
+		SpinnerWaitCh <- struct{}{}
+		spinnerP = nil
+	}
 }
 
 // Model for displaying spinner during loading.
@@ -37,7 +40,7 @@ func startSpinner(text string) {
 	s.Style = lipgloss.NewStyle().Foreground(col.Color2)
 	model := spinnerModel{spinner: s, text: text}
 	spinnerP = tea.NewProgram(model)
-	spinnerP.Run()
+	go spinnerP.Run()
 }
 
 func (m spinnerModel) Init() tea.Cmd {

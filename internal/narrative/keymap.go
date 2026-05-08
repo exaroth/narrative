@@ -53,3 +53,17 @@ func ListKeymap() list.KeyMap {
 		),
 	}
 }
+
+func ModelListKeymap() list.KeyMap {
+	return list.KeyMap{
+		// Browsing.
+		CursorUp: key.NewBinding(
+			key.WithKeys("up", "k"),
+			key.WithHelp("↑/k", "up"),
+		),
+		CursorDown: key.NewBinding(
+			key.WithKeys("down", "j"),
+			key.WithHelp("↓/j", "down"),
+		),
+	}
+}
