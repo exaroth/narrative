@@ -86,9 +86,8 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 
 	if paths.RequiresInit() {
 		CloseSpinner()
-		exit := ShowWelcomeScreen(paths)
-		if exit {
-			return nil, fmt.Errorf("Program terminated by user.")
+		if err := ShowWelcomeScreen(paths); err != nil {
+			return nil, err
 		}
 	}
 

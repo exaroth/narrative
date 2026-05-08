@@ -41,14 +41,14 @@ var (
 	TTSModelMicro = TTSModel{
 		t:      KittenModelMicro,
 		name:   "micro",
-		remote: "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/main/kitten_tts_micro_v0_8.onnx",
+		remote: "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/main",
 		fname:  "kitten_tts_micro_v0_8.onnx",
 		desc:   "(41 MB) Smallest model available, suitable for older laptops and Raspberry Pi.",
 	}
 	TTSModelMini = TTSModel{
 		t:      KittenModelMini,
 		name:   "mini",
-		remote: "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/main/kitten_tts_mini_v0_8.onnx",
+		remote: "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/main",
 		fname:  "kitten_tts_mini_v0_8.onnx",
 		desc:   "(78 MB) Best sound quality available, might strain CPU/GPU hence recommended for newer laptops and more powerful PCs.",
 	}

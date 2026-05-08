@@ -42,21 +42,23 @@ func (pw *downloadProgressWriter) Write(p []byte) (int, error) {
 // Module used for downloading files such as model data
 // and libraries.
 type Downloader struct {
-	updateCh    chan float64
-	errCh       chan error
-	id          int
-	text        string
-	url         string
-	filename    string
-	downloadDir string
-	err         error
-	completed   float64
-	pw          *downloadProgressWriter
-	progress    progress.Model
-	width       int
+	updateCh       chan float64
+	errCh          chan error
+	id             int
+	text           string
+	url            string
+	filename       string
+	downloadDir    string
+	err            error
+	completed      float64
+	pw             *downloadProgressWriter
+	progress       progress.Model
+	width          int
+	exitOnComplete bool
 }
 
-func NewDownloader(id int, url, text, filename string, width int) (*Downloader, error) {
+// Initialize new Downloader.
+func NewDownloader(id int, url, text, filename string, width int, exitOnComplete bool) (*Downloader, error) {
 	if url == "" {
 		return nil, fmt.Errorf("Url is required")
 	}
@@ -65,15 +67,36 @@ func NewDownloader(id int, url, text, filename string, width int) (*Downloader, 
 	}
 
 	return &Downloader{
-		updateCh:    make(chan float64),
-		errCh:       make(chan error),
-		id:          id,
-		url:         url,
-		text:        text,
-		filename:    filename,
-		downloadDir: DEFAULT_DOWNLOAD_DIR,
-		width:       width,
+		updateCh:       make(chan float64),
+		errCh:          make(chan error),
+		id:             id,
+		url:            url,
+		text:           text,
+		filename:       filename,
+		downloadDir:    DEFAULT_DOWNLOAD_DIR,
+		width:          width,
+		exitOnComplete: exitOnComplete,
 	}, nil
+}
+
+// Initialize new downloader and download the file returning optional error if any occured.
+
+func DownloadAndQuit(id int, url, text, filename string, width int) error {
+	downloader, err := NewDownloader(id, url, text, filename, width, true)
+	if err != nil {
+		return fmt.Errorf("Error creating download %w", err)
+	}
+
+	if err := downloader.InitDownload(); err != nil {
+		return fmt.Errorf("Error starting download %w", err)
+	}
+
+	program := tea.NewProgram(downloader)
+	if d, err := program.Run(); err != nil {
+		return err
+	} else {
+		return d.(Downloader).err
+	}
 }
 
 func (d *Downloader) getResponse(url string) (*http.Response, error) {
@@ -146,9 +169,12 @@ func (d Downloader) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			d.progress.SetPercent(float64(msg)),
 			WaitForDownloadProgressMsg(d.updateCh),
 		)
+		if msg == 1 && d.exitOnComplete {
+			return d, tea.Quit
+		}
 	case DownloadProgressErr:
 		d.err = msg
-		cmds = append(cmds, WaitForDownloadProgressErr(d.errCh))
+		return d, tea.Quit
 	case tea.WindowSizeMsg:
 		var w = d.width
 		if msg.Width < w {

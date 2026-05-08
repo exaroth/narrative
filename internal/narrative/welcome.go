@@ -25,15 +25,6 @@ const (
 	welcomeDownloadTypeLib
 )
 
-type welcomeScreenMode int
-
-const (
-	welcomeScreenModeSelect welcomeScreenMode = iota
-	welcomeScreenModeDownload
-	welcomeScreenModeError
-	welcomeScreenModeDone
-)
-
 func getWelcomeScreenTTSModels() []list.Item {
 	var v []list.Item
 	tts_models := [3]*TTSModel{
@@ -50,7 +41,6 @@ func getWelcomeScreenTTSModels() []list.Item {
 // Model used for rendering welcome screen
 // and initializing Narrative.
 type welcomeModel struct {
-	mode      welcomeScreenMode
 	modelList list.Model
 	downloads map[welcomeDownloadType]*Downloader
 	width     int
@@ -73,6 +63,11 @@ func (m welcomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		k := msg.String()
 		if k == "ctrl+c" {
 			m.ctrl.exit = true
+			return m, tea.Quit
+		}
+		if k == "enter" {
+			it := m.modelList.SelectedItem().(*TTSModel)
+			m.ctrl.selection = it.t
 			return m, tea.Quit
 		}
 	}
@@ -116,11 +111,12 @@ func (m *welcomeModel) finalPause() tea.Cmd {
 
 // Controller for handling welcome screen operations.
 type Welcome struct {
-	paths   *NarrativePaths
-	model   *welcomeModel
-	program *tea.Program
-	err     error
-	exit    bool
+	paths     *NarrativePaths
+	model     *welcomeModel
+	program   *tea.Program
+	selection KittenModelType
+	err       error
+	exit      bool
 }
 
 func (w *Welcome) Run() error {
@@ -129,33 +125,6 @@ func (w *Welcome) Run() error {
 		return err
 	}
 	return nil
-}
-
-func ShowWelcomeScreen(paths *NarrativePaths) bool {
-	w := &Welcome{
-		paths: paths,
-	}
-
-	l := list.New(getWelcomeScreenTTSModels(), welcomeModelListDelegate{}, 0, 0)
-	l.KeyMap = ModelListKeymap()
-	l.SetShowHelp(false)
-	l.SetShowTitle(false)
-	l.SetShowPagination(false)
-	l.SetShowStatusBar(false)
-	l.SetShowFilter(false)
-
-	model := welcomeModel{
-		mode:      welcomeScreenModeSelect,
-		modelList: l,
-		ctrl:      w,
-	}
-	w.model = &model
-
-	if err := w.Run(); err != nil {
-		panic(err)
-	}
-
-	return w.exit
 }
 
 type welcomeModelListDelegate struct{}
@@ -196,10 +165,59 @@ func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, l
 	fmt.Fprint(w, builder.String())
 }
 
-var welcomeScreenLogoStyle = lipgloss.NewStyle().Foreground(col.Color1)
-var welcomeScreenMessageStyle = lipgloss.NewStyle().Margin(1, 0)
-var welcomeScreenModelDescriptionStyle = lipgloss.NewStyle().Foreground(col.Color3)
-var welcomeScreenModelNameStyle = lipgloss.NewStyle().Foreground(col.Color2)
-var welcomeScreenModelNameSelectedStyle = lipgloss.NewStyle().
-	Inherit(welcomeScreenModelNameStyle).
-	Foreground(col.Color1)
+func ShowWelcomeScreen(paths *NarrativePaths) error {
+	w := &Welcome{
+		paths:     paths,
+		selection: -1,
+	}
+
+	l := list.New(getWelcomeScreenTTSModels(), welcomeModelListDelegate{}, 0, 0)
+	l.KeyMap = ModelListKeymap()
+	l.SetShowHelp(false)
+	l.SetShowTitle(false)
+	l.SetShowPagination(false)
+	l.SetShowStatusBar(false)
+	l.SetShowFilter(false)
+
+	model := welcomeModel{
+		modelList: l,
+		ctrl:      w,
+	}
+	w.model = &model
+
+	if err := w.Run(); err != nil {
+		panic(err)
+	}
+
+	if w.err != nil {
+		return w.err
+	}
+	if w.exit {
+		return fmt.Errorf("Program terminated by user.")
+	}
+
+	m_data := GetKittenModel(w.selection)
+
+	if err := DownloadAndQuit(
+		int(welcomeDownloadTypeModel),
+		m_data.remote+"/"+m_data.fname+"?download=true",
+		fmt.Sprintf("Downloading model %s...", m_data.name),
+		m_data.fname,
+		30,
+	); err != nil {
+		return fmt.Errorf("Error downlaoding model: %w", err)
+	}
+
+	if err := DownloadAndQuit(
+		int(welcomeDownloadTypeModel),
+		m_data.remote+"/"+VOICES_FNAME+"?download=true",
+		"Downloading voice data...",
+		m_data.fname,
+		30,
+	); err != nil {
+		return err
+	}
+
+	return nil
+
+}
