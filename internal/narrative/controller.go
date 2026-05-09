@@ -87,7 +87,7 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 
 	if paths.RequiresInit() || args.Init {
 		CloseSpinner()
-		model_n, lib_n, err = ShowWelcomeScreen(paths)
+		model_n, lib_n, err = ShowWelcomeScreen(paths, args.Init)
 		if err != nil {
 			return nil, err
 		}

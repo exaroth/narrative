@@ -198,6 +198,7 @@ var (
 
 var welcomeScreenLogoStyle = lipgloss.NewStyle().Foreground(col.Color1)
 var welcomeScreenMessageStyle = lipgloss.NewStyle().Margin(1, 0)
+var welcomeScreenWarningStyleStyle = lipgloss.NewStyle().Foreground(colorError)
 var welcomeScreenModelDescriptionStyle = lipgloss.NewStyle().Foreground(col.Color3)
 var welcomeScreenModelNameStyle = lipgloss.NewStyle().Foreground(col.Color2)
 var welcomeScreenModelNameSelectedStyle = lipgloss.NewStyle().

@@ -45,10 +45,11 @@ func getWelcomeScreenTTSModels() []list.Item {
 // Model used for rendering welcome screen
 // and initializing Narrative.
 type welcomeModel struct {
-	modelList list.Model
-	downloads map[welcomeDownloadType]*Downloader
-	width     int
-	ctrl      *Welcome
+	modelList   list.Model
+	downloads   map[welcomeDownloadType]*Downloader
+	showWarning bool
+	width       int
+	ctrl        *Welcome
 }
 
 func (m welcomeModel) Init() tea.Cmd {
@@ -94,6 +95,13 @@ func (m *welcomeModel) selectionView() tea.View {
 	var builder = strings.Builder{}
 	builder.WriteString(welcomeScreenLogoStyle.Render(m.centered(LOGO)) + "\n")
 	builder.WriteString(welcomeScreenMessageStyle.Render(m.centered(welcomeMessage)) + "\n")
+
+	if m.showWarning {
+		builder.WriteString(welcomeScreenWarningStyleStyle.Render(m.centered("Warning")))
+		builder.WriteString(welcomeScreenMessageStyle.Render(m.centered(
+			"This will erase existing configuration",
+		)) + "\n")
+	}
 	builder.WriteString(m.modelList.View())
 
 	v.SetContent(builder.String())
@@ -169,7 +177,7 @@ func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, l
 	fmt.Fprint(w, builder.String())
 }
 
-func initWelcomeScreen(paths *NarrativePaths) (KittenModelType, error) {
+func initWelcomeScreen(paths *NarrativePaths, showWarning bool) (KittenModelType, error) {
 	w := &Welcome{
 		paths:     paths,
 		selection: -1,
@@ -184,8 +192,9 @@ func initWelcomeScreen(paths *NarrativePaths) (KittenModelType, error) {
 	l.SetShowFilter(false)
 
 	model := welcomeModel{
-		modelList: l,
-		ctrl:      w,
+		modelList:   l,
+		ctrl:        w,
+		showWarning: showWarning,
 	}
 	w.model = &model
 
@@ -204,7 +213,9 @@ func initWelcomeScreen(paths *NarrativePaths) (KittenModelType, error) {
 	return w.selection, nil
 }
 
-func ShowWelcomeScreen(paths *NarrativePaths) (model_n string, lib_n string, err error) {
+// Initialize welcome screen with model selection, then download both model and library
+// data. This function returns selected library and model names.
+func ShowWelcomeScreen(paths *NarrativePaths, showWarning bool) (model_n string, lib_n string, err error) {
 	lib := GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
 	if lib == nil {
 		err = fmt.Errorf("Narrative is does not support %s/%s systems.",
@@ -214,7 +225,7 @@ func ShowWelcomeScreen(paths *NarrativePaths) (model_n string, lib_n string, err
 		return
 	}
 	var m_data *TTSModel
-	if selection, e := initWelcomeScreen(paths); e != nil {
+	if selection, e := initWelcomeScreen(paths, showWarning); e != nil {
 		err = e
 		return
 	} else {
