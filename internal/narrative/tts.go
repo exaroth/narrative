@@ -32,38 +32,38 @@ const (
 
 var (
 	TTSModelNano = TTSModel{
-		t:      KittenModelNano,
-		name:   "nano",
-		remote: "https://huggingface.co/KittenML/kitten-tts-nano-0.8/resolve/main",
-		fname:  "kitten_tts_nano_v0_8.onnx",
-		desc:   "(57 MB) Best for laptops and weaker PCs, offers good sound quality without straining CPU.",
+		T:      KittenModelNano,
+		Name:   "nano",
+		Remote: "https://huggingface.co/KittenML/kitten-tts-nano-0.8/resolve/main",
+		Fname:  "kitten_tts_nano_v0_8.onnx",
+		Desc:   "(57 MB) Best for laptops and weaker PCs, offers good sound quality without straining CPU.",
 	}
 	TTSModelMicro = TTSModel{
-		t:      KittenModelMicro,
-		name:   "micro",
-		remote: "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/main",
-		fname:  "kitten_tts_micro_v0_8.onnx",
-		desc:   "(41 MB) Smallest model available, suitable for older laptops and Raspberry Pi.",
+		T:      KittenModelMicro,
+		Name:   "micro",
+		Remote: "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/main",
+		Fname:  "kitten_tts_micro_v0_8.onnx",
+		Desc:   "(41 MB) Smallest model available, suitable for older laptops and Raspberry Pi.",
 	}
 	TTSModelMini = TTSModel{
-		t:      KittenModelMini,
-		name:   "mini",
-		remote: "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/main",
-		fname:  "kitten_tts_mini_v0_8.onnx",
-		desc:   "(78 MB) Best sound quality available, might strain CPU/GPU hence recommended for newer laptops and more powerful PCs.",
+		T:      KittenModelMini,
+		Name:   "mini",
+		Remote: "https://huggingface.co/KittenML/kitten-tts-mini-0.8/resolve/main",
+		Fname:  "kitten_tts_mini_v0_8.onnx",
+		Desc:   "(78 MB) Best sound quality available, might strain CPU/GPU hence recommended for newer laptops and more powerful PCs.",
 	}
 )
 
 // Represents model settings as saved in data config.
 type TTSModel struct {
-	t                         KittenModelType
-	name, fname, remote, desc string
+	T                         KittenModelType
+	Name, Fname, Remote, Desc string
 }
 
-func (t TTSModel) FilterValue() string { return t.name }
+func (t TTSModel) FilterValue() string { return t.Name }
 
 func (t *TTSModel) GetModelDir(base string) string {
-	return filepath.Join(base, t.name)
+	return filepath.Join(base, t.Name)
 }
 
 func (t *TTSModel) GetModelPath(base string) string {

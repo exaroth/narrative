@@ -70,6 +70,7 @@ func (c NarrativeCtrl) Voice() string {
 
 // Initialize new narrative controller.
 func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
+	var model_n, lib_n string
 	var ph *phonemizer.Phonemizer
 	var preproc *preprocessor.Preprocessor
 
@@ -86,7 +87,8 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 
 	if paths.RequiresInit() {
 		CloseSpinner()
-		if err := ShowWelcomeScreen(paths); err != nil {
+		model_n, lib_n, err = ShowWelcomeScreen(paths)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -116,7 +118,7 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 	var data_cfg *DataConfig
 	data_cfg, err = LoadDataConfig(paths.DataConfigPath)
 	if err != nil {
-		data_cfg = NewDataConfig()
+		data_cfg = NewDataConfig(model_n, lib_n)
 		if err = data_cfg.Save(paths.DataConfigPath); err != nil {
 			return nil, fmt.Errorf("Error creating data cfg: %w", err)
 		}

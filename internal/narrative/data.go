@@ -160,16 +160,15 @@ func (c *DataConfig) Save(path string) error {
 }
 
 // Initialize new empty data config.
-func NewDataConfig() *DataConfig {
+func NewDataConfig(model_n, lib_n string) *DataConfig {
 	return &DataConfig{
 		Models: map[string]TTSModel{
-			TTSModelNano.name:  TTSModelNano,
-			TTSModelMicro.name: TTSModelMicro,
-			TTSModelMini.name:  TTSModelMini,
+			TTSModelNano.Name:  TTSModelNano,
+			TTSModelMicro.Name: TTSModelMicro,
+			TTSModelMini.Name:  TTSModelMini,
 		},
-		Libs:          []string{},
-		SelectedModel: "",
-		SelectedLib:   "",
+		SelectedModel: model_n,
+		SelectedLib:   lib_n,
 		LastSource:    "",
 		LastSentence:  make(map[string]int),
 		Bookmarks:     make(map[string][]string),

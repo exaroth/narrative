@@ -1,7 +1,7 @@
 package narrative
 
 type OnnxLib struct {
-	remote, os, arch, name string
+	remote, os, arch, name, tar_path, filename string
 }
 
 // Stores supported onnx libraries
@@ -10,29 +10,35 @@ var OnnxLibMap = map[string]map[string][]OnnxLib{
 	"linux": {
 		"amd64": []OnnxLib{
 			{
-				remote: "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-linux-x64-1.25.1.tgz",
-				os:     "linux",
-				arch:   "amd64",
-				name:   "onnx-linux-amd64-cpu",
+				remote:   "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-linux-x64-1.25.1.tgz",
+				os:       "linux",
+				arch:     "amd64",
+				name:     "onnx-linux-amd64-cpu",
+				tar_path: "onnxruntime-linux-x64-1.25.1/lib",
+				filename: "libonnxruntime.so",
 			},
 		},
 		"arm64": []OnnxLib{
 			{
-				remote: "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-linux-aarch64-1.25.1.tgz",
-				os:     "linux",
-				arch:   "arm64",
-				name:   "onnx-linux-arm64-cpu",
+				remote:   "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-linux-aarch64-1.25.1.tgz",
+				os:       "linux",
+				arch:     "arm64",
+				name:     "onnx-linux-arm64-cpu",
+				tar_path: "onnxruntime-linux-aarch64-1.25.1/lib",
+				filename: "libonnxruntime.so",
 			},
 		},
 	},
 	"darwin": {
-		"amd64": []OnnxLib{
+		"arm64": []OnnxLib{
 			{
 
-				remote: "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-osx-arm64-1.25.1.tgz",
-				os:     "darwin",
-				arch:   "amd64",
-				name:   "onnx-darwin-amd64",
+				remote:   "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-osx-arm64-1.25.1.tgz",
+				os:       "darwin",
+				arch:     "arm64",
+				name:     "onnx-darwin-arm64",
+				tar_path: "onnxruntime-osx-arm64-1.25.1/lib",
+				filename: "libonnxruntime.dylib",
 			},
 		},
 	},

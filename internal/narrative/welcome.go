@@ -3,6 +3,8 @@ package narrative
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	cp "github.com/otiai10/copy"
 )
 
 const welcomeMessage = `Welcome to Narrative.
@@ -68,7 +71,7 @@ func (m welcomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if k == "enter" {
 			it := m.modelList.SelectedItem().(*TTSModel)
-			m.ctrl.selection = it.t
+			m.ctrl.selection = it.T
 			return m, tea.Quit
 		}
 	}
@@ -142,7 +145,7 @@ func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, l
 	var builder = strings.Builder{}
 	builder.WriteString(
 		lipgloss.Place(m.Width(), 1, lipgloss.Center, lipgloss.Center,
-			welcomeScreenModelDescriptionStyle.Render(i.desc),
+			welcomeScreenModelDescriptionStyle.Render(i.Desc),
 		),
 	)
 	builder.WriteString("\n")
@@ -151,14 +154,14 @@ func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, l
 		builder.WriteString(
 			welcomeScreenModelNameSelectedStyle.Render(
 				lipgloss.Place(m.Width(), 1, lipgloss.Center, lipgloss.Center,
-					"> "+strings.ToUpper(i.name)+" <"),
+					"> "+strings.ToUpper(i.Name)+" <"),
 			),
 		)
 	} else {
 		builder.WriteString(
 			welcomeScreenModelNameStyle.Render(
 				lipgloss.Place(m.Width(), 1, lipgloss.Center, lipgloss.Center,
-					strings.ToUpper(i.name)),
+					strings.ToUpper(i.Name)),
 			),
 		)
 	}
@@ -166,14 +169,7 @@ func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, l
 	fmt.Fprint(w, builder.String())
 }
 
-func ShowWelcomeScreen(paths *NarrativePaths) error {
-	lib := GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
-	if lib == nil {
-		return fmt.Errorf("Narrative is does not support %s/%s systems.",
-			runtime.GOOS,
-			runtime.GOARCH,
-		)
-	}
+func initWelcomeScreen(paths *NarrativePaths) (KittenModelType, error) {
 	w := &Welcome{
 		paths:     paths,
 		selection: -1,
@@ -198,34 +194,110 @@ func ShowWelcomeScreen(paths *NarrativePaths) error {
 	}
 
 	if w.err != nil {
-		return w.err
+		return -1, w.err
 	}
+
 	if w.exit {
-		return fmt.Errorf("Program terminated by user.")
+		return -1, fmt.Errorf("Program terminated by user.")
 	}
 
-	m_data := GetKittenModel(w.selection)
+	return w.selection, nil
+}
 
-	if err := DownloadAndQuit(
+func ShowWelcomeScreen(paths *NarrativePaths) (model_n string, lib_n string, err error) {
+	lib := GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
+	if lib == nil {
+		err = fmt.Errorf("Narrative is does not support %s/%s systems.",
+			runtime.GOOS,
+			runtime.GOARCH,
+		)
+		return
+	}
+	var m_data *TTSModel
+	if selection, e := initWelcomeScreen(paths); e != nil {
+		err = e
+		return
+	} else {
+		m_data = GetKittenModel(selection)
+	}
+
+	defer os.RemoveAll(DEFAULT_DOWNLOAD_DIR)
+
+	// Download files
+	if e := DownloadAndQuit(
 		int(welcomeDownloadTypeModel),
-		m_data.remote+"/"+m_data.fname+"?download=true",
-		fmt.Sprintf("Downloading model %s...", m_data.name),
-		m_data.fname,
+		m_data.Remote+"/"+m_data.Fname+"?download=true",
+		fmt.Sprintf("Downloading model %s...", m_data.Name),
+		m_data.Fname,
 		30,
-	); err != nil {
-		return fmt.Errorf("Error downlaoding model: %w", err)
+	); e != nil {
+		err = fmt.Errorf("Error downlaoding model: %w", e)
+		return
 	}
-
-	if err := DownloadAndQuit(
-		int(welcomeDownloadTypeModel),
-		m_data.remote+"/"+VOICES_FNAME+"?download=true",
+	if e := DownloadAndQuit(
+		int(welcomeDownloadTypeVoice),
+		m_data.Remote+"/"+VOICES_FNAME+"?download=true",
 		"Downloading voice data...",
-		m_data.fname,
+		VOICES_FNAME,
 		30,
-	); err != nil {
-		return err
+	); e != nil {
+		err = fmt.Errorf("Error downloading voices %w", e)
+		return
+	}
+	if e := DownloadAndQuit(
+		int(welcomeDownloadTypeLib),
+		lib.remote,
+		"Downloading ONNX library...",
+		"lib.tgz",
+		30,
+	); e != nil {
+		err = fmt.Errorf("Error downloading library: %w", e)
+		return
 	}
 
-	return nil
+	fmt.Println("Extracting archive...")
+	if e := ExtractTarGz(
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib.tgz"),
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib"),
+	); e != nil {
+		err = fmt.Errorf("Error extracting archive: %w", e)
+		return
+	}
+
+	// Copy library files
+	lib_p := filepath.Join(paths.LibPath, lib.name)
+	os.RemoveAll(lib_p)
+	if e := cp.Copy(
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib", lib.tar_path),
+		lib_p,
+	); e != nil {
+		err = fmt.Errorf("Error copying library data: %w", e)
+		return
+	}
+
+	// Copy model files
+	m_path := filepath.Join(paths.ModelPath, m_data.Name)
+	os.RemoveAll(m_path)
+	if e := os.MkdirAll(m_path, os.ModePerm); e != nil {
+		err = fmt.Errorf("Error creating model dir %w", e)
+		return
+	}
+	if e := cp.Copy(
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, m_data.Fname),
+		filepath.Join(m_path, m_data.Fname),
+	); e != nil {
+		err = fmt.Errorf("Error copying model: %w", e)
+		return
+	}
+	if e := cp.Copy(
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, VOICES_FNAME),
+		filepath.Join(m_path, VOICES_FNAME),
+	); e != nil {
+		err = fmt.Errorf("Error copying voices file: %w", e)
+		return
+	}
+	model_n = m_data.Name
+	lib_n = lib.name
+	return
 
 }
