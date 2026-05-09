@@ -90,9 +90,10 @@ func (s *statusBar) RenderHelp() string {
 
 // Render prompt on the status bar.
 func (s *statusBar) Prompt(text string) string {
+	acc := statusBarPromptAccStyle.Render("!")
 	yes := statusBarPromptYStyle.Render("y") + statusBarPromptTextStyle.Render("es")
 	no := statusBarPromptYStyle.Render("n") + statusBarPromptTextStyle.Render("o")
-	contents := statusBarPromptTextStyle.Render(text + " " + yes + "/" + no)
+	contents := statusBarPromptTextStyle.Render(acc + " " + text + " " + yes + "/" + no)
 	return s.render("  " + contents)
 }
 
