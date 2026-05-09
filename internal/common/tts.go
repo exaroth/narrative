@@ -37,7 +37,7 @@ func KittenTypeFromString(n string) (KittenModelType, error) {
 	case "mini":
 		return KittenModelMini, nil
 	default:
-		return -1, fmt.Errorf("Unknown model: " + n)
+		return -1, fmt.Errorf("Unknown model")
 	}
 }
 
