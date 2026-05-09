@@ -20,7 +20,7 @@ type NarrativeArgs struct {
 	Source      string `arg:"positional"`
 	ListVoices  bool   `arg:"--list-voices"`
 	Voice       string
-	SelectModel string `arg:"--select-model"`
+	SelectModel string `arg:"-m,--select-model"`
 	AddModel    string `arg:"--add-model"`
 	ListModels  bool   `arg:"--list-models"`
 	Init        bool
@@ -52,6 +52,9 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 	if len(c.args.AddModel) > 0 {
 		msg, err := c.addModel(c.args.AddModel)
 		return true, msg, err
+	}
+	if len(c.args.SelectModel) > 0 {
+		return false, "", c.selectModel(c.args.SelectModel)
 	}
 	return false, "", nil
 }
@@ -188,4 +191,20 @@ func (c *NarrativeCtrl) addModel(n string) (string, error) {
 		return "", fmt.Errorf("Error saving data config, %w", err)
 	}
 	return fmt.Sprintf("Model %s added and selected as default.", n), nil
+}
+
+// Run narrative with selected model.
+func (c *NarrativeCtrl) selectModel(n string) error {
+	kt, err := KittenTypeFromString(n)
+	if err != nil {
+		return err
+	}
+	model := GetKittenModel(kt)
+	model_p := filepath.Join(c.paths.ModelPath, model.Name)
+
+	if _, err := os.Stat(model_p); err != nil {
+		return fmt.Errorf("Model %s is not installed.", n)
+	}
+	c.dataCfg.SelectedModel = model.Name
+	return nil
 }

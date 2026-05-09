@@ -75,13 +75,13 @@ func main() {
 func usage() string {
 	return `Usage: narrative [OPTIONS...] TEXT_SOURCE
 OPTIONS:
-	--voice <voice_name>   Set voice for playback.
-	--list-voices          List available voices.
-	--serve <port>         Start server running at <port>.
-	--list-models          List available KittenTTS model information.
-	--add-model <name>     Download and select KittenTTS model.
-	--select-model <name>  Switch currently used TTS model.
-	--help                 Print help.`
+	--voice <voice_name>      Set voice for playback.
+	--list-voices             List available voices.
+	--serve <port>            Start server running at <port>.
+	--list-models             List available KittenTTS model information.
+	--add-model <name>        Download and select KittenTTS model.
+	-m --select-model <name>  Run Narrative using given model.
+	--help                    Print help.`
 }
 
 func printVersion() string {
