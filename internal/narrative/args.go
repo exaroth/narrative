@@ -7,6 +7,7 @@ type NarrativeArgs struct {
 	Source     string `arg:"positional"`
 	ListVoices bool   `arg:"--list-voices"`
 	Voice      string
+	Init       bool
 	Help       bool
 	Version    bool
 }

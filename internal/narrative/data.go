@@ -2,6 +2,7 @@ package narrative
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -34,6 +35,17 @@ var SourceTypeName = map[SourceType]string{
 	SourceTypeUrl:      "url",
 	SourceTypeMarkdown: "markdown",
 }
+
+var (
+	MissingLibErr = errors.New(`Library is missing, fix it by running:
+narrative --init
+	or
+narrative --add-lib <library-name>`)
+	MissingModelErr = errors.New(`KittenTTS model is missing, fix it by running:
+narrative --init
+	or
+narrative --add-model <model-name>`)
+)
 
 func (t SourceType) String() string { return SourceTypeName[t] }
 
@@ -220,5 +232,14 @@ func LoadDataConfig(path string) (*DataConfig, error) {
 	}
 	var cfg DataConfig
 	err = json.Unmarshal(bytes, &cfg)
+	if err != nil {
+		return nil, err
+	}
+	if cfg.SelectedLib == "" {
+		return nil, MissingLibErr
+	}
+	if cfg.SelectedModel == "" {
+		return nil, MissingModelErr
+	}
 	return &cfg, err
 }

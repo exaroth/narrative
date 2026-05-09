@@ -1,6 +1,7 @@
 package narrative
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"math/rand"
@@ -85,13 +86,13 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 		}
 	}()
 
-	if paths.RequiresInit() {
-		CloseSpinner()
-		model_n, lib_n, err = ShowWelcomeScreen(paths)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// if paths.RequiresInit() || args.Init {
+	// 	CloseSpinner()
+	// 	model_n, lib_n, err = ShowWelcomeScreen(paths)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	ph, err = phonemizer.NewPhonemizer("")
 	if err != nil {
@@ -118,6 +119,9 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 	var data_cfg *DataConfig
 	data_cfg, err = LoadDataConfig(paths.DataConfigPath)
 	if err != nil {
+		if errors.Is(err, MissingLibErr) || errors.Is(err, MissingModelErr) {
+			return nil, err
+		}
 		data_cfg = NewDataConfig(model_n, lib_n)
 		if err = data_cfg.Save(paths.DataConfigPath); err != nil {
 			return nil, fmt.Errorf("Error creating data cfg: %w", err)
