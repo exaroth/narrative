@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 
@@ -19,10 +20,13 @@ import (
 type NarrativeArgs struct {
 	Source      string `arg:"positional"`
 	ListVoices  bool   `arg:"--list-voices"`
-	Voice       string
+	Voice       string `arg:"-v,--voice"`
 	SelectModel string `arg:"-m,--select-model"`
 	AddModel    string `arg:"--add-model"`
 	ListModels  bool   `arg:"--list-models"`
+	AddLib      string `arg:"--add-lib"`
+	SelectLib   string `arg:"-l,--select-lib"`
+	ListLibs    bool   `arg:"--list-libs"`
 	Init        bool
 	Help        bool
 	Version     bool
@@ -55,6 +59,16 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 	}
 	if len(c.args.SelectModel) > 0 {
 		return false, "", c.selectModel(c.args.SelectModel)
+	}
+	if c.args.ListLibs {
+		return true, c.getLibList(), nil
+	}
+	if len(c.args.AddLib) > 0 {
+		msg, err := c.addLib(c.args.AddLib)
+		return true, msg, err
+	}
+	if len(c.args.SelectLib) > 0 {
+		return false, "", c.selectLib(c.args.SelectLib)
 	}
 	return false, "", nil
 }
@@ -207,4 +221,86 @@ func (c *NarrativeCtrl) selectModel(n string) error {
 	}
 	c.dataCfg.SelectedModel = model.Name
 	return nil
+}
+
+// List available libraries for current os/arch.
+func (c *NarrativeCtrl) getLibList() string {
+	l := GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
+	if l == nil {
+		return fmt.Sprintf(
+			"Narrative is not available for %s/%s systems",
+			runtime.GOOS, runtime.GOARCH,
+		)
+	}
+	matches := OnnxLibMap[runtime.GOOS][runtime.GOARCH]
+	var builder strings.Builder
+	builder.WriteString("Available libraries:\n")
+	for _, m := range matches {
+		builder.WriteString("Name: " + m.name + "\n")
+		builder.WriteString("   Url: " + m.remote + "\n")
+		builder.WriteString("   OS: " + m.os + "\n")
+		builder.WriteString("   Arch: " + m.arch + "\n")
+		builder.WriteString("\n")
+	}
+	return builder.String()
+}
+
+// Add and select library with given name.
+func (c *NarrativeCtrl) addLib(n string) (string, error) {
+	l := GetOnnxLib(runtime.GOOS, runtime.GOARCH, n)
+	if l == nil {
+		return "", fmt.Errorf("ONNX library %s not found.", n)
+	}
+
+	lib_p := filepath.Join(c.paths.LibPath, l.name)
+	if _, err := os.Stat(lib_p); err == nil {
+		return "", fmt.Errorf("Library %s is already installed", l.name)
+	}
+
+	defer os.RemoveAll(DEFAULT_DOWNLOAD_DIR)
+
+	if err := DownloadAndQuit(
+		0,
+		l.remote,
+		"Downloading ONNX library...",
+		"lib.tgz",
+		30,
+	); err != nil {
+		return "", fmt.Errorf("Error downloading library: %w", err)
+	}
+
+	fmt.Println("Extracting archive...")
+	if err := ExtractTarGz(
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib.tgz"),
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib"),
+	); err != nil {
+		return "", fmt.Errorf("Error extracting archive: %w", err)
+	}
+	if err := cp.Copy(
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib", l.tar_path),
+		lib_p,
+	); err != nil {
+		return "", fmt.Errorf("Error copying library data: %w", err)
+	}
+
+	c.dataCfg.SelectedLib = l.name
+	if err := c.dataCfg.Save(c.paths.DataConfigPath); err != nil {
+		return "", fmt.Errorf("Error saving data config, %w", err)
+	}
+	return fmt.Sprintf("Library %s added and selected.", l.name), nil
+}
+
+// Run narrative with installed library.
+func (c *NarrativeCtrl) selectLib(n string) error {
+	l := GetOnnxLib(runtime.GOOS, runtime.GOARCH, n)
+	if l == nil {
+		return fmt.Errorf("ONNX library %s not found.", n)
+	}
+
+	lib_p := filepath.Join(c.paths.LibPath, l.name)
+	if _, err := os.Stat(lib_p); err != nil {
+		return fmt.Errorf("Library %s is not installed", l.name)
+	}
+	c.dataCfg.SelectedLib = l.name
+	return c.dataCfg.Save(c.paths.DataConfigPath)
 }
