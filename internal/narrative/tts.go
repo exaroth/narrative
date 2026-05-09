@@ -1,6 +1,7 @@
 package narrative
 
 import (
+	"fmt"
 	"path/filepath"
 	"strconv"
 )
@@ -12,6 +13,33 @@ const (
 	KittenModelNano
 	KittenModelMini
 )
+
+func (k KittenModelType) String() string {
+	switch k {
+	case KittenModelMicro:
+		return "micro"
+	case KittenModelNano:
+		return "nano"
+	case KittenModelMini:
+		return "mini"
+	default:
+		panic("Unknown model " + strconv.Itoa(int(k)))
+	}
+}
+
+// Retrieve kitten type from string
+func KittenTypeFromString(n string) (KittenModelType, error) {
+	switch n {
+	case "nano":
+		return KittenModelNano, nil
+	case "micro":
+		return KittenModelMicro, nil
+	case "mini":
+		return KittenModelMini, nil
+	default:
+		return -1, fmt.Errorf("Unknown model: " + n)
+	}
+}
 
 func GetKittenModel(t KittenModelType) *TTSModel {
 	switch t {

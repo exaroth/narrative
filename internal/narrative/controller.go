@@ -3,11 +3,8 @@ package narrative
 import (
 	"errors"
 	"fmt"
-	"maps"
-	"math/rand"
 	"os"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/exaroth/narrative/internal/config"
@@ -16,7 +13,6 @@ import (
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/player"
 	"github.com/exaroth/narrative/pkg/preprocessor"
-	"github.com/exaroth/narrative/pkg/reader"
 
 	tea "charm.land/bubbletea/v2"
 )
@@ -352,78 +348,4 @@ func (c *NarrativeCtrl) startDebugger() {
 		return
 	}
 	debugger.Run()
-}
-
-// Process command line arguments.
-func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
-	if len(c.args.Source) > 0 {
-		return false, "", c.addNewSource()
-	}
-	if len(c.args.Voice) > 0 {
-		return c.updateVoice()
-	}
-	if c.args.ListVoices {
-		return true, c.getVoiceList(), nil
-	}
-	return false, "", nil
-}
-
-// Add new text source based on the argument provided.
-func (c *NarrativeCtrl) addNewSource() error {
-	SpinnerMessageCh <- "Initializing text source.."
-	_, t := GetSourceType(c.args.Source)
-	var r reader.SourceReader
-	var err error
-	switch t {
-	case SourceTypeText:
-		r, err = reader.TextReader{}.Read(c.args.Source)
-	default:
-		return fmt.Errorf("Unable to find reader for file type: %s", t)
-	}
-	if err != nil {
-		return fmt.Errorf("Error reading text data: %w", err)
-	}
-	path, err := SaveTextSource(c.paths.SourcesPath, r.Id(), r.Data())
-	if err != nil {
-		return fmt.Errorf("Error creating source file: %w", err)
-	}
-	c.dataCfg.AddSource(t, r.Title(), r.Author(), r.Id(), path)
-	c.autoplaySource = r.Id()
-	return c.dataCfg.Save(c.paths.DataConfigPath)
-}
-
-// Update voice to be used in playback.
-func (c *NarrativeCtrl) updateVoice() (bool, string, error) {
-	all_voices := slices.Collect(maps.Keys(kitten.VOICE_MAP))
-	var voice string
-	switch c.args.Voice {
-	case "random":
-		voice = all_voices[rand.Intn(len(all_voices)-1)]
-	case "male":
-		voice = kitten.MALE_VOICES[rand.Intn(len(kitten.MALE_VOICES)-1)]
-	case "female":
-		voice = kitten.FEMALE_VOICES[rand.Intn(len(kitten.FEMALE_VOICES)-1)]
-	default:
-		if slices.Index(all_voices, c.args.Voice) == -1 {
-			return false, "", fmt.Errorf(
-				"Invalid voice passed: %s, available voices: %s",
-				c.args.Voice,
-				strings.Join(all_voices, ", "),
-			)
-		}
-		voice = c.args.Voice
-
-	}
-	c.cfg.Voice = voice
-	return false, "", nil
-}
-
-// Get list of all the voices.
-
-func (c *NarrativeCtrl) getVoiceList() string {
-	return fmt.Sprintf(
-		"Male voices: %s\nFemale voices: %s",
-		strings.Join(kitten.MALE_VOICES, ", "),
-		strings.Join(kitten.FEMALE_VOICES, ", "),
-	)
 }
