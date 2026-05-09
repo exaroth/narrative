@@ -189,7 +189,7 @@ func (m *mainViewModel) updateTermDimensions(width, height int) {
 	m.width = width
 	m.height = height
 	h, v := docStyle.GetFrameSize()
-	listWidth, listHeight := width-h, height-v-10 // 10 is progress
+	listWidth, listHeight := width-h, height-v-11 // 11 is progress
 	m.progress.SetWidth(width - 5)
 	m.transcript.SetWidth(width)
 	if m.showTranscript {
