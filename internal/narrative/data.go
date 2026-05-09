@@ -2,10 +2,12 @@ package narrative
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"maps"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -118,7 +120,6 @@ func (s Sources) Next(id string) *TextSource {
 // managed by narrative, such us text sources and models.
 type DataConfig struct {
 	Models        map[string]TTSModel
-	Libs          []string
 	SelectedModel string
 	SelectedLib   string
 	Bookmarks     map[string][]string
@@ -148,6 +149,37 @@ func (c *DataConfig) DeleteSource(id string) {
 	if c.LastSource == id {
 		c.LastSource = ""
 	}
+}
+
+// Retrieve full path to the onnx library file.
+func (c *DataConfig) GetLibPath(paths *NarrativePaths) (string, error) {
+	lib := GetOnnxLib(runtime.GOOS, runtime.GOARCH, c.SelectedLib)
+	if lib == nil {
+		return "", fmt.Errorf("Could not find library %s", c.SelectedLib)
+	}
+	return filepath.Join(paths.LibPath, lib.name, lib.filename), nil
+}
+
+// Get currently selected model config.
+func (c *DataConfig) getModel() TTSModel {
+	model, ok := c.Models[c.SelectedModel]
+	if !ok {
+		// Should never happen
+		panic(fmt.Sprintf("Model '%s' could not be selected", c.SelectedModel))
+	}
+	return model
+}
+
+// Retrieve full path to the voices file.
+func (c *DataConfig) GetVoicesPath(paths *NarrativePaths) string {
+	model := c.getModel()
+	return filepath.Join(paths.ModelPath, model.Name, VOICES_FNAME)
+}
+
+// Retrieve full path to the model library file.
+func (c *DataConfig) GetModelPath(paths *NarrativePaths) string {
+	model := c.getModel()
+	return filepath.Join(paths.ModelPath, model.Name, model.Fname)
 }
 
 // Save data config as json file.
