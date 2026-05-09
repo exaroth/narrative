@@ -144,7 +144,7 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m mainViewModel) View() tea.View {
 	var v tea.View
-	if m.width < minPanelWidth || m.height < minPanelHeight {
+	if !m.termSizeOk() {
 		v.SetContent(renderTermSizeWarning(m.width, m.height))
 		return v
 	}
@@ -185,6 +185,12 @@ func (m *mainViewModel) updateTermDimensions(width, height int) {
 	m.helpPanel = &helpPanel{width, height}
 }
 
+// Return true if terminal size is enough to properly
+// render the app.
+func (m *mainViewModel) termSizeOk() bool {
+	return m.width > minPanelWidth && m.height > minPanelHeight
+}
+
 func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 	if m.prompt != nil {
 		if key == "y" || key == "enter" {
@@ -197,7 +203,11 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 	}
 
 	if key == "ctrl+c" || key == "q" {
-		cmds = append(cmds, ShowPrompt("Quit?", tea.Quit, nil))
+		if !m.termSizeOk() {
+			cmds = append(cmds, tea.Quit)
+		} else {
+			cmds = append(cmds, ShowPrompt("Quit?", tea.Quit, nil))
+		}
 	}
 	if key == "?" || key == "f1" {
 		m.toggleHelp()
@@ -237,7 +247,7 @@ func (m *mainViewModel) closePrompt() {
 }
 
 func renderTermSizeWarning(w, h int) string {
-	text := fmt.Sprintf("Minimum terminal size must be at least:\n%dx%d",
+	text := fmt.Sprintf("Minimum terminal size must be at least:\n%dx%d\n\n(q - quit)",
 		minPanelWidth,
 		minPanelHeight,
 	)
