@@ -1,6 +1,7 @@
 package narrative
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -53,6 +54,14 @@ func (p *NarrativePaths) RequiresInit() bool {
 		p.ConfigPath,
 	} {
 		if _, err := os.Stat(path); err != nil {
+			return true
+		}
+	}
+	for _, path := range [2]string{
+		p.ModelPath,
+		p.LibPath,
+	} {
+		if CheckDirEmpty(path) {
 			return true
 		}
 	}
@@ -128,4 +137,18 @@ func LocalCache(folder ...string) string {
 
 func MakePath(path string) error {
 	return os.MkdirAll(path, os.FileMode(0755))
+}
+
+func CheckDirEmpty(path string) bool {
+	f, err := os.Open(path)
+	if err != nil {
+		return true
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if err == io.EOF {
+		return true
+	}
+	return false
 }
