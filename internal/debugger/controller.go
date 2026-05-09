@@ -138,11 +138,12 @@ func InitWithData(data []string, sentence_n int) (*Debugger, error) {
 
 	preprocessor := preprocessor.NewPreprocessor()
 
-	kitten := kitten.InitKittenWithPaths(
+	kitten := kitten.InitKittenWithParams(
 		lib_path,
 		data_cfg.GetModelPath(n_paths),
 		data_cfg.GetVoicesPath(n_paths),
 		kitten.DEFAULT_VOICE,
+		1.0,
 	)
 
 	debugger := &Debugger{

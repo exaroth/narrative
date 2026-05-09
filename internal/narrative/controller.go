@@ -220,10 +220,11 @@ func (c *NarrativeCtrl) Run() (string, error) {
 		return "", err
 	}
 
-	c.ttsClient = kitten.InitKittenWithPaths(lib_path,
+	c.ttsClient = kitten.InitKittenWithParams(lib_path,
 		c.dataCfg.GetModelPath(c.paths),
 		c.dataCfg.GetVoicesPath(c.paths),
 		c.cfg.Voice,
+		c.cfg.Speed,
 	)
 	CloseSpinner()
 

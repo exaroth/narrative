@@ -202,11 +202,12 @@ func NewKitten(config *KittenConfig) *Kitten {
 
 }
 
-func InitKittenWithPaths(lib_path, model_path, voice_path, voice string) *Kitten {
+func InitKittenWithParams(lib_path, model_path, voice_path, voice string, speed float32) *Kitten {
 	cfg := DefaultConfig()
 	cfg.Voice = voice
 	cfg.LibraryFilePath = lib_path
 	cfg.VoiceFilePath = voice_path
 	cfg.ModelFilePath = model_path
+	cfg.Speed = speed
 	return NewKitten(cfg)
 }

@@ -84,6 +84,7 @@ OPTIONS:
 	--list-libs               List available ONNX library for OS/Arch.
 	--add-lib <lib>           Download and select ONNX lib with given name.
 	-l --select-lib <lib>     Run narrative with provided library.
+	-s --speed                Select playback speed.
 	--help                    Print help.`
 }
 

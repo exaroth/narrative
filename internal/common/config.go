@@ -9,7 +9,7 @@ import (
 
 const (
 	// Speech speed
-	DEFAULT_TTS_SPEED float64 = 1.0
+	DEFAULT_TTS_SPEED float32 = 1.0
 	// Pause between sentences
 	DEFAULT_TTS_PAUSE = 0
 	// Number of sentneces to buffer during playback
@@ -32,7 +32,7 @@ type Config struct {
 	// as kitten tts does not like those.
 	RemoveWordTrailingHyphens *bool `yaml:"remove_trailing_hyphens,omitempty"`
 	// Speed of playback.
-	Speed float64 `yaml:"speed"`
+	Speed float32 `yaml:"speed"`
 	// Pause between sentences.
 	Pause float64 `yaml:"pause"`
 	// Number of sentences to cache to keep in cache.
@@ -100,7 +100,7 @@ func NewConfig(
 	debug_mode bool,
 	use_selection_inference bool,
 	remove_word_trailing_hyphens bool,
-	speed float64,
+	speed float32,
 	pause float64,
 	buffer_size int,
 	max_buffer_size int,

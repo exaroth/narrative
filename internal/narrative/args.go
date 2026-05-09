@@ -19,15 +19,16 @@ import (
 
 // Holds arguments used by Narrative.
 type NarrativeArgs struct {
-	Source      string `arg:"positional"`
-	ListVoices  bool   `arg:"--list-voices"`
-	Voice       string `arg:"-v,--voice"`
-	SelectModel string `arg:"-m,--select-model"`
-	AddModel    string `arg:"--add-model"`
-	ListModels  bool   `arg:"--list-models"`
-	AddLib      string `arg:"--add-lib"`
-	SelectLib   string `arg:"-l,--select-lib"`
-	ListLibs    bool   `arg:"--list-libs"`
+	Source      string  `arg:"positional"`
+	ListVoices  bool    `arg:"--list-voices"`
+	Voice       string  `arg:"-v,--voice"`
+	SelectModel string  `arg:"-m,--select-model"`
+	AddModel    string  `arg:"--add-model"`
+	ListModels  bool    `arg:"--list-models"`
+	AddLib      string  `arg:"--add-lib"`
+	SelectLib   string  `arg:"-l,--select-lib"`
+	ListLibs    bool    `arg:"--list-libs"`
+	Speed       float32 `arg:"-s,--speed"`
 	Init        bool
 	Help        bool
 	Version     bool
@@ -70,6 +71,10 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 	}
 	if len(c.args.SelectLib) > 0 {
 		return false, "", c.selectLib(c.args.SelectLib)
+	}
+	if c.args.Speed > 0 {
+		c.cfg.Speed = c.args.Speed
+		return false, "", nil
 	}
 	return false, "", nil
 }
