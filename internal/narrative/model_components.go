@@ -93,7 +93,8 @@ func (s *statusBar) Prompt(text string) string {
 	acc := statusBarPromptAccStyle.Render("!")
 	yes := statusBarPromptYStyle.Render("y") + statusBarPromptTextStyle.Render("es")
 	no := statusBarPromptYStyle.Render("n") + statusBarPromptTextStyle.Render("o")
-	contents := statusBarPromptTextStyle.Render(acc + " " + text + " " + yes + "/" + no)
+	n_r := statusBarPromptTextStyle.Render
+	contents := acc + n_r(" "+text+" ") + yes + n_r("/") + no
 	return s.render("  " + contents)
 }
 
