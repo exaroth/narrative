@@ -184,16 +184,20 @@ func (m narrativeModel) renderInfo() *lipgloss.Layer {
 	var builder strings.Builder
 	builder.WriteString("Stats for nerds:\n\n")
 	builder.WriteString("Source:\n")
-	builder.WriteString(fmt.Sprintf("  Title: %s\n", m.ctrl.Source().ts.Title))
-	builder.WriteString(fmt.Sprintf("  Author: %s\n", m.ctrl.Source().ts.Author))
-	builder.WriteString(fmt.Sprintf("  ID: %s\n", m.ctrl.Source().id))
-	builder.WriteString(fmt.Sprintf("  Path: %s\n", m.ctrl.Source().ts.Path))
-	builder.WriteString(fmt.Sprintf("  Type: %s\n", m.ctrl.Source().ts.SourceType))
-	builder.WriteString(fmt.Sprintf("  Created: %s\n",
-		time.Unix(m.ctrl.Source().ts.Added, 0).Format("2006-01-02 15:04:05"),
-	))
-	builder.WriteString(fmt.Sprintf("  Total Sentences: %d\n", m.ctrl.Source().length))
-	builder.WriteString(fmt.Sprintf("  Current Sentence: %d\n", m.ctrl.Source().SNum()))
+	if m.ctrl.Source().IsDummy() {
+		builder.WriteString(fmt.Sprintf("  N/A\n"))
+	} else {
+		builder.WriteString(fmt.Sprintf("  Title: %s\n", m.ctrl.Source().ts.Title))
+		builder.WriteString(fmt.Sprintf("  Author: %s\n", m.ctrl.Source().ts.Author))
+		builder.WriteString(fmt.Sprintf("  ID: %s\n", m.ctrl.Source().id))
+		builder.WriteString(fmt.Sprintf("  Path: %s\n", m.ctrl.Source().ts.Path))
+		builder.WriteString(fmt.Sprintf("  Type: %s\n", m.ctrl.Source().ts.SourceType))
+		builder.WriteString(fmt.Sprintf("  Created: %s\n",
+			time.Unix(m.ctrl.Source().ts.Added, 0).Format("2006-01-02 15:04:05"),
+		))
+		builder.WriteString(fmt.Sprintf("  Total Sentences: %d\n", m.ctrl.Source().length))
+		builder.WriteString(fmt.Sprintf("  Current Sentence: %d\n", m.ctrl.Source().SNum()))
+	}
 
 	builder.WriteString("\n")
 
