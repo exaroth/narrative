@@ -79,8 +79,10 @@ var TitleStyle = lipgloss.NewStyle().
 
 // Contains styles for primary sources list.
 type ListStyles struct {
-	Base         lipgloss.Style
-	BaseSelected lipgloss.Style
+	Base                lipgloss.Style
+	BasePlaying         lipgloss.Style
+	BaseSelected        lipgloss.Style
+	BasePlayingSelected lipgloss.Style
 
 	// The Normal state.
 	NormalTitle lipgloss.Style
@@ -110,6 +112,13 @@ func NewListStyles(isDark bool) (s ListStyles) {
 		BorderForeground(col.Color3)
 
 	s.BaseSelected = s.Base.
+		BorderForeground(col.Color1)
+
+	s.BasePlaying = lipgloss.NewStyle().
+		BorderForeground(col.Color2).
+		Border(lipgloss.ThickBorder(), true, true, true, true)
+
+	s.BasePlayingSelected = s.BasePlaying.
 		BorderForeground(col.Color1)
 
 	s.NormalTitle = lipgloss.NewStyle().

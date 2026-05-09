@@ -36,6 +36,7 @@ type mainViewModel struct {
 	sources        common.Sources
 	currentSource  *Source
 	list           list.Model
+	sourceList     []list.Item
 	progress       ProgressModel
 	perc           *percRead
 	statusBar      *statusBar
@@ -50,7 +51,8 @@ type mainViewModel struct {
 
 // Initialize new narrative model.
 func NewMainViewModel(source_list common.Sources) *mainViewModel {
-	l := list.New(source_list.ListItems(), NewDelegate(), 0, 0)
+	source_l := source_list.ListItems()
+	l := list.New(source_l, NewDelegate(), 0, 0)
 	l.SetShowHelp(false)
 	l.Title = appTitle
 	l.Styles.Title = TitleStyle
@@ -61,6 +63,7 @@ func NewMainViewModel(source_list common.Sources) *mainViewModel {
 		currentSource:  nil,
 		list:           l,
 		progress:       p,
+		sourceList:     source_l,
 		perc:           &percRead{},
 		statusBar:      &statusBar{},
 		transcript:     &transcript{height: transcriptHeight},
@@ -113,6 +116,7 @@ func (m mainViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UpdateSourceListCmd:
 		cmds = append(cmds, m.list.SetItems(msg.items))
 	case SelectSourceCmd:
+		m.updateSourceList(msg.id)
 		if msg.id == m.currentSource.id {
 			if msg.autoplay {
 				cmds = append(cmds, TogglePlayback())
@@ -167,6 +171,17 @@ func (m mainViewModel) View() tea.View {
 		progress + "\n" +
 		m.perc.Render())
 	return v
+}
+
+func (m *mainViewModel) updateSourceList(id string) {
+	for _, s := range m.sourceList {
+		ss, _ := s.(*common.TextSource)
+		if ss.Id == id {
+			ss.Playing = true
+		} else {
+			ss.Playing = false
+		}
+	}
 }
 
 // Update component dimensions based on terminal size.

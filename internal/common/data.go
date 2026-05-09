@@ -75,6 +75,7 @@ type TextSource struct {
 	Id, Title, Author, Path string
 	SourceType              SourceType
 	Added                   int64
+	Playing                 bool
 }
 
 func (t TextSource) FilterValue() string { return t.Title }

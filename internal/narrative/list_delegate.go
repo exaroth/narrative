@@ -91,6 +91,7 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 		title_s, author_s    lipgloss.Style
 		matchedRunes         []int
 		s                    = &d.Styles
+		playing              bool
 	)
 
 	if m.Width() <= 0 {
@@ -104,6 +105,7 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 		title = i.Title
 		author = i.Author
 		stype = i.SourceType.String()
+		playing = i.Playing
 	} else {
 		// should not ever happen
 		panic("Invalid item type passed to delegate")
@@ -122,26 +124,35 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	// author = "J.R.R Tokien"
 
 	var base lipgloss.Style
-	if emptyFilter {
+	switch {
+	case emptyFilter:
 		title_s = s.DimmedTitle
 		author_s = s.DimmedDesc
 		base = s.Base
-	} else if isSelected && m.FilterState() != list.Filtering {
+	case isSelected && m.FilterState() != list.Filtering:
 		if isFiltered {
 			unmatched := s.SelectedTitle.Inline(true)
 			matched := unmatched.Inherit(s.FilterMatch)
 			title = lipgloss.StyleRunes(title, matchedRunes, matched, unmatched)
 		}
-		base = s.BaseSelected
+		if playing {
+			base = s.BasePlayingSelected
+		} else {
+			base = s.BaseSelected
+		}
 		title_s = s.SelectedTitle
 		author_s = s.SelectedDesc
-	} else {
+	default:
 		if isFiltered {
 			unmatched := s.NormalTitle.Inline(true)
 			matched := unmatched.Inherit(s.FilterMatch)
 			title = lipgloss.StyleRunes(title, matchedRunes, matched, unmatched)
 		}
-		base = s.Base
+		if playing {
+			base = s.BasePlaying
+		} else {
+			base = s.Base
+		}
 		title_s = s.NormalTitle
 		author_s = s.NormalDesc
 	}
