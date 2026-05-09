@@ -243,6 +243,9 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 		}
 		m.fForwarder.Update(key == "l")
 	}
+	if PSM.AllowsRewinding() && key == "ctrl+h" {
+		FastForwardCh <- 0
+	}
 	return
 }
 
