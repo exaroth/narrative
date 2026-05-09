@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/preprocessor"
@@ -42,6 +43,7 @@ type Source struct {
 	// Buffer size
 	buf_size int
 	mut      *sync.Mutex
+	ts       *common.TextSource
 }
 
 // Initialize new source instance.
@@ -51,6 +53,7 @@ func InitSource(
 	pproc *preprocessor.Preprocessor,
 	phonemizer *phonemizer.Phonemizer,
 	ttsClient *kitten.Kitten,
+	textSource *common.TextSource,
 ) (*Source, error) {
 	data, err := LoadTextSource(path)
 	if err != nil {
@@ -68,6 +71,7 @@ func InitSource(
 		cache_buf:   NewBufferCacheLRU(max_buf_size),
 		buf_size:    buf_size,
 		mut:         &sync.Mutex{},
+		ts:          textSource,
 	}, nil
 }
 

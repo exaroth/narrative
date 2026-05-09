@@ -214,3 +214,7 @@ var welcomeScreenModelNameStyle = lipgloss.NewStyle().Foreground(col.Color2)
 var welcomeScreenModelNameSelectedStyle = lipgloss.NewStyle().
 	Inherit(welcomeScreenModelNameStyle).
 	Foreground(col.Color1)
+
+// Info panel
+// ==========
+var infoPanelStyle = lipgloss.NewStyle().Background(col.Background).Padding(2)

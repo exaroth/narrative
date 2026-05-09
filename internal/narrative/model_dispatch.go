@@ -1,8 +1,14 @@
 package narrative
 
 import (
+	"fmt"
+	"runtime"
+	"strings"
+	"time"
+
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/exaroth/narrative/internal/common"
 )
 
 // How long we show modals for (in seconds).
@@ -59,6 +65,7 @@ type narrativeModel struct {
 	ctrl          *NarrativeCtrl
 	mainView      tea.Model
 	modal         *Modal
+	showInfo      bool
 	modalTimeout  int
 	width, height int
 }
@@ -172,6 +179,53 @@ func (m narrativeModel) renderModal() *lipgloss.Layer {
 	return lipgloss.NewLayer(modal).X(x).Y(defaultModalYOffset)
 }
 
+// Render internal information about playback
+func (m narrativeModel) renderInfo() *lipgloss.Layer {
+	var builder strings.Builder
+	builder.WriteString("Stats for nerds:\n\n")
+	builder.WriteString("Source:\n")
+	builder.WriteString(fmt.Sprintf("  Title: %s\n", m.ctrl.Source().ts.Title))
+	builder.WriteString(fmt.Sprintf("  Author: %s\n", m.ctrl.Source().ts.Author))
+	builder.WriteString(fmt.Sprintf("  ID: %s\n", m.ctrl.Source().id))
+	builder.WriteString(fmt.Sprintf("  Path: %s\n", m.ctrl.Source().ts.Path))
+	builder.WriteString(fmt.Sprintf("  Type: %s\n", m.ctrl.Source().ts.SourceType))
+	builder.WriteString(fmt.Sprintf("  Created: %s\n",
+		time.Unix(m.ctrl.Source().ts.Added, 0).Format("2006-01-02 15:04:05"),
+	))
+	builder.WriteString(fmt.Sprintf("  Total Sentences: %d\n", m.ctrl.Source().length))
+	builder.WriteString(fmt.Sprintf("  Current Sentence: %d\n", m.ctrl.Source().SNum()))
+
+	builder.WriteString("\n")
+
+	builder.WriteString(fmt.Sprintf("Selected Voice: %s\n", m.ctrl.cfg.Voice))
+	builder.WriteString(fmt.Sprintf("Playback Speed: %.2f\n", m.ctrl.cfg.Speed))
+
+	builder.WriteString("\n")
+
+	model_n := m.ctrl.dataCfg.SelectedModel
+	model_t, _ := common.KittenTypeFromString(model_n)
+	model := common.GetKittenModel(model_t)
+	builder.WriteString("Model:\n")
+	builder.WriteString(fmt.Sprintf("  Name: %s\n", model_n))
+	builder.WriteString(fmt.Sprintf("  Type: %d\n", model_t))
+	builder.WriteString(fmt.Sprintf("  Remote: %s\n", model.Remote))
+	builder.WriteString(fmt.Sprintf("  Fname: %s\n", model.Fname))
+
+	builder.WriteString("\n")
+
+	lib_n := m.ctrl.dataCfg.SelectedLib
+	lib_d := common.GetOnnxLib(runtime.GOOS, runtime.GOARCH, lib_n)
+	builder.WriteString("Library:\n")
+	builder.WriteString(fmt.Sprintf("  Name: %s\n", lib_n))
+	builder.WriteString(fmt.Sprintf("  OS: %s\n", lib_d.Os))
+	builder.WriteString(fmt.Sprintf("  Arch: %s\n", lib_d.Arch))
+	builder.WriteString(fmt.Sprintf("  Filename: %s\n", lib_d.Filename))
+	builder.WriteString(fmt.Sprintf("  Remote: %s\n", lib_d.Remote))
+
+	style := infoPanelStyle.Width(m.width - 8).Height(m.height - 8)
+	return lipgloss.NewLayer(style.Render(builder.String())).X(4).Y(4)
+}
+
 // Attach new modal to the model.
 func (m *narrativeModel) addModal(t modalType, content string) {
 	m.modal = &Modal{
@@ -209,6 +263,9 @@ func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ctrl.runDebugger = true
 			return m, tea.Quit
 		}
+		if k == "f3" {
+			m.showInfo = !m.showInfo
+		}
 	}
 
 	switch m.mode {
@@ -230,6 +287,9 @@ func (m narrativeModel) View() tea.View {
 			layers,
 			m.renderModal(),
 		)
+	}
+	if m.showInfo {
+		layers = append(layers, m.renderInfo())
 	}
 	comp := lipgloss.NewCompositor(layers...)
 	v.SetContent(comp.Render())

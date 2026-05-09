@@ -133,7 +133,7 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 		ss, err := InitSource(
 			s.Path, sentence_n,
 			c.cfg.BufferSize, c.cfg.MaxBufferSize,
-			c.preprocessor, c.phonemizer, c.ttsClient,
+			c.preprocessor, c.phonemizer, c.ttsClient, s,
 		)
 		if err != nil {
 			return fmt.Errorf("Error initializing source @ %s: %w", s.Path, err)
