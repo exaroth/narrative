@@ -298,6 +298,7 @@ func ShowWelcomeScreen(paths *NarrativePaths) (model_n string, lib_n string, err
 	}
 	model_n = m_data.Name
 	lib_n = lib.name
+	os.Remove(paths.DataConfigPath)
 	return
 
 }

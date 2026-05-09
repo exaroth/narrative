@@ -15,13 +15,26 @@ type KittenConfig struct {
 	// Replace soft g's with hard ones, input dicts
 	// for some reason contain only former ones
 	ReplaceSoftG bool
+
+	// Path to voice npz file.
+	VoiceFilePath string
+
+	// Path to Kitten TTS onnx model file.
+	ModelFilePath string
+
+	// Path to ONNX library file.
+	LibraryFilePath string
+
+	// Playback speed
+	Speed float32
 }
 
 // Return kitten config with default values.
 func DefaultConfig() *KittenConfig {
 	return &KittenConfig{
 		RemoveLeadingHyphens: true,
-		Voice:                "Luna",
+		Voice:                DEFAULT_VOICE,
 		ReplaceSoftG:         true,
+		Speed:                DEFAULT_SPEED,
 	}
 }

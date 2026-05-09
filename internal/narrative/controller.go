@@ -53,9 +53,12 @@ func initDirectoryStructure() *NarrativePaths {
 }
 
 // Initialize new kittenTTS client with given voice.
-func initKitten(voice string) *kitten.Kitten {
+func initKitten(lib_path, model_path, voice_path, voice string) *kitten.Kitten {
 	cfg := kitten.DefaultConfig()
 	cfg.Voice = voice
+	cfg.LibraryFilePath = lib_path
+	cfg.VoiceFilePath = voice_path
+	cfg.ModelFilePath = model_path
 	return kitten.NewKitten(cfg)
 }
 
@@ -86,13 +89,13 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 		}
 	}()
 
-	// if paths.RequiresInit() || args.Init {
-	// 	CloseSpinner()
-	// 	model_n, lib_n, err = ShowWelcomeScreen(paths)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
+	if paths.RequiresInit() || args.Init {
+		CloseSpinner()
+		model_n, lib_n, err = ShowWelcomeScreen(paths)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	ph, err = phonemizer.NewPhonemizer("")
 	if err != nil {
@@ -231,14 +234,23 @@ func (c *NarrativeCtrl) initSourcePlayback() {
 // Run the model.
 func (c *NarrativeCtrl) Run() (string, error) {
 	exit, msg, err := c.handleArguments()
-
-	c.ttsClient = initKitten(c.cfg.Voice)
-
-	CloseSpinner()
-
 	if exit || err != nil {
+		CloseSpinner()
 		return msg, err
 	}
+
+	lib_path, err := c.dataCfg.GetLibPath(c.paths)
+	if err != nil {
+		CloseSpinner()
+		return "", err
+	}
+
+	c.ttsClient = initKitten(lib_path,
+		c.dataCfg.GetModelPath(c.paths),
+		c.dataCfg.GetVoicesPath(c.paths),
+		c.cfg.Voice,
+	)
+	CloseSpinner()
 
 	c.program = tea.NewProgram(c.model)
 
