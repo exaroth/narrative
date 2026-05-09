@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/player"
@@ -101,6 +102,19 @@ func InitWithFile(input_fpath string, sentence_n int) (*Debugger, error) {
 // Init with string based data, this is used in when running
 // debugger as part of another app.
 func InitWithData(data []string, sentence_n int) (*Debugger, error) {
+
+	n_paths := common.InitDirectoryStructure()
+
+	data_cfg, err := common.LoadDataConfig(n_paths.DataConfigPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not load data cfg: %w", err)
+	}
+
+	lib_path, err := data_cfg.GetLibPath(n_paths)
+	if err != nil {
+		return nil, fmt.Errorf("Could not retrieve library path: %w", err)
+	}
+
 	config := DefaultConfig()
 	paths, err := initDebuggerDir(config)
 	if err != nil {
@@ -123,7 +137,13 @@ func InitWithData(data []string, sentence_n int) (*Debugger, error) {
 	}
 
 	preprocessor := preprocessor.NewPreprocessor()
-	kitten := kitten.NewKitten(kitten.DefaultConfig())
+
+	kitten := kitten.InitKittenWithPaths(
+		lib_path,
+		data_cfg.GetModelPath(n_paths),
+		data_cfg.GetVoicesPath(n_paths),
+		kitten.DEFAULT_VOICE,
+	)
 
 	debugger := &Debugger{
 		config:          config,

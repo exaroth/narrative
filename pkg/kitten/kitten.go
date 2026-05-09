@@ -34,11 +34,6 @@ var FEMALE_VOICES = []string{
 	"Kiki",
 }
 
-const (
-	DEFAULT_VOICE         = "Luna"
-	DEFAULT_SPEED float32 = 1.2
-)
-
 // Representation of a single voice array matrix.
 type vMat [400][256]float32
 
@@ -205,4 +200,13 @@ func NewKitten(config *KittenConfig) *Kitten {
 		cfg:       config,
 	}
 
+}
+
+func InitKittenWithPaths(lib_path, model_path, voice_path, voice string) *Kitten {
+	cfg := DefaultConfig()
+	cfg.Voice = voice
+	cfg.LibraryFilePath = lib_path
+	cfg.VoiceFilePath = voice_path
+	cfg.ModelFilePath = model_path
+	return NewKitten(cfg)
 }

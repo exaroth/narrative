@@ -1,11 +1,11 @@
 package debugger
 
 import (
-	"github.com/exaroth/narrative/internal/config"
+	"github.com/exaroth/narrative/internal/common"
 )
 
 type Config struct {
-	mainConfig *config.Config
+	mainConfig *common.Config
 	// Full relative or absolute path
 	// to directory to be used for storing
 	// debugger data.
@@ -19,7 +19,7 @@ type Config struct {
 func DefaultConfig() *Config {
 	use_sel_inf := true
 	remove_word_hyp := false
-	c := config.DefaultConfig()
+	c := common.DefaultConfig()
 	c.UsePhonemeSelectionInference = &use_sel_inf
 	c.RemoveWordTrailingHyphens = &remove_word_hyp
 	c.DebuggerMode = true

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/alexflint/go-arg"
+	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/reader"
 	cp "github.com/otiai10/copy"
@@ -76,11 +77,11 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 // Add new text source based on the argument provided.
 func (c *NarrativeCtrl) addNewSource() error {
 	SpinnerMessageCh <- "Initializing text source.."
-	_, t := GetSourceType(c.args.Source)
+	_, t := common.GetSourceType(c.args.Source)
 	var r reader.SourceReader
 	var err error
 	switch t {
-	case SourceTypeText:
+	case common.SourceTypeText:
 		r, err = reader.TextReader{}.Read(c.args.Source)
 	default:
 		return fmt.Errorf("Unable to find reader for file type: %s", t)
@@ -136,10 +137,10 @@ func (c *NarrativeCtrl) getVoiceList() string {
 func (c *NarrativeCtrl) getModelList() string {
 	var builder strings.Builder
 	builder.WriteString("Available models:\n")
-	for _, m := range [3]TTSModel{
-		TTSModelNano,
-		TTSModelMini,
-		TTSModelMicro,
+	for _, m := range [3]common.TTSModel{
+		common.TTSModelNano,
+		common.TTSModelMini,
+		common.TTSModelMicro,
 	} {
 		builder.WriteString("Name: " + m.Name + "\n")
 		builder.WriteString("  Source: " + m.Remote + "\n")
@@ -151,11 +152,11 @@ func (c *NarrativeCtrl) getModelList() string {
 // Download KittenTTS model passed in the argument.
 func (c *NarrativeCtrl) addModel(n string) (string, error) {
 	CloseSpinner()
-	kt, err := KittenTypeFromString(n)
+	kt, err := common.KittenTypeFromString(n)
 	if err != nil {
 		return "", err
 	}
-	model := GetKittenModel(kt)
+	model := common.GetKittenModel(kt)
 	model_p := filepath.Join(c.paths.ModelPath, model.Name)
 
 	if _, err := os.Stat(model_p); err == nil {
@@ -175,9 +176,9 @@ func (c *NarrativeCtrl) addModel(n string) (string, error) {
 	}
 	if err := DownloadAndQuit(
 		1,
-		model.Remote+"/"+VOICES_FNAME+"?download=true",
+		model.Remote+"/"+common.VOICES_FNAME+"?download=true",
 		"Downloading voice data...",
-		VOICES_FNAME,
+		common.VOICES_FNAME,
 		30,
 	); err != nil {
 		return "", fmt.Errorf("Error downloading voices %w", err)
@@ -194,8 +195,8 @@ func (c *NarrativeCtrl) addModel(n string) (string, error) {
 		return "", fmt.Errorf("Error copying model: %w", err)
 	}
 	if err := cp.Copy(
-		filepath.Join(DEFAULT_DOWNLOAD_DIR, VOICES_FNAME),
-		filepath.Join(model_p, VOICES_FNAME),
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, common.VOICES_FNAME),
+		filepath.Join(model_p, common.VOICES_FNAME),
 	); err != nil {
 		return "", fmt.Errorf("Error copying voices file: %w", err)
 	}
@@ -209,11 +210,11 @@ func (c *NarrativeCtrl) addModel(n string) (string, error) {
 
 // Run narrative with selected model.
 func (c *NarrativeCtrl) selectModel(n string) error {
-	kt, err := KittenTypeFromString(n)
+	kt, err := common.KittenTypeFromString(n)
 	if err != nil {
 		return err
 	}
-	model := GetKittenModel(kt)
+	model := common.GetKittenModel(kt)
 	model_p := filepath.Join(c.paths.ModelPath, model.Name)
 
 	if _, err := os.Stat(model_p); err != nil {
@@ -225,21 +226,21 @@ func (c *NarrativeCtrl) selectModel(n string) error {
 
 // List available libraries for current os/arch.
 func (c *NarrativeCtrl) getLibList() string {
-	l := GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
+	l := common.GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
 	if l == nil {
 		return fmt.Sprintf(
 			"Narrative is not available for %s/%s systems",
 			runtime.GOOS, runtime.GOARCH,
 		)
 	}
-	matches := OnnxLibMap[runtime.GOOS][runtime.GOARCH]
+	matches := common.OnnxLibMap[runtime.GOOS][runtime.GOARCH]
 	var builder strings.Builder
 	builder.WriteString("Available libraries:\n")
 	for _, m := range matches {
-		builder.WriteString("Name: " + m.name + "\n")
-		builder.WriteString("   Url: " + m.remote + "\n")
-		builder.WriteString("   OS: " + m.os + "\n")
-		builder.WriteString("   Arch: " + m.arch + "\n")
+		builder.WriteString("Name: " + m.Name + "\n")
+		builder.WriteString("   Url: " + m.Remote + "\n")
+		builder.WriteString("   OS: " + m.Os + "\n")
+		builder.WriteString("   Arch: " + m.Arch + "\n")
 		builder.WriteString("\n")
 	}
 	return builder.String()
@@ -247,21 +248,21 @@ func (c *NarrativeCtrl) getLibList() string {
 
 // Add and select library with given name.
 func (c *NarrativeCtrl) addLib(n string) (string, error) {
-	l := GetOnnxLib(runtime.GOOS, runtime.GOARCH, n)
+	l := common.GetOnnxLib(runtime.GOOS, runtime.GOARCH, n)
 	if l == nil {
 		return "", fmt.Errorf("ONNX library %s not found.", n)
 	}
 
-	lib_p := filepath.Join(c.paths.LibPath, l.name)
+	lib_p := filepath.Join(c.paths.LibPath, l.Name)
 	if _, err := os.Stat(lib_p); err == nil {
-		return "", fmt.Errorf("Library %s is already installed", l.name)
+		return "", fmt.Errorf("Library %s is already installed", l.Name)
 	}
 
 	defer os.RemoveAll(DEFAULT_DOWNLOAD_DIR)
 
 	if err := DownloadAndQuit(
 		0,
-		l.remote,
+		l.Remote,
 		"Downloading ONNX library...",
 		"lib.tgz",
 		30,
@@ -277,30 +278,30 @@ func (c *NarrativeCtrl) addLib(n string) (string, error) {
 		return "", fmt.Errorf("Error extracting archive: %w", err)
 	}
 	if err := cp.Copy(
-		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib", l.tar_path),
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib", l.TarPath),
 		lib_p,
 	); err != nil {
 		return "", fmt.Errorf("Error copying library data: %w", err)
 	}
 
-	c.dataCfg.SelectedLib = l.name
+	c.dataCfg.SelectedLib = l.Name
 	if err := c.dataCfg.Save(c.paths.DataConfigPath); err != nil {
 		return "", fmt.Errorf("Error saving data config, %w", err)
 	}
-	return fmt.Sprintf("Library %s added and selected.", l.name), nil
+	return fmt.Sprintf("Library %s added and selected.", l.Name), nil
 }
 
 // Run narrative with installed library.
 func (c *NarrativeCtrl) selectLib(n string) error {
-	l := GetOnnxLib(runtime.GOOS, runtime.GOARCH, n)
+	l := common.GetOnnxLib(runtime.GOOS, runtime.GOARCH, n)
 	if l == nil {
 		return fmt.Errorf("ONNX library %s not found.", n)
 	}
 
-	lib_p := filepath.Join(c.paths.LibPath, l.name)
+	lib_p := filepath.Join(c.paths.LibPath, l.Name)
 	if _, err := os.Stat(lib_p); err != nil {
-		return fmt.Errorf("Library %s is not installed", l.name)
+		return fmt.Errorf("Library %s is not installed", l.Name)
 	}
-	c.dataCfg.SelectedLib = l.name
+	c.dataCfg.SelectedLib = l.Name
 	return c.dataCfg.Save(c.paths.DataConfigPath)
 }

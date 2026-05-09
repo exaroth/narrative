@@ -1,5 +1,10 @@
 package kitten
 
+const (
+	DEFAULT_VOICE         = "Luna"
+	DEFAULT_SPEED float32 = 1.0
+)
+
 // Main configuration
 // for kittenTTS runner
 type KittenConfig struct {

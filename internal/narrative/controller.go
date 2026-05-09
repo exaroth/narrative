@@ -7,7 +7,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/exaroth/narrative/internal/config"
+	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/internal/debugger"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
@@ -22,9 +22,9 @@ type NarrativeCtrl struct {
 	preprocessor  *preprocessor.Preprocessor
 	ttsClient     *kitten.Kitten
 	player        *player.Player
-	cfg           *config.Config
-	dataCfg       *DataConfig
-	paths         *NarrativePaths
+	cfg           *common.Config
+	dataCfg       *common.DataConfig
+	paths         *common.NarrativePaths
 	model         *narrativeModel
 	args          *NarrativeArgs
 	currentSource *Source
@@ -35,27 +35,6 @@ type NarrativeCtrl struct {
 	autoplaySource string
 	// Whether to run debugger after app deinit.
 	runDebugger bool
-}
-
-// Create basic directory structure for narrative.
-func initDirectoryStructure() *NarrativePaths {
-	paths := InitPaths()
-	MakePath(paths.ConfigDir)
-	MakePath(paths.DataDir)
-	MakePath(paths.ModelPath)
-	MakePath(paths.LibPath)
-	MakePath(paths.SourcesPath)
-	return paths
-}
-
-// Initialize new kittenTTS client with given voice.
-func initKitten(lib_path, model_path, voice_path, voice string) *kitten.Kitten {
-	cfg := kitten.DefaultConfig()
-	cfg.Voice = voice
-	cfg.LibraryFilePath = lib_path
-	cfg.VoiceFilePath = voice_path
-	cfg.ModelFilePath = model_path
-	return kitten.NewKitten(cfg)
 }
 
 // Get currently loaded source.
@@ -74,7 +53,7 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 	var ph *phonemizer.Phonemizer
 	var preproc *preprocessor.Preprocessor
 
-	paths := initDirectoryStructure()
+	paths := common.InitDirectoryStructure()
 
 	startSpinner("Preparing Narrative...")
 
@@ -99,29 +78,29 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 	}
 
 	preproc = preprocessor.NewPreprocessor()
-	var cfg *config.Config
+	var cfg *common.Config
 	if _, err = os.Stat(paths.ConfigPath); err != nil {
-		cfg = config.DefaultConfig()
+		cfg = common.DefaultConfig()
 		if err = cfg.Save(paths.ConfigPath); err != nil {
 			return nil, fmt.Errorf("Error saving config @ %s; %w",
 				paths.ConfigPath, err,
 			)
 		}
 	} else {
-		cfg, err = config.LoadConfig(paths.ConfigPath)
+		cfg, err = common.LoadConfig(paths.ConfigPath)
 		if err != nil {
 			return nil, fmt.Errorf("Error loading config @ %s, %w",
 				paths.ConfigPath, err,
 			)
 		}
 	}
-	var data_cfg *DataConfig
-	data_cfg, err = LoadDataConfig(paths.DataConfigPath)
+	var data_cfg *common.DataConfig
+	data_cfg, err = common.LoadDataConfig(paths.DataConfigPath)
 	if err != nil {
-		if errors.Is(err, MissingLibErr) || errors.Is(err, MissingModelErr) {
+		if errors.Is(err, common.MissingLibErr) || errors.Is(err, common.MissingModelErr) {
 			return nil, err
 		}
-		data_cfg = NewDataConfig(model_n, lib_n)
+		data_cfg = common.NewDataConfig(model_n, lib_n)
 		if err = data_cfg.Save(paths.DataConfigPath); err != nil {
 			return nil, fmt.Errorf("Error creating data cfg: %w", err)
 		}
@@ -241,7 +220,7 @@ func (c *NarrativeCtrl) Run() (string, error) {
 		return "", err
 	}
 
-	c.ttsClient = initKitten(lib_path,
+	c.ttsClient = kitten.InitKittenWithPaths(lib_path,
 		c.dataCfg.GetModelPath(c.paths),
 		c.dataCfg.GetVoicesPath(c.paths),
 		c.cfg.Voice,

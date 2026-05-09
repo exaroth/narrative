@@ -1,4 +1,4 @@
-package narrative
+package common
 
 import (
 	"io"
@@ -39,6 +39,17 @@ var (
 	localData   string
 	localCache  string
 )
+
+// Create basic directory structure for narrative.
+func InitDirectoryStructure() *NarrativePaths {
+	paths := InitPaths()
+	MakePath(paths.ConfigDir)
+	MakePath(paths.DataDir)
+	MakePath(paths.ModelPath)
+	MakePath(paths.LibPath)
+	MakePath(paths.SourcesPath)
+	return paths
+}
 
 // Contains all filesystem paths used by narrative.
 type NarrativePaths struct {

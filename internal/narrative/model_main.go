@@ -7,6 +7,7 @@ import (
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/exaroth/narrative/internal/common"
 )
 
 const (
@@ -32,7 +33,7 @@ var statusHelp = [][2]string{
 // This is a model for main narrative view containing
 // file list, transcription, playback info etc.
 type mainViewModel struct {
-	sources        Sources
+	sources        common.Sources
 	currentSource  *Source
 	list           list.Model
 	progress       ProgressModel
@@ -48,7 +49,7 @@ type mainViewModel struct {
 }
 
 // Initialize new narrative model.
-func NewMainViewModel(source_list Sources) *mainViewModel {
+func NewMainViewModel(source_list common.Sources) *mainViewModel {
 	l := list.New(source_list.ListItems(), NewDelegate(), 0, 0)
 	l.SetShowHelp(false)
 	l.Title = appTitle

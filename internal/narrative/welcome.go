@@ -12,6 +12,7 @@ import (
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/exaroth/narrative/internal/common"
 	cp "github.com/otiai10/copy"
 )
 
@@ -31,10 +32,10 @@ const (
 
 func getWelcomeScreenTTSModels() []list.Item {
 	var v []list.Item
-	tts_models := [3]*TTSModel{
-		GetKittenModel(KittenModelNano),
-		GetKittenModel(KittenModelMicro),
-		GetKittenModel(KittenModelMini),
+	tts_models := [3]*common.TTSModel{
+		common.GetKittenModel(common.KittenModelNano),
+		common.GetKittenModel(common.KittenModelMicro),
+		common.GetKittenModel(common.KittenModelMini),
 	}
 	for _, i := range tts_models {
 		v = append(v, i)
@@ -71,7 +72,7 @@ func (m welcomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		if k == "enter" {
-			it := m.modelList.SelectedItem().(*TTSModel)
+			it := m.modelList.SelectedItem().(*common.TTSModel)
 			m.ctrl.selection = it.T
 			return m, tea.Quit
 		}
@@ -123,10 +124,10 @@ func (m *welcomeModel) finalPause() tea.Cmd {
 
 // Controller for handling welcome screen operations.
 type Welcome struct {
-	paths     *NarrativePaths
+	paths     *common.NarrativePaths
 	model     *welcomeModel
 	program   *tea.Program
-	selection KittenModelType
+	selection common.KittenModelType
 	err       error
 	exit      bool
 }
@@ -145,7 +146,7 @@ func (d welcomeModelListDelegate) Height() int                             { ret
 func (d welcomeModelListDelegate) Spacing() int                            { return 1 }
 func (d welcomeModelListDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(*TTSModel)
+	i, ok := listItem.(*common.TTSModel)
 	if !ok {
 		return
 	}
@@ -177,7 +178,7 @@ func (d welcomeModelListDelegate) Render(w io.Writer, m list.Model, index int, l
 	fmt.Fprint(w, builder.String())
 }
 
-func initWelcomeScreen(paths *NarrativePaths, showWarning bool) (KittenModelType, error) {
+func initWelcomeScreen(paths *common.NarrativePaths, showWarning bool) (common.KittenModelType, error) {
 	w := &Welcome{
 		paths:     paths,
 		selection: -1,
@@ -215,8 +216,8 @@ func initWelcomeScreen(paths *NarrativePaths, showWarning bool) (KittenModelType
 
 // Initialize welcome screen with model selection, then download both model and library
 // data. This function returns selected library and model names.
-func ShowWelcomeScreen(paths *NarrativePaths, showWarning bool) (model_n string, lib_n string, err error) {
-	lib := GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
+func ShowWelcomeScreen(paths *common.NarrativePaths, showWarning bool) (model_n string, lib_n string, err error) {
+	lib := common.GetOnnxLib(runtime.GOOS, runtime.GOARCH, "")
 	if lib == nil {
 		err = fmt.Errorf("Narrative is does not support %s/%s systems.",
 			runtime.GOOS,
@@ -224,12 +225,12 @@ func ShowWelcomeScreen(paths *NarrativePaths, showWarning bool) (model_n string,
 		)
 		return
 	}
-	var m_data *TTSModel
+	var m_data *common.TTSModel
 	if selection, e := initWelcomeScreen(paths, showWarning); e != nil {
 		err = e
 		return
 	} else {
-		m_data = GetKittenModel(selection)
+		m_data = common.GetKittenModel(selection)
 	}
 
 	defer os.RemoveAll(DEFAULT_DOWNLOAD_DIR)
@@ -247,9 +248,9 @@ func ShowWelcomeScreen(paths *NarrativePaths, showWarning bool) (model_n string,
 	}
 	if e := DownloadAndQuit(
 		int(welcomeDownloadTypeVoice),
-		m_data.Remote+"/"+VOICES_FNAME+"?download=true",
+		m_data.Remote+"/"+common.VOICES_FNAME+"?download=true",
 		"Downloading voice data...",
-		VOICES_FNAME,
+		common.VOICES_FNAME,
 		30,
 	); e != nil {
 		err = fmt.Errorf("Error downloading voices %w", e)
@@ -257,7 +258,7 @@ func ShowWelcomeScreen(paths *NarrativePaths, showWarning bool) (model_n string,
 	}
 	if e := DownloadAndQuit(
 		int(welcomeDownloadTypeLib),
-		lib.remote,
+		lib.Remote,
 		"Downloading ONNX library...",
 		"lib.tgz",
 		30,
@@ -276,10 +277,10 @@ func ShowWelcomeScreen(paths *NarrativePaths, showWarning bool) (model_n string,
 	}
 
 	// Copy library files
-	lib_p := filepath.Join(paths.LibPath, lib.name)
+	lib_p := filepath.Join(paths.LibPath, lib.Name)
 	os.RemoveAll(lib_p)
 	if e := cp.Copy(
-		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib", lib.tar_path),
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, "lib", lib.TarPath),
 		lib_p,
 	); e != nil {
 		err = fmt.Errorf("Error copying library data: %w", e)
@@ -301,14 +302,14 @@ func ShowWelcomeScreen(paths *NarrativePaths, showWarning bool) (model_n string,
 		return
 	}
 	if e := cp.Copy(
-		filepath.Join(DEFAULT_DOWNLOAD_DIR, VOICES_FNAME),
-		filepath.Join(m_path, VOICES_FNAME),
+		filepath.Join(DEFAULT_DOWNLOAD_DIR, common.VOICES_FNAME),
+		filepath.Join(m_path, common.VOICES_FNAME),
 	); e != nil {
 		err = fmt.Errorf("Error copying voices file: %w", e)
 		return
 	}
 	model_n = m_data.Name
-	lib_n = lib.name
+	lib_n = lib.Name
 	os.Remove(paths.DataConfigPath)
 	return
 

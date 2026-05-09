@@ -1,4 +1,4 @@
-package narrative
+package common
 
 import (
 	"encoding/json"
@@ -169,7 +169,7 @@ func (c *DataConfig) GetLibPath(paths *NarrativePaths) (string, error) {
 	if lib == nil {
 		return "", fmt.Errorf("Could not find library %s", c.SelectedLib)
 	}
-	return filepath.Join(paths.LibPath, lib.name, lib.filename), nil
+	return filepath.Join(paths.LibPath, lib.Name, lib.Filename), nil
 }
 
 // Get currently selected model config.

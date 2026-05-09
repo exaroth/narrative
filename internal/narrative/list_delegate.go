@@ -10,6 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/exaroth/narrative/internal/common"
 )
 
 const (
@@ -62,7 +63,7 @@ func (d SourceListDelegate) Spacing() int {
 func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var id string
 
-	if i, ok := m.SelectedItem().(*TextSource); ok {
+	if i, ok := m.SelectedItem().(*common.TextSource); ok {
 		id = i.Id
 	} else {
 		return nil
@@ -99,7 +100,7 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	// fmt.Println(m.Width())
 	textwidth := m.Width() - s.NormalTitle.GetPaddingLeft() - s.NormalTitle.GetPaddingRight()
 
-	if i, ok := item.(*TextSource); ok {
+	if i, ok := item.(*common.TextSource); ok {
 		title = i.Title
 		author = i.Author
 		stype = i.SourceType.String()
