@@ -229,7 +229,9 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 	}
 
 	if key == "ctrl+b" {
-		cmds = append(cmds, AddBookmark())
+		if !m.currentSource.IsDummy() {
+			cmds = append(cmds, AddBookmark())
+		}
 	}
 	if key == "esc" {
 		if m.showHelp {

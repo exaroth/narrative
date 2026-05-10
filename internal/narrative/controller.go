@@ -133,6 +133,7 @@ func (c *NarrativeCtrl) LoadSource(id string) error {
 		ss, err := InitSource(
 			s.Path, sentence_n,
 			c.cfg.BufferSize, c.cfg.MaxBufferSize,
+			c.dataCfg.GetBookmarks(s.Id),
 			c.preprocessor, c.phonemizer, c.ttsClient, s,
 		)
 		if err != nil {
@@ -198,16 +199,16 @@ func (c *NarrativeCtrl) GetBookmarks() []int {
 }
 
 // Add bookmark for current source and sentence
-func (c *NarrativeCtrl) AddBookmark() bool {
+func (c *NarrativeCtrl) AddBookmark() {
 	if c.currentSource.IsDummy() {
-		return false
+		return
 	}
-	res := c.dataCfg.AddBookmark(
+	updated := c.dataCfg.AddBookmark(
 		c.currentSource.id,
 		c.currentSource.SNum(),
 	)
+	c.currentSource.bookmarks = updated
 	MessageCh <- "Bookmark added"
-	return res
 }
 
 // Initialize source data for playback, this will buffer

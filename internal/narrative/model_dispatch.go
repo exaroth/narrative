@@ -3,6 +3,7 @@ package narrative
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -125,11 +126,13 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 		m.removeModal()
 	case AddBookmarkCmd:
 		m.ctrl.AddBookmark()
+		cmds = append(cmds, SetBookmarks(m.ctrl.currentSource.BookmarksPerc()))
 	case LoadSourceCmd:
 		err := m.ctrl.selectSource(msg.id)
 		if err != nil {
 			ErrorCh <- err
 		}
+		cmds = append(cmds, SetBookmarks(m.ctrl.Source().BookmarksPerc()))
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
 		cmds = append(cmds, cmd)
@@ -199,6 +202,11 @@ func (m narrativeModel) renderInfo() *lipgloss.Layer {
 		))
 		builder.WriteString(fmt.Sprintf("  Total Sentences: %d\n", m.ctrl.Source().length))
 		builder.WriteString(fmt.Sprintf("  Current Sentence: %d\n", m.ctrl.Source().SNum()))
+		bmarks := []string{}
+		for _, b := range m.ctrl.Source().Bookmarks() {
+			bmarks = append(bmarks, strconv.Itoa(b))
+		}
+		builder.WriteString(fmt.Sprintf("  Bookmarks: %s", strings.Join(bmarks, ", ")))
 	}
 
 	builder.WriteString("\n")

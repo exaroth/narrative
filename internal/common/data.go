@@ -156,17 +156,16 @@ func (c *DataConfig) AddSource(source_type SourceType, title, author, id, path s
 }
 
 // Add new bookmark for given source.
-func (c *DataConfig) AddBookmark(id string, sn int) bool {
+func (c *DataConfig) AddBookmark(id string, sn int) []int {
 	if s, ok := c.Bookmarks[id]; ok {
 		if slices.Index(s, sn) == -1 {
 			bk := append(c.Bookmarks[id], sn)
 			c.Bookmarks[id] = slices.Sorted(seq.Of(bk...))
-			return true
 		}
-		return false
+		return c.Bookmarks[id]
 	}
 	c.Bookmarks[id] = []int{sn}
-	return true
+	return c.Bookmarks[id]
 }
 
 func (c *DataConfig) GetBookmarks(id string) []int {

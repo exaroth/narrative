@@ -206,3 +206,9 @@ type AddBookmarkCmd struct{}
 func AddBookmark() tea.Cmd {
 	return teaCmd(AddBookmarkCmd{})
 }
+
+type SetBookmarksCmd []float64
+
+func SetBookmarks(b []float64) tea.Cmd {
+	return teaCmd(SetBookmarksCmd(b))
+}

@@ -138,7 +138,13 @@ func (m ProgressModel) Update(msg tea.Msg) (ProgressModel, tea.Cmd) {
 
 		m.percentShown, m.velocity = m.spring.Update(m.percentShown, m.velocity, m.targetPercent)
 		return m, m.nextFrame()
-
+	case SetBookmarksCmd:
+		bs := []*ProgressMark{}
+		for _, b := range msg {
+			bs = append(bs, NewProgressBookmark(b))
+		}
+		m.bookmarks = bs
+		return m, nil
 	default:
 		return m, nil
 	}
@@ -243,14 +249,15 @@ func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth in
 		p_m := int(math.Round((float64(tw) * marks[0].perc)))
 		temp_s := []rune{}
 		update_mark := func(offset int) {
-			if mark_i+1 < len(marks)-1 {
+			if mark_i+1 < len(marks) {
 				mark_i += 1
+				p_m = int(math.Round((float64(tw) * marks[mark_i].perc))) - offset
+			} else {
+				p_m = 0
 			}
-			p_m = offset + int(math.Round((float64(tw) * marks[mark_i].perc)))
 		}
 
 		for fw_i := 0; fw_i < fw; fw_i++ {
-			p_m := int(math.Round((float64(tw) * marks[mark_i].perc)))
 			if fw_i == p_m {
 				barB.WriteString(progressBarFilledStyle.Render(string(temp_s)))
 				barB.WriteString(progressBarBookmarkStyle.Render(string(m.Full)))
@@ -266,15 +273,16 @@ func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth in
 		}
 
 		empty_n := max(0, tw-fw)
+		p_m -= fw
 
 		for e_i := 0; e_i < empty_n; e_i++ {
-			if e_i == fw+p_m {
+			if e_i == p_m {
 				barB.WriteString(progressBarEmptyStyle.Render(string(temp_s)))
-				barB.WriteString(progressBarBookmarkStyle.Render(string(m.Full)))
+				barB.WriteString(progressBarBookmarkStyle.Render(string(m.Empty)))
 				temp_s = []rune{}
 				update_mark(fw)
 			} else {
-				temp_s = append(temp_s, m.Full)
+				temp_s = append(temp_s, m.Empty)
 			}
 		}
 		if len(temp_s) > 0 {

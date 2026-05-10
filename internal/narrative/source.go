@@ -38,6 +38,8 @@ type Source struct {
 	length int
 	// Id of the text source
 	id string
+	// Bookmarks for the source
+	bookmarks []int
 	// Sentence waveform data cache
 	cache_buf BufferCacheLRU
 	// Buffer size
@@ -50,6 +52,7 @@ type Source struct {
 func InitSource(
 	path string, sentence_n int,
 	buf_size int, max_buf_size int,
+	bookmarks []int,
 	pproc *preprocessor.Preprocessor,
 	phonemizer *phonemizer.Phonemizer,
 	ttsClient *kitten.Kitten,
@@ -66,6 +69,7 @@ func InitSource(
 		pproc:       pproc,
 		phonemizer:  phonemizer,
 		ttsClient:   ttsClient,
+		bookmarks:   bookmarks,
 		sentenceNum: sentence_n,
 		length:      len(data.Data),
 		cache_buf:   NewBufferCacheLRU(max_buf_size),
@@ -244,6 +248,21 @@ func (s *Source) SetSentenceNum(n int) int {
 	return s.sentenceNum
 }
 
+// Return bookmarks associated with source.
+func (s *Source) Bookmarks() []int {
+	return s.bookmarks
+}
+
+// Return bookmark position as percentage of
+// total length.
+func (s *Source) BookmarksPerc() []float64 {
+	result := []float64{}
+	for _, b := range s.Bookmarks() {
+		result = append(result, float64(b)/float64(s.Length()))
+	}
+	return result
+}
+
 // Get total number of sentences
 func (s *Source) Length() int {
 	return s.length
@@ -262,6 +281,12 @@ func (s *Source) Id() string {
 // Check if source is dummy source.
 func (s *Source) IsDummy() bool {
 	return s.id == dummySourceId
+}
+
+// Return percentage of reading progress for
+// current source.
+func (s *Source) Perc() float64 {
+	return float64(s.SNum()) / float64(s.Length())
 }
 
 // Amount of source that has been read.
