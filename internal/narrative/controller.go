@@ -301,6 +301,9 @@ func (c *NarrativeCtrl) Run() (string, error) {
 			autoplay: autoplay,
 			index:    idx,
 		})
+		if !c.currentSource.IsDummy() {
+			go c.program.Send(SetBookmarks(c.currentSource.BookmarksPerc()))
+		}
 	}
 	if _, err := c.program.Run(); err != nil {
 		return "", err
