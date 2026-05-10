@@ -207,8 +207,31 @@ func AddBookmark() tea.Cmd {
 	return teaCmd(AddBookmarkCmd{})
 }
 
+// Update bookmarks with those provided.
 type SetBookmarksCmd []float64
 
 func SetBookmarks(b []float64) tea.Cmd {
 	return teaCmd(SetBookmarksCmd(b))
+}
+
+// Delete bookmark, closes bookmark to
+// that of the current sentence will be deleted.
+type DeleteBookmarkCmd struct{}
+
+func DeleteBookmark() tea.Cmd {
+	return teaCmd(DeleteBookmarkCmd{})
+}
+
+// Go to next bookmark.
+type GoToNextBookmarkCmd struct{}
+
+func GoToNextBookmark() tea.Cmd {
+	return teaCmd(GoToNextBookmarkCmd{})
+}
+
+// Rewind to previous bookmark.
+type GoToPrevBookmarkCmd struct{}
+
+func GoToPrevBookmark() tea.Cmd {
+	return teaCmd(GoToPrevBookmarkCmd{})
 }

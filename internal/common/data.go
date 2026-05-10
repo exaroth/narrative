@@ -159,12 +159,64 @@ func (c *DataConfig) AddSource(source_type SourceType, title, author, id, path s
 func (c *DataConfig) AddBookmark(id string, sn int) []int {
 	if s, ok := c.Bookmarks[id]; ok {
 		if slices.Index(s, sn) == -1 {
-			bk := append(c.Bookmarks[id], sn)
-			c.Bookmarks[id] = slices.Sorted(seq.Of(bk...))
+			cb := make([]int, len(c.Bookmarks[id]))
+			copy(cb, c.Bookmarks[id])
+			cb = append(cb, sn)
+			c.Bookmarks[id] = slices.Sorted(seq.Of(cb...))
 		}
 		return c.Bookmarks[id]
 	}
 	c.Bookmarks[id] = []int{sn}
+	return c.Bookmarks[id]
+}
+
+// Delete bookmark, passing sentence number,
+// bookmark with minimum distance to sentence n
+// will be deleted.
+func (c *DataConfig) DeleteBookmark(id string, sn int) []int {
+	if _, ok := c.Bookmarks[id]; !ok {
+		return []int{}
+	}
+	bookmarks := c.Bookmarks[id]
+	if len(bookmarks) == 1 {
+		c.Bookmarks[id] = []int{}
+		return c.Bookmarks[id]
+	}
+	if slices.Index(bookmarks, sn) > -1 {
+		updated := slices.DeleteFunc(bookmarks, func(s int) bool {
+			return s == sn
+		})
+		c.Bookmarks[id] = updated
+		return updated
+	}
+
+	cb := make([]int, len(bookmarks))
+	copy(cb, c.Bookmarks[id])
+	cb = append(cb, sn)
+	to_del := -1
+	s_i := slices.Index(cb, sn)
+	switch s_i {
+	case 0:
+		to_del = cb[1]
+	case len(cb) - 1:
+		to_del = cb[len(cb)-2]
+	default:
+		prev, next := cb[s_i-1], cb[s_i+1]
+		if sn-prev < next-sn {
+			to_del = prev
+		} else {
+			to_del = next
+		}
+	}
+	// sanity check
+	if to_del == -1 {
+		return c.Bookmarks[id]
+	}
+
+	updated := slices.DeleteFunc(bookmarks, func(s int) bool {
+		return s == to_del
+	})
+	c.Bookmarks[id] = updated
 	return c.Bookmarks[id]
 }
 

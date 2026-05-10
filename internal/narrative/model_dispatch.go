@@ -89,7 +89,6 @@ func (m *narrativeModel) initSource(source *Source) {
 func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
-
 	switch msg := msg.(type) {
 
 	case PlaybackCmd:
@@ -126,7 +125,10 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 		m.removeModal()
 	case AddBookmarkCmd:
 		m.ctrl.AddBookmark()
-		cmds = append(cmds, SetBookmarks(m.ctrl.currentSource.BookmarksPerc()))
+		cmds = append(cmds, SetBookmarks(m.ctrl.Source().BookmarksPerc()))
+	case DeleteBookmarkCmd:
+		m.ctrl.DeleteBookmark()
+		cmds = append(cmds, SetBookmarks(m.ctrl.Source().BookmarksPerc()))
 	case LoadSourceCmd:
 		err := m.ctrl.selectSource(msg.id)
 		if err != nil {

@@ -206,6 +206,7 @@ func (h *helpPanel) commands() [][2]string {
 		{"/", "Fuzzy Search"},
 		{"d", "Delete text source"},
 		{"Ctrl-b", "Create new bookmark"},
+		{"Ctrl-d", "Delete bookmark"},
 		{"b", "Go to bookmark"},
 		{"v", "Change voice"},
 		{"t", "Change theme"},

@@ -233,6 +233,11 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 			cmds = append(cmds, AddBookmark())
 		}
 	}
+	if key == "ctrl+d" {
+		if !m.currentSource.IsDummy() {
+			cmds = append(cmds, ShowPrompt("Delete bookmark?", DeleteBookmark(), nil))
+		}
+	}
 	if key == "esc" {
 		if m.showHelp {
 			m.toggleHelp()

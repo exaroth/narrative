@@ -211,6 +211,19 @@ func (c *NarrativeCtrl) AddBookmark() {
 	MessageCh <- "Bookmark added"
 }
 
+// Delete bookmark nearest to current sentence cursor.
+func (c *NarrativeCtrl) DeleteBookmark() {
+	if c.currentSource.IsDummy() {
+		return
+	}
+	updated := c.dataCfg.DeleteBookmark(
+		c.currentSource.id,
+		c.currentSource.SNum(),
+	)
+	c.currentSource.bookmarks = updated
+	MessageCh <- "Bookmark deleted"
+}
+
 // Initialize source data for playback, this will buffer
 // audio data before playing anything.
 func (c *NarrativeCtrl) initSourcePlayback() {
