@@ -123,6 +123,8 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, m.handleRewind(int(msg)))
 	case RemoveModalCmd:
 		m.removeModal()
+	case AddBookmarkCmd:
+		m.ctrl.AddBookmark()
 	case LoadSourceCmd:
 		err := m.ctrl.selectSource(msg.id)
 		if err != nil {

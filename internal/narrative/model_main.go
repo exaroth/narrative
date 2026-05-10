@@ -57,12 +57,11 @@ func NewMainViewModel(source_list common.Sources) *mainViewModel {
 	l.Title = appTitle
 	l.Styles.Title = TitleStyle
 	l.KeyMap = ListKeymap()
-	p := NewProgress(col.Color2)
 	return &mainViewModel{
 		sources:        source_list,
 		currentSource:  nil,
 		list:           l,
-		progress:       p,
+		progress:       NewProgress(),
 		sourceList:     source_l,
 		perc:           &percRead{},
 		statusBar:      &statusBar{},
@@ -227,6 +226,10 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 	}
 	if key == "?" || key == "f1" {
 		m.toggleHelp()
+	}
+
+	if key == "ctrl+b" {
+		cmds = append(cmds, AddBookmark())
 	}
 	if key == "esc" {
 		if m.showHelp {

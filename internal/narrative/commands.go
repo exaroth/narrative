@@ -199,3 +199,10 @@ func WaitForDownloadProgressErr(sub chan error) tea.Cmd {
 		return DownloadProgressErr(<-sub)
 	}
 }
+
+// Command for adding bookmark for current sentence
+type AddBookmarkCmd struct{}
+
+func AddBookmark() tea.Cmd {
+	return teaCmd(AddBookmarkCmd{})
+}

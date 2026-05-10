@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"charm.land/bubbles/v2/list"
+	"github.com/go-softwarelab/common/pkg/seq"
 )
 
 type SourceType int
@@ -135,7 +136,7 @@ type DataConfig struct {
 	Models        map[string]TTSModel
 	SelectedModel string
 	SelectedLib   string
-	Bookmarks     map[string][]string
+	Bookmarks     map[string][]int
 	LastSource    string
 	LastSentence  map[string]int
 	Sources       Sources
@@ -152,6 +153,27 @@ func (c *DataConfig) AddSource(source_type SourceType, title, author, id, path s
 		Added:      time.Now().Unix(),
 	}
 	c.Sources[id] = t
+}
+
+// Add new bookmark for given source.
+func (c *DataConfig) AddBookmark(id string, sn int) bool {
+	if s, ok := c.Bookmarks[id]; ok {
+		if slices.Index(s, sn) == -1 {
+			bk := append(c.Bookmarks[id], sn)
+			c.Bookmarks[id] = slices.Sorted(seq.Of(bk...))
+			return true
+		}
+		return false
+	}
+	c.Bookmarks[id] = []int{sn}
+	return true
+}
+
+func (c *DataConfig) GetBookmarks(id string) []int {
+	if s, ok := c.Bookmarks[id]; ok {
+		return s
+	}
+	return []int{}
 }
 
 // Delete source with given id.
@@ -216,7 +238,7 @@ func NewDataConfig(model_n, lib_n string) *DataConfig {
 		SelectedLib:   lib_n,
 		LastSource:    "",
 		LastSentence:  make(map[string]int),
-		Bookmarks:     make(map[string][]string),
+		Bookmarks:     make(map[string][]int),
 		Sources:       make(map[string]*TextSource),
 	}
 }

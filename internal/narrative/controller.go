@@ -189,6 +189,27 @@ func (c *NarrativeCtrl) deleteSource(id string) error {
 	return err
 }
 
+// Retrieve bookmarks for current source
+func (c *NarrativeCtrl) GetBookmarks() []int {
+	if c.currentSource.IsDummy() {
+		return []int{}
+	}
+	return c.dataCfg.GetBookmarks(c.currentSource.id)
+}
+
+// Add bookmark for current source and sentence
+func (c *NarrativeCtrl) AddBookmark() bool {
+	if c.currentSource.IsDummy() {
+		return false
+	}
+	res := c.dataCfg.AddBookmark(
+		c.currentSource.id,
+		c.currentSource.SNum(),
+	)
+	MessageCh <- "Bookmark added"
+	return res
+}
+
 // Initialize source data for playback, this will buffer
 // audio data before playing anything.
 func (c *NarrativeCtrl) initSourcePlayback() {
