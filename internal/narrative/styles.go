@@ -180,18 +180,9 @@ var (
 // Progress bar styles
 // ==================a
 
-func ProgressBarColorFunc(total, current float64) color.Color {
-	if total <= 0.25 {
-		return col.Color1
-	}
-	if total <= 0.50 {
-		return col.Color2
-	}
-	if total <= 0.50 {
-		return col.Color3
-	}
-	return col.Color4
-}
+var progressBarFilledStyle = lipgloss.NewStyle().Foreground(col.Color2)
+var progressBarEmptyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#606060"))
+var progressBarBookmarkStyle = lipgloss.NewStyle().Foreground(colorError)
 
 // Help panel
 // ==========

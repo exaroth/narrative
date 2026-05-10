@@ -3,15 +3,52 @@ package narrative
 
 import (
 	"image/color"
+	"maps"
 	"math"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/harmonica"
 )
+
+type ProgressMarkType int
+
+const (
+	ProgressMarkTypeBookmark ProgressMarkType = iota
+	ProgressMarkTypeChapter
+)
+
+type ProgressMark struct {
+	perc float64
+	t    ProgressMarkType
+}
+
+func NewProgressBookmark(perc float64) *ProgressMark {
+	return &ProgressMark{
+		perc: perc,
+		t:    ProgressMarkTypeBookmark,
+	}
+}
+
+func NewProgressChapter(perc float64) *ProgressMark {
+	return &ProgressMark{
+		perc: perc,
+		t:    ProgressMarkTypeChapter,
+	}
+}
+
+type ProgressMarks []*ProgressMark
+
+func (c ProgressMarks) AsMap() map[float64]*ProgressMark {
+	result := make(map[float64]*ProgressMark)
+	for _, chap := range c {
+		result[chap.perc] = chap
+	}
+	return result
+}
 
 // Internal ID management. Used during animating to assure that frame messages
 // can only be received by progress components that sent them.
@@ -23,7 +60,6 @@ func nextID() int {
 
 const (
 	DefaultFullCharHalfBlock = '▌'
-	DefaultFullCharFullBlock = '█'
 	DefaultEmptyCharBlock    = '░'
 
 	fps              = 60
@@ -40,7 +76,8 @@ type FrameMsg struct {
 	tag int
 }
 
-// Model stores values we'll use when rendering the progress bar.
+// Customized bubbles.progress progress bar with support for marking
+// bookmarks.
 type ProgressModel struct {
 	// An identifier to keep us from receiving messages intended for other
 	// progress bars.
@@ -61,26 +98,24 @@ type ProgressModel struct {
 	EmptyColor color.Color
 
 	// Members for animated transitions.
-	spring           harmonica.Spring
-	springCustomized bool
-	percentShown     float64 // percent currently displaying
-	targetPercent    float64 // percent to which we're animating
-	velocity         float64
+	spring        harmonica.Spring
+	percentShown  float64 // percent currently displaying
+	targetPercent float64 // percent to which we're animating
+	velocity      float64
+
+	chapters  ProgressMarks // Chapters of the source, if available
+	bookmarks ProgressMarks // Bookmark positions
 }
 
 // New returns a model with default values.
-func NewProgress(col color.Color) ProgressModel {
+func NewProgress() ProgressModel {
 	m := ProgressModel{
-		id:         nextID(),
-		width:      defaultWidth,
-		Full:       DefaultFullCharHalfBlock,
-		FullColor:  col,
-		Empty:      DefaultEmptyCharBlock,
-		EmptyColor: lipgloss.Color("#606060"),
-	}
-
-	if !m.springCustomized {
-		m.SetSpringOptions(defaultFrequency, defaultDamping)
+		id:        nextID(),
+		width:     defaultWidth,
+		Full:      DefaultFullCharHalfBlock,
+		Empty:     DefaultEmptyCharBlock,
+		chapters:  ProgressMarks{},
+		bookmarks: ProgressMarks{},
 	}
 
 	return m
@@ -97,7 +132,6 @@ func (m ProgressModel) Update(msg tea.Msg) (ProgressModel, tea.Cmd) {
 			return m, nil
 		}
 
-		// If we've more or less reached equilibrium, stop updating.
 		if !m.IsAnimating() {
 			return m, nil
 		}
@@ -110,46 +144,40 @@ func (m ProgressModel) Update(msg tea.Msg) (ProgressModel, tea.Cmd) {
 	}
 }
 
-// SetSpringOptions sets the frequency and damping for the current spring.
-// Frequency corresponds to speed, and damping to bounciness. For details see:
-//
-// https://github.com/charmbracelet/harmonica
-func (m *ProgressModel) SetSpringOptions(frequency, damping float64) {
-	m.spring = harmonica.NewSpring(harmonica.FPS(fps), frequency, damping)
-}
-
-// Percent returns the current visible percentage on the model. This is only
-// relevant when you're animating the progress bar.
-//
-// If you're rendering with ViewAs you won't need this.
 func (m ProgressModel) Percent() float64 {
 	return m.targetPercent
 }
 
-// SetPercent sets the percentage state of the model as well as a command
-// necessary for animating the progress bar to this new percentage.
-//
-// If you're rendering with ViewAs you won't need this.
 func (m *ProgressModel) SetPercent(p float64) tea.Cmd {
 	m.targetPercent = math.Max(0, math.Min(1, p))
 	m.tag++
 	return m.nextFrame()
 }
 
-// IncrPercent increments the percentage by a given amount, returning a command
-// necessary to animate the progress bar to the new percentage.
-//
-// If you're rendering with ViewAs you won't need this.
-func (m *ProgressModel) IncrPercent(v float64) tea.Cmd {
-	return m.SetPercent(m.Percent() + v)
+func (m *ProgressModel) SetMarks(bmarks []float64, chapters []float64) tea.Cmd {
+	b := []*ProgressMark{}
+	c := []*ProgressMark{}
+	for _, bmark := range bmarks {
+		b = append(b, NewProgressBookmark(bmark))
+	}
+	for _, ch := range chapters {
+		c = append(c, NewProgressChapter(ch))
+	}
+	m.chapters = c
+	m.bookmarks = b
+	m.tag++
+	return m.nextFrame()
 }
 
-// DecrPercent decrements the percentage by a given amount, returning a command
-// necessary to animate the progress bar to the new percentage.
-//
-// If you're rendering with ViewAs you won't need this.
-func (m *ProgressModel) DecrPercent(v float64) tea.Cmd {
-	return m.SetPercent(m.Percent() - v)
+func (m *ProgressModel) AddBookmark(mark float64) tea.Cmd {
+	for _, b := range m.bookmarks {
+		if b.perc == mark {
+			return nil
+		}
+	}
+	m.bookmarks = append(m.bookmarks, NewProgressBookmark(mark))
+	m.tag++
+	return m.nextFrame()
 }
 
 // View renders an animated progress bar in its current state. To render
@@ -186,18 +214,74 @@ func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth in
 		tw = max(0, m.width-textWidth)                // total width
 		fw = int(math.Round((float64(tw) * percent))) // filled width
 	)
-
 	fw = max(0, min(tw, fw))
 
-	b.WriteString(lipgloss.NewStyle().
-		Foreground(m.FullColor).
-		Render(strings.Repeat(string(m.Full), fw)))
+	mark_map := m.chapters.AsMap()
+	for _, bmark := range m.bookmarks {
+		mark_map[bmark.perc] = bmark
+	}
+	marks := slices.SortedFunc(maps.Values(mark_map), func(a, b *ProgressMark) int {
+		if a.perc < b.perc {
+			return -1
+		}
+		if a.perc > b.perc {
+			return 1
+		}
+		return 0
+	})
 
-	// Empty fill.
-	n := max(0, tw-fw)
-	b.WriteString(lipgloss.NewStyle().
-		Foreground(m.EmptyColor).
-		Render(strings.Repeat(string(m.Empty), n)))
+	if len(marks) == 0 {
+		b.WriteString(progressBarFilledStyle.
+			Render(strings.Repeat(string(m.Full), fw)))
+
+		n := max(0, tw-fw)
+		b.WriteString(progressBarEmptyStyle.
+			Render(strings.Repeat(string(m.Empty), n)))
+	} else {
+		var barB strings.Builder
+		var mark_i int
+		p_m := int(math.Round((float64(tw) * marks[0].perc)))
+		temp_s := []rune{}
+		update_mark := func(offset int) {
+			if mark_i+1 < len(marks)-1 {
+				mark_i += 1
+			}
+			p_m = offset + int(math.Round((float64(tw) * marks[mark_i].perc)))
+		}
+
+		for fw_i := 0; fw_i < fw; fw_i++ {
+			p_m := int(math.Round((float64(tw) * marks[mark_i].perc)))
+			if fw_i == p_m {
+				barB.WriteString(progressBarFilledStyle.Render(string(temp_s)))
+				barB.WriteString(progressBarBookmarkStyle.Render(string(m.Full)))
+				temp_s = []rune{}
+				update_mark(0)
+			} else {
+				temp_s = append(temp_s, m.Full)
+			}
+		}
+		if len(temp_s) > 0 {
+			barB.WriteString(progressBarFilledStyle.Render(string(temp_s)))
+			temp_s = []rune{}
+		}
+
+		empty_n := max(0, tw-fw)
+
+		for e_i := 0; e_i < empty_n; e_i++ {
+			if e_i == fw+p_m {
+				barB.WriteString(progressBarEmptyStyle.Render(string(temp_s)))
+				barB.WriteString(progressBarBookmarkStyle.Render(string(m.Full)))
+				temp_s = []rune{}
+				update_mark(fw)
+			} else {
+				temp_s = append(temp_s, m.Full)
+			}
+		}
+		if len(temp_s) > 0 {
+			barB.WriteString(progressBarEmptyStyle.Render(string(temp_s)))
+		}
+		b.WriteString(barB.String())
+	}
 }
 
 // IsAnimating returns false if the progress bar reached equilibrium and is no
