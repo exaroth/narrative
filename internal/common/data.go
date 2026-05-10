@@ -178,6 +178,9 @@ func (c *DataConfig) DeleteBookmark(id string, sn int) []int {
 		return []int{}
 	}
 	bookmarks := c.Bookmarks[id]
+	if len(bookmarks) == 0 {
+		return []int{}
+	}
 	if len(bookmarks) == 1 {
 		c.Bookmarks[id] = []int{}
 		return c.Bookmarks[id]
@@ -189,25 +192,7 @@ func (c *DataConfig) DeleteBookmark(id string, sn int) []int {
 		c.Bookmarks[id] = updated
 		return updated
 	}
-
-	cb := make([]int, len(bookmarks))
-	copy(cb, c.Bookmarks[id])
-	cb = append(cb, sn)
-	to_del := -1
-	s_i := slices.Index(cb, sn)
-	switch s_i {
-	case 0:
-		to_del = cb[1]
-	case len(cb) - 1:
-		to_del = cb[len(cb)-2]
-	default:
-		prev, next := cb[s_i-1], cb[s_i+1]
-		if sn-prev < next-sn {
-			to_del = prev
-		} else {
-			to_del = next
-		}
-	}
+	to_del := c.getClosestBookmark(id, sn)
 	// sanity check
 	if to_del == -1 {
 		return c.Bookmarks[id]
@@ -220,11 +205,49 @@ func (c *DataConfig) DeleteBookmark(id string, sn int) []int {
 	return c.Bookmarks[id]
 }
 
+// Retrieve all bookmarks associated with given source.
 func (c *DataConfig) GetBookmarks(id string) []int {
 	if s, ok := c.Bookmarks[id]; ok {
 		return s
 	}
 	return []int{}
+}
+
+// Get bookmark closes to that of the passed cursor.
+func (c *DataConfig) getClosestBookmark(id string, sn int) int {
+
+	if _, ok := c.Bookmarks[id]; !ok {
+		return -1
+	}
+
+	if len(c.Bookmarks[id]) == 0 {
+		return -1
+	}
+	if len(c.Bookmarks[id]) == 1 {
+		return c.Bookmarks[id][0]
+	}
+
+	cb := make([]int, len(c.Bookmarks[id]))
+	copy(cb, c.Bookmarks[id])
+	cb = append(cb, sn)
+	cb = slices.Sorted(seq.Of(cb...))
+
+	sel := -1
+	s_i := slices.Index(cb, sn)
+	switch s_i {
+	case 0:
+		sel = cb[1]
+	case len(cb) - 1:
+		sel = cb[len(cb)-2]
+	default:
+		prev, next := cb[s_i-1], cb[s_i+1]
+		if sn-prev < next-sn {
+			sel = prev
+		} else {
+			sel = next
+		}
+	}
+	return sel
 }
 
 // Delete source with given id.

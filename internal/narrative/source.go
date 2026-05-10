@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 
 	"github.com/exaroth/narrative/internal/common"
@@ -13,6 +14,7 @@ import (
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/preprocessor"
 	"github.com/exaroth/narrative/pkg/sentencizer"
+	"github.com/go-softwarelab/common/pkg/seq"
 	"github.com/sirupsen/logrus"
 )
 
@@ -261,6 +263,55 @@ func (s *Source) BookmarksPerc() []float64 {
 		result = append(result, float64(b)/float64(s.Length()))
 	}
 	return result
+}
+
+// Retrieve next bookmark based on sentence number,
+// Function is circular. Returns -1 if there are no
+// bookmarks saved.
+func (c *Source) GetNextBookmark() int {
+	if len(c.bookmarks) == 0 || c.id == dummySourceId {
+		return -1
+	}
+	if len(c.bookmarks) == 1 {
+		return c.bookmarks[0]
+	}
+	sn := c.SNum()
+	cb := make([]int, len(c.bookmarks))
+	copy(cb, c.bookmarks)
+	cb = append(cb, sn)
+	cb = slices.Sorted(seq.Of(cb...))
+
+	s_i := slices.Index(cb, sn)
+	switch s_i {
+	case len(cb) - 1:
+		return c.bookmarks[0]
+	default:
+		return cb[s_i+1]
+	}
+}
+
+// Retrieve previous bookmark relative
+// to current sentence cursor.
+func (c *Source) GetPrevBookmark() int {
+	if len(c.bookmarks) == 0 || c.id == dummySourceId {
+		return -1
+	}
+	if len(c.bookmarks) == 1 {
+		return c.bookmarks[0]
+	}
+	sn := c.SNum()
+	cb := make([]int, len(c.bookmarks))
+	copy(cb, c.bookmarks)
+	cb = append(cb, sn)
+	cb = slices.Sorted(seq.Of(cb...))
+
+	s_i := slices.Index(cb, sn)
+	switch s_i {
+	case 0:
+		return c.bookmarks[len(c.bookmarks)-1]
+	default:
+		return cb[s_i-1]
+	}
 }
 
 // Get total number of sentences

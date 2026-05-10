@@ -238,6 +238,18 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 			cmds = append(cmds, ShowPrompt("Delete bookmark?", DeleteBookmark(), nil))
 		}
 	}
+	if key == "b" {
+		next := m.currentSource.GetNextBookmark()
+		if next > -1 {
+			FastForwardCh <- next
+		}
+	}
+	if key == "B" {
+		prev := m.currentSource.GetPrevBookmark()
+		if prev > -1 {
+			FastForwardCh <- prev
+		}
+	}
 	if key == "esc" {
 		if m.showHelp {
 			m.toggleHelp()
