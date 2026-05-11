@@ -5,8 +5,12 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"mime"
+	"net/http"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 )
 
 // Extract tar.gz archive into destination dir, unly supports
@@ -66,4 +70,60 @@ func ExtractTarGz(archive, dest_dir string) error {
 		}
 	}
 	return nil
+}
+
+// Attempt to infer filename from url string.
+func InferFilenameFromUrl(url string) (string, error) {
+	var ext, base string
+	r, err := http.NewRequest("HEAD", url, nil)
+	if err != nil {
+		return "", err
+	}
+	base = path.Base(r.URL.Path)
+	ext = filepath.Ext(strings.ToLower(base))
+	if ext != "" {
+		return base, nil
+	}
+	res, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return "", err
+	}
+	if res.StatusCode != 200 {
+		return "", fmt.Errorf("Invalid status code %d returned", res.StatusCode)
+	}
+	content_disp := res.Header.Get("Content-Disposition")
+	if len(content_disp) > 0 {
+		_, d_params, err := mime.ParseMediaType(content_disp)
+		if err != nil {
+			return "", fmt.Errorf("Error parsing content disposition header: %w", err)
+		}
+		if df, ok := d_params["filename"]; ok {
+			return df, nil
+		}
+	}
+	if res.Header.Get("Content-Type") != "" {
+		c_t, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
+		if err != nil {
+			return "", fmt.Errorf("Error parsing Content-Type header: %w", err)
+		}
+		switch c_t {
+		case "text/html":
+			ext = ".html"
+		case "text/plain":
+			ext = ".txt"
+		case "application/epub+zip", "application/epub":
+			ext = ".epub"
+		case "text/markdown":
+			ext = ".md"
+		case "application/x-mobipocket-ebook":
+			ext = ".mobi"
+		case "application/vnd.amazon.ebook":
+			ext = ".azw3"
+		}
+	}
+
+	if len(base) > 0 {
+		return base + ext, nil
+	}
+	return r.URL.Host + ext, nil
 }
