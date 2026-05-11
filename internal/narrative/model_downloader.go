@@ -1,6 +1,7 @@
 package narrative
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -55,10 +56,12 @@ type Downloader struct {
 	progress       progress.Model
 	width          int
 	exitOnComplete bool
+	forceDownload  bool
 }
 
 // Initialize new Downloader.
-func NewDownloader(id int, url, text, filename string, width int, exitOnComplete bool) (*Downloader, error) {
+func NewDownloader(id int, url, text, filename string, width int,
+	exitOnComplete bool, forceDownload bool) (*Downloader, error) {
 	if url == "" {
 		return nil, fmt.Errorf("Url is required")
 	}
@@ -76,13 +79,15 @@ func NewDownloader(id int, url, text, filename string, width int, exitOnComplete
 		downloadDir:    DEFAULT_DOWNLOAD_DIR,
 		width:          width,
 		exitOnComplete: exitOnComplete,
+		forceDownload:  forceDownload,
 	}, nil
 }
 
 // Initialize new downloader and download the file returning optional error if any occured.
-
-func DownloadAndQuit(id int, url, text, filename string, width int) error {
-	downloader, err := NewDownloader(id, url, text, filename, width, true)
+// if force_dowload flag is passed, if theres no content length header returned wil will attempty
+// to read whole response body in one go.
+func DownloadAndQuit(id int, url, text, filename string, width int, forceDownload bool) error {
+	downloader, err := NewDownloader(id, url, text, filename, width, true, forceDownload)
 	if err != nil {
 		return fmt.Errorf("Error creating download %w", err)
 	}
@@ -115,8 +120,17 @@ func (d *Downloader) InitDownload() error {
 	if err != nil {
 		return err
 	}
-	if resp.ContentLength <= 0 {
-		return fmt.Errorf("Invalid content length")
+	var content_l = resp.ContentLength
+	if content_l == -1 && d.forceDownload {
+		bc, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("Error reading response body: %w", err)
+		}
+		content_l = int64(len(bc))
+		resp.Body.Close()
+		resp.Body = io.NopCloser(bytes.NewBuffer(bc))
+	} else if resp.ContentLength <= 0 {
+		return fmt.Errorf("Invalid content length %d returned", resp.ContentLength)
 	}
 
 	if err := os.MkdirAll(d.downloadDir, os.ModePerm); err != nil {
@@ -131,7 +145,7 @@ func (d *Downloader) InitDownload() error {
 
 	d.pw = &downloadProgressWriter{
 		id:     d.id,
-		total:  int(resp.ContentLength),
+		total:  int(content_l),
 		file:   file,
 		reader: resp.Body,
 		onProgress: func(val float64) {

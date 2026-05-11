@@ -26,15 +26,17 @@ const (
 	SourceTypeAzw3
 	SourceTypeHTML
 	SourceTypeMarkdown
+	SourceTypeUnsupported
 )
 
 var SourceTypeName = map[SourceType]string{
-	SourceTypeText:     "text",
-	SourceTypeEpub:     "epub",
-	SourceTypeMobi:     "mobi",
-	SourceTypeAzw3:     "azw3",
-	SourceTypeHTML:     "html",
-	SourceTypeMarkdown: "markdown",
+	SourceTypeText:        "text",
+	SourceTypeEpub:        "epub",
+	SourceTypeMobi:        "mobi",
+	SourceTypeAzw3:        "azw3",
+	SourceTypeHTML:        "html",
+	SourceTypeMarkdown:    "markdown",
+	SourceTypeUnsupported: "unsupported",
 }
 
 var (
@@ -69,7 +71,7 @@ func GetSourceType(input string) (remote bool, t SourceType) {
 	case "html":
 		return false, SourceTypeHTML
 	default:
-		return false, SourceTypeText
+		return false, SourceTypeUnsupported
 	}
 }
 

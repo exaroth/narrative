@@ -81,15 +81,31 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 
 // Add new text source based on the argument provided.
 func (c *NarrativeCtrl) addNewSource() error {
-	SpinnerMessageCh <- "Initializing text source.."
-	_, t := common.GetSourceType(c.args.Source)
-	var r reader.SourceReader
 	var err error
+	SpinnerMessageCh <- "Initializing text source.."
+	s_path := c.args.Source
+	if strings.HasPrefix(s_path, "http") {
+		filename, err := InferFilenameFromUrl(s_path)
+		if err != nil {
+			return fmt.Errorf("Unable to infer filename from remote file: %w", err)
+		}
+		defer os.RemoveAll(DEFAULT_DOWNLOAD_DIR)
+		if err = DownloadAndQuit(
+			0, s_path,
+			"Downlaoding text source...", filename,
+			30, true,
+		); err != nil {
+			return fmt.Errorf("Error downlaoding text source: %w", err)
+		}
+		s_path = filepath.Join(DEFAULT_DOWNLOAD_DIR, filename)
+	}
+	_, t := common.GetSourceType(s_path)
+	var r reader.SourceReader
 	switch t {
 	case common.SourceTypeText:
-		r, err = reader.TextReader{}.Read(c.args.Source)
+		r, err = reader.TextReader{}.Read(s_path)
 	default:
-		return fmt.Errorf("Unable to find reader for file type: %s", t)
+		return fmt.Errorf("Provided file type is not supported by Narrative.")
 	}
 	if err != nil {
 		return fmt.Errorf("Error reading text data: %w", err)
@@ -175,7 +191,7 @@ func (c *NarrativeCtrl) addModel(n string) (string, error) {
 		model.Remote+"/"+model.Fname+"?download=true",
 		fmt.Sprintf("Downloading model %s...", model.Name),
 		model.Fname,
-		30,
+		30, false,
 	); err != nil {
 		return "", fmt.Errorf("Error downlaoding model: %w", err)
 	}
@@ -184,7 +200,7 @@ func (c *NarrativeCtrl) addModel(n string) (string, error) {
 		model.Remote+"/"+common.VOICES_FNAME+"?download=true",
 		"Downloading voice data...",
 		common.VOICES_FNAME,
-		30,
+		30, false,
 	); err != nil {
 		return "", fmt.Errorf("Error downloading voices %w", err)
 	}
@@ -270,7 +286,7 @@ func (c *NarrativeCtrl) addLib(n string) (string, error) {
 		l.Remote,
 		"Downloading ONNX library...",
 		"lib.tgz",
-		30,
+		30, false,
 	); err != nil {
 		return "", fmt.Errorf("Error downloading library: %w", err)
 	}

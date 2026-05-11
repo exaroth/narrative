@@ -241,7 +241,7 @@ func ShowWelcomeScreen(paths *common.NarrativePaths, showWarning bool) (model_n 
 		m_data.Remote+"/"+m_data.Fname+"?download=true",
 		fmt.Sprintf("Downloading model %s...", m_data.Name),
 		m_data.Fname,
-		30,
+		30, false,
 	); e != nil {
 		err = fmt.Errorf("Error downlaoding model: %w", e)
 		return
@@ -251,7 +251,7 @@ func ShowWelcomeScreen(paths *common.NarrativePaths, showWarning bool) (model_n 
 		m_data.Remote+"/"+common.VOICES_FNAME+"?download=true",
 		"Downloading voice data...",
 		common.VOICES_FNAME,
-		30,
+		30, false,
 	); e != nil {
 		err = fmt.Errorf("Error downloading voices %w", e)
 		return
@@ -261,7 +261,7 @@ func ShowWelcomeScreen(paths *common.NarrativePaths, showWarning bool) (model_n 
 		lib.Remote,
 		"Downloading ONNX library...",
 		"lib.tgz",
-		30,
+		30, false,
 	); e != nil {
 		err = fmt.Errorf("Error downloading library: %w", e)
 		return

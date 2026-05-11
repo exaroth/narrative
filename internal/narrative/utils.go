@@ -122,7 +122,7 @@ func InferFilenameFromUrl(url string) (string, error) {
 		}
 	}
 
-	if len(base) > 0 {
+	if len(base) > 1 {
 		return base + ext, nil
 	}
 	return r.URL.Host + ext, nil

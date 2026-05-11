@@ -331,7 +331,7 @@ func (c *NarrativeCtrl) Deinit() {
 	} else {
 		fmt.Println("Closing Narrative...")
 	}
-	if c.currentSource.id != dummySourceId {
+	if c.currentSource != nil && c.currentSource.id != dummySourceId {
 		c.dataCfg.LastSentence[c.currentSource.id] = c.currentSource.SNum()
 	}
 	defer c.cfg.Save(c.paths.ConfigPath)
@@ -351,7 +351,9 @@ func (c *NarrativeCtrl) Deinit() {
 	if c.program != nil {
 		defer c.program.Quit()
 	}
-	defer c.ttsClient.Deinit()
+	if c.ttsClient != nil {
+		c.ttsClient.Deinit()
+	}
 }
 
 // Start debugger passing current source.
