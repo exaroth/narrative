@@ -82,6 +82,7 @@ func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 // Add new text source based on the argument provided.
 func (c *NarrativeCtrl) addNewSource() error {
 	var err error
+	var r reader.SourceReader
 	SpinnerMessageCh <- "Initializing text source.."
 	s_path := c.args.Source
 	if strings.HasPrefix(s_path, "http") {
@@ -99,22 +100,16 @@ func (c *NarrativeCtrl) addNewSource() error {
 		}
 		s_path = filepath.Join(DEFAULT_DOWNLOAD_DIR, filename)
 	}
-	_, t := common.GetSourceType(s_path)
-	var r reader.SourceReader
-	switch t {
-	case common.SourceTypeText:
-		r, err = reader.TextReader{}.Read(s_path)
-	default:
-		return fmt.Errorf("Provided file type is not supported by Narrative.")
-	}
+
+	r, err = reader.GetReaderForContent(s_path)
 	if err != nil {
-		return fmt.Errorf("Error reading text data: %w", err)
+		return fmt.Errorf("Error initializing source reader: %w", err)
 	}
 	path, err := SaveTextSource(c.paths.SourcesPath, r.Id(), r.Data())
 	if err != nil {
 		return fmt.Errorf("Error creating source file: %w", err)
 	}
-	c.dataCfg.AddSource(t, r.Title(), r.Author(), r.Id(), path)
+	c.dataCfg.AddSource(r.Type(), r.Title(), r.Author(), r.Id(), path)
 	c.autoplaySource = r.Id()
 	return c.dataCfg.Save(c.paths.DataConfigPath)
 }

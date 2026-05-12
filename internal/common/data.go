@@ -10,34 +10,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
-	"strings"
 	"time"
 
 	"charm.land/bubbles/v2/list"
+	"github.com/exaroth/narrative/pkg/reader"
 	"github.com/go-softwarelab/common/pkg/seq"
 )
-
-type SourceType int
-
-const (
-	SourceTypeText SourceType = iota
-	SourceTypeEpub
-	SourceTypeMobi
-	SourceTypeAzw3
-	SourceTypeHTML
-	SourceTypeMarkdown
-	SourceTypeUnsupported
-)
-
-var SourceTypeName = map[SourceType]string{
-	SourceTypeText:        "text",
-	SourceTypeEpub:        "epub",
-	SourceTypeMobi:        "mobi",
-	SourceTypeAzw3:        "azw3",
-	SourceTypeHTML:        "html",
-	SourceTypeMarkdown:    "markdown",
-	SourceTypeUnsupported: "unsupported",
-}
 
 var (
 	MissingLibErr = errors.New(`Library is missing, fix it by running:
@@ -50,35 +28,10 @@ narrative --init
 narrative --add-model <model-name>`)
 )
 
-func (t SourceType) String() string { return SourceTypeName[t] }
-
-// Retrieve source type and indicator whether data is remote
-// and should be downloaded before processing.
-// TODO: currently remote files are not supported.
-func GetSourceType(input string) (remote bool, t SourceType) {
-	ext := filepath.Ext(strings.ToLower(input))
-	switch ext {
-	case "txt":
-		return false, SourceTypeText
-	case "epub":
-		return false, SourceTypeEpub
-	case "mobi":
-		return false, SourceTypeMobi
-	case "md", "mkd", "markdown":
-		return false, SourceTypeMarkdown
-	case "azw3":
-		return false, SourceTypeAzw3
-	case "html":
-		return false, SourceTypeHTML
-	default:
-		return false, SourceTypeUnsupported
-	}
-}
-
 // Contains information about given text source.
 type TextSource struct {
 	Id, Title, Author, Path string
-	SourceType              SourceType
+	SourceType              reader.SourceType
 	Added                   int64
 	Playing                 bool
 }
@@ -147,7 +100,7 @@ type DataConfig struct {
 }
 
 // Add new source of text.
-func (c *DataConfig) AddSource(source_type SourceType, title, author, id, path string) {
+func (c *DataConfig) AddSource(source_type reader.SourceType, title, author, id, path string) {
 	t := &TextSource{
 		Id:         id,
 		Title:      title,

@@ -51,3 +51,12 @@ func (r TextReader) Data() []byte {
 func (r TextReader) Id() string {
 	return r.id
 }
+
+// We dont support chapters in bare text.
+func (r TextReader) Chapters() []int {
+	return []int{}
+}
+
+func (r TextReader) Type() SourceType {
+	return SourceTypeText
+}
