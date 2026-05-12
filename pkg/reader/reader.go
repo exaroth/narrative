@@ -75,6 +75,8 @@ func GetReaderForContent(f_path string) (SourceReader, error) {
 	switch st {
 	case SourceTypeText:
 		r, err = TextReader{}.Read(f_path)
+	case SourceTypeHTML:
+		r, err = HtmlReader{}.Read(f_path)
 	default:
 		return nil, fmt.Errorf("Provided file type is not supported by Narrative.")
 	}
