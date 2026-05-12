@@ -93,14 +93,13 @@ func (c *NarrativeCtrl) addNewSource() error {
 		defer os.RemoveAll(DEFAULT_DOWNLOAD_DIR)
 		if err = DownloadAndQuit(
 			0, s_path,
-			"Downlaoding text source...", filename,
+			"Downloading text source...", filename,
 			30, true,
 		); err != nil {
-			return fmt.Errorf("Error downlaoding text source: %w", err)
+			return fmt.Errorf("Error downloading text source: %w", err)
 		}
 		s_path = filepath.Join(DEFAULT_DOWNLOAD_DIR, filename)
 	}
-
 	r, err = reader.GetReaderForContent(s_path)
 	if err != nil {
 		return fmt.Errorf("Error initializing source reader: %w", err)
@@ -188,7 +187,7 @@ func (c *NarrativeCtrl) addModel(n string) (string, error) {
 		model.Fname,
 		30, false,
 	); err != nil {
-		return "", fmt.Errorf("Error downlaoding model: %w", err)
+		return "", fmt.Errorf("Error downloading model: %w", err)
 	}
 	if err := DownloadAndQuit(
 		1,

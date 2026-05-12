@@ -243,7 +243,7 @@ func ShowWelcomeScreen(paths *common.NarrativePaths, showWarning bool) (model_n 
 		m_data.Fname,
 		30, false,
 	); e != nil {
-		err = fmt.Errorf("Error downlaoding model: %w", e)
+		err = fmt.Errorf("Error downloading model: %w", e)
 		return
 	}
 	if e := DownloadAndQuit(
