@@ -15,8 +15,10 @@ import (
 // excludes spaces?
 const MAX_SENTENCE_LENGTH int = 398
 
-var SENTENCE_DELIMITERS = []rune{',', ';', '.', '?', '!'}
-var SENTENCE_WRAP_CHARS = []string{"\"", "'"}
+var (
+	SENTENCE_SPLIT_DELIMITERS = []rune{',', ';', '.', '?', '!'}
+	SENTENCE_WRAP_CHARS       = []string{"\"", "'"}
+)
 
 const (
 	SENTENCE_DESIRED_L = 299
@@ -53,12 +55,11 @@ func Sentencize(text []byte) []string {
 			}
 
 			if len([]rune(sentence))-strings.Count(sentence, " ") > MAX_SENTENCE_LENGTH {
-
 				chunks = append(chunks,
 					SplitLongSentence(sentence,
 						SENTENCE_DESIRED_L,
 						SENTENCE_DESIRED_R,
-						SENTENCE_DELIMITERS)...)
+						SENTENCE_SPLIT_DELIMITERS)...)
 			} else {
 				chunks = append(chunks, sentence)
 			}

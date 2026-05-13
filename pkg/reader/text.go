@@ -15,23 +15,17 @@ type TextReader struct {
 	title string
 }
 
-// Read text file from local path
-func (r *TextReader) readLocal(path string) error {
-	data, err := os.ReadFile(path)
+// Read data from given source
+func (r TextReader) Read(source string) (SourceReader, error) {
+	data, err := os.ReadFile(source)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	r.data = Sentencize(data)
 	r.id = uuid.New().String()
-	filename := filepath.Base(path)
+	filename := filepath.Base(source)
 	r.title = strings.TrimSuffix(filename, filepath.Ext(filename))
-	return nil
-}
-
-// Read data from given source
-func (r TextReader) Read(source string) (SourceReader, error) {
-	err := r.readLocal(source)
-	return &r, err
+	return &r, nil
 }
 
 // For text file returns empty string
