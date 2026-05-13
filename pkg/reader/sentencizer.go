@@ -15,7 +15,7 @@ import (
 // excludes spaces?
 const MAX_SENTENCE_LENGTH int = 398
 
-var SENTENCE_DELIMITERS = []rune{',', ';', '.'}
+var SENTENCE_DELIMITERS = []rune{',', ';', '.', '?', '!'}
 var SENTENCE_WRAP_CHARS = []string{"\"", "'"}
 
 const (
