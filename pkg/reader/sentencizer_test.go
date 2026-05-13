@@ -1,4 +1,4 @@
-package sentencizer
+package reader
 
 import (
 	"fmt"

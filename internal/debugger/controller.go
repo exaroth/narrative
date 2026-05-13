@@ -11,7 +11,7 @@ import (
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/player"
 	"github.com/exaroth/narrative/pkg/preprocessor"
-	"github.com/exaroth/narrative/pkg/sentencizer"
+	"github.com/exaroth/narrative/pkg/reader"
 
 	tea "charm.land/bubbletea/v2"
 )
@@ -94,7 +94,7 @@ func InitWithFile(input_fpath string, sentence_n int) (*Debugger, error) {
 		return nil, fmt.Errorf("debugger init err; invalid input %s: %w", input_fpath, err)
 	}
 
-	data := sentencizer.Sentencize(input)
+	data := reader.Sentencize(input)
 	return InitWithData(data, sentence_n)
 
 }
