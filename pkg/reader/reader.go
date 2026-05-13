@@ -68,7 +68,7 @@ func getSourceType(input string) SourceType {
 }
 
 // Retrieve reader for file at given path.
-func GetReaderForContent(f_path string) (SourceReader, error) {
+func GetReaderForContent(f_path string, update_ch chan<- string) (SourceReader, error) {
 	var r SourceReader
 	var err error
 	st := getSourceType(f_path)
@@ -78,7 +78,7 @@ func GetReaderForContent(f_path string) (SourceReader, error) {
 	case SourceTypeHTML:
 		r, err = HtmlReader{}.Read(f_path)
 	case SourceTypeEpub:
-		r, err = EpubReader{}.Read(f_path)
+		r, err = EpubReader{update_ch: update_ch}.Read(f_path)
 	default:
 		return nil, fmt.Errorf("Provided file type is not supported by Narrative.")
 	}

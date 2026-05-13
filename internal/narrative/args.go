@@ -100,10 +100,12 @@ func (c *NarrativeCtrl) addNewSource() error {
 		}
 		s_path = filepath.Join(DEFAULT_DOWNLOAD_DIR, filename)
 	}
-	r, err = reader.GetReaderForContent(s_path)
+
+	r, err = reader.GetReaderForContent(s_path, SpinnerMessageCh)
 	if err != nil {
 		return fmt.Errorf("Error initializing source reader: %w", err)
 	}
+
 	path, err := SaveTextSource(c.paths.SourcesPath, r.Id(), r.Data())
 	if err != nil {
 		return fmt.Errorf("Error creating source file: %w", err)

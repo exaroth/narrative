@@ -16,11 +16,12 @@ import (
 
 // Reader for handling epub formatted ebooks.
 type EpubReader struct {
-	data     []string
-	id       string
-	title    string
-	author   string
-	chapters []int
+	data      []string
+	id        string
+	title     string
+	author    string
+	chapters  []int
+	update_ch chan<- string
 }
 
 // Read data from given source
@@ -58,6 +59,13 @@ func (r EpubReader) Read(source string) (SourceReader, error) {
 	r.data = []string{}
 	ch_l := 0
 	for idx, _ := range refs {
+		if r.update_ch != nil {
+			r.update_ch <- fmt.Sprintf(
+				"Processing chapter %d (%3.0f%%)",
+				idx,
+				float64(idx+1)/float64(len(refs))*100,
+			)
+		}
 		if idx < len(refs)-1 {
 			r.chapters = append(r.chapters, ch_l)
 		}
@@ -213,9 +221,6 @@ func (r *HTMLProcessor) handleText(token html.Token) error {
 	}
 
 	text := processWhitespace(token.Data)
-	if strings.HasPrefix(strings.ToLower(text), "chapter") {
-		return nil
-	}
 	return r.appendText(string(text))
 }
 
@@ -223,7 +228,7 @@ func (r *HTMLProcessor) handleStartTag(token html.Token) (err error) {
 	switch token.DataAtom {
 	case atom.Br:
 		r.parser.newlines++
-	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6, atom.Title, atom.Div:
+	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6, atom.Div:
 		r.parser.ensureNewlines(2)
 	case atom.P:
 		r.parser.ensureNewlines(2)

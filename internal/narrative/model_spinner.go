@@ -52,6 +52,8 @@ func (m spinnerModel) Init() tea.Cmd {
 }
 
 func (m spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case SpinnerCloseCmd:
 		m.quitting = true
@@ -63,10 +65,11 @@ func (m spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	case SpinnerMsgCmd:
 		m.text = string(msg)
+		cmds = append(cmds, WaitForSpinnerMessage(SpinnerMessageCh))
 	}
-	var cmd tea.Cmd
 	m.spinner, cmd = m.spinner.Update(msg)
-	return m, cmd
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }
 
 func (m spinnerModel) View() tea.View {
