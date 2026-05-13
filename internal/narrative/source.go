@@ -13,7 +13,6 @@ import (
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/preprocessor"
-	"github.com/exaroth/narrative/pkg/reader"
 	"github.com/go-softwarelab/common/pkg/seq"
 	"github.com/sirupsen/logrus"
 )
@@ -352,10 +351,10 @@ type SourceData struct {
 }
 
 // Save text source as gob file.
-func SaveTextSource(path, id string, data []byte) (string, error) {
+func SaveTextSource(path, id string, data []string) (string, error) {
 	var buf bytes.Buffer
 	err := gob.NewEncoder(&buf).Encode(SourceData{
-		Data: reader.Sentencize(data),
+		Data: data,
 		Id:   id,
 	})
 	if err != nil {

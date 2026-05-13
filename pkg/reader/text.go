@@ -10,19 +10,22 @@ import (
 
 // Basic text reader used for reading raw text files.
 type TextReader struct {
-	data  []byte
+	data  []string
 	id    string
 	title string
 }
 
 // Read text file from local path
 func (r *TextReader) readLocal(path string) error {
-	var err error
-	r.data, err = os.ReadFile(path)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	r.data = Sentencize(data)
 	r.id = uuid.New().String()
 	filename := filepath.Base(path)
 	r.title = strings.TrimSuffix(filename, filepath.Ext(filename))
-	return err
+	return nil
 }
 
 // Read data from given source
@@ -43,7 +46,7 @@ func (r TextReader) Title() string {
 }
 
 // Return raw text data.
-func (r TextReader) Data() []byte {
+func (r TextReader) Data() []string {
 	return r.data
 }
 

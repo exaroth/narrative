@@ -13,7 +13,7 @@ import (
 
 // Basic text reader used for reading raw text files.
 type HtmlReader struct {
-	data   []byte
+	data   []string
 	id     string
 	title  string
 	author string
@@ -49,7 +49,7 @@ func (r HtmlReader) Read(source string) (SourceReader, error) {
 	for scanner.Scan() {
 		result = fmt.Sprintf("%s %s", result, scanner.Text())
 	}
-	r.data = []byte(result)
+	r.data = Sentencize([]byte(result))
 	return &r, nil
 }
 
@@ -63,7 +63,7 @@ func (r HtmlReader) Title() string {
 }
 
 // Return raw text data.
-func (r HtmlReader) Data() []byte {
+func (r HtmlReader) Data() []string {
 	return r.data
 }
 

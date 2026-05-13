@@ -10,7 +10,7 @@ import (
 // types of text files.
 type SourceReader interface {
 	Read(string) (SourceReader, error)
-	Data() []byte
+	Data() []string
 	Title() string
 	Author() string
 	Chapters() []int
