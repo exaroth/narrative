@@ -246,3 +246,37 @@ func TestProcessingDashes(t *testing.T) {
 		})
 	}
 }
+
+func TestTerminatingSentenceWithPeriod(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "testing testing",
+			expected: "testing testing.",
+		},
+		{
+			input:    "Who dat?",
+			expected: "Who dat?",
+		},
+		{
+			input:    "Not me.",
+			expected: "Not me.",
+		},
+		{
+			input:    "but he,",
+			expected: "but he,",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("period terminate : %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := appendPeriod(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}

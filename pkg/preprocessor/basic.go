@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	PUNCT     = []rune{'.', ',', '?', '!', ';', ':', '\'', '"'}
 	SPACES_RE = regexp.MustCompile(`\s+`)
 	// todo - recheck
 	PUNCT_RE   = regexp.MustCompile(`[^\w\s.,?!;:'"-]`)
@@ -189,4 +190,18 @@ func processDashes(input string) (string, error) {
 		result = append(result, word)
 	}
 	return strings.Join(result, " "), nil
+}
+
+// Add trailing period if there's no valid sentence termination.
+func appendPeriod(input string) (string, error) {
+	if len(input) == 0 {
+		return input, nil
+	}
+	s := strings.Split(input, " ")
+	last := s[len(s)-1]
+	llast := rune(last[len(last)-1])
+	if !slices.Contains(PUNCT, llast) {
+		input = input + "."
+	}
+	return input, nil
 }

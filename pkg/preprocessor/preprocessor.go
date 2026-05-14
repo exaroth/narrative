@@ -67,6 +67,7 @@ func NewPreprocessor() *Preprocessor {
 
 	proc.RegisterFunc(removeNonProsodicPunctuation)
 	proc.RegisterFunc(normalizeWhitespace)
+	proc.RegisterFunc(appendPeriod)
 
 	return proc
 }
