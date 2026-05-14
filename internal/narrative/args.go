@@ -29,6 +29,7 @@ type NarrativeArgs struct {
 	SelectLib   string  `arg:"-l,--select-lib"`
 	ListLibs    bool    `arg:"--list-libs"`
 	Speed       float32 `arg:"-s,--speed"`
+	ExtDict     string  `arg:"--ext-dict"`
 	Init        bool
 	Help        bool
 	Version     bool

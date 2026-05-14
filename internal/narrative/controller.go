@@ -72,7 +72,7 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 		}
 	}
 
-	ph, err = phonemizer.NewPhonemizer("")
+	ph, err = phonemizer.NewPhonemizer(args.ExtDict)
 	if err != nil {
 		return nil, fmt.Errorf("init err; phonemizer init: %w", err)
 	}
