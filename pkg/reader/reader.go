@@ -9,12 +9,22 @@ import (
 // Interface to implement by readers of different
 // types of text files.
 type SourceReader interface {
+	// Read processes source text file given the path.
 	Read(string) (SourceReader, error)
+	// Return list of processed sentences.
 	Data() []string
+	// Return title.
 	Title() string
+	// Return author (optional).
 	Author() string
+	// Return chapters as list of integers corresponding
+	// to sentence index values (optional).
 	Chapters() []int
+	// Return unique id for the source.
 	Id() string
+	// Return any arbitrary metadata associated with
+	// the source. (optional)
+	Metadata() string
 	Type() SourceType
 }
 

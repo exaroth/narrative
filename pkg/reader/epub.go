@@ -93,13 +93,16 @@ func (r EpubReader) Data() []string {
 	return r.data
 }
 
-// Return random uuid.
 func (r EpubReader) Id() string {
 	return r.id
 }
 
 func (r EpubReader) Chapters() []int {
 	return r.chapters
+}
+
+func (r EpubReader) Metadata() string {
+	return ""
 }
 
 func (r EpubReader) Type() SourceType {

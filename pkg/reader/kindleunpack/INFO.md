@@ -1,2 +1,2 @@
 Zip file included contains KindleUnpack utility (https://github.com/kevinhendricks/KindleUnpack),
-praise be to the maintainers who have to deal with mobi format madness.
+praise be to respective maintainers and contributors for dealing with mobi format madness.

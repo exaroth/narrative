@@ -72,9 +72,12 @@ func (r HtmlReader) Id() string {
 	return r.id
 }
 
-// TODO: add h1 chapters.
 func (r HtmlReader) Chapters() []int {
 	return []int{}
+}
+
+func (r HtmlReader) Metadata() string {
+	return ""
 }
 
 func (r HtmlReader) Type() SourceType {

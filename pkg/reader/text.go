@@ -54,6 +54,11 @@ func (r TextReader) Chapters() []int {
 	return []int{}
 }
 
+// We dont return any metadata associated with text files.
+func (r TextReader) Metadata() string {
+	return ""
+}
+
 func (r TextReader) Type() SourceType {
 	return SourceTypeText
 }
