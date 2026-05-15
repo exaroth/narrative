@@ -16,12 +16,12 @@ import (
 
 // Reader for handling epub formatted ebooks.
 type EpubReader struct {
-	data      []string
-	id        string
-	title     string
-	author    string
-	chapters  []int
-	update_ch chan<- string
+	data     []string
+	id       string
+	title    string
+	author   string
+	chapters []int
+	updateCh chan<- string
 }
 
 // Read data from given source
@@ -59,8 +59,8 @@ func (r EpubReader) Read(source string) (SourceReader, error) {
 	r.data = []string{}
 	ch_l := 0
 	for idx, _ := range refs {
-		if r.update_ch != nil {
-			r.update_ch <- fmt.Sprintf(
+		if r.updateCh != nil {
+			r.updateCh <- fmt.Sprintf(
 				"Processing chapter %d (%3.0f%%)",
 				idx,
 				float64(idx+1)/float64(len(refs))*100,

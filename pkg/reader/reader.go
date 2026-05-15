@@ -68,7 +68,7 @@ func getSourceType(input string) SourceType {
 		return SourceTypeMobi
 	case ".md", ".mkd", ".markdown":
 		return SourceTypeMarkdown
-	case ".azw3":
+	case ".azw3", ".azw":
 		return SourceTypeAzw3
 	case ".html":
 		return SourceTypeHTML
@@ -88,12 +88,16 @@ func GetReaderForContent(f_path string, update_ch chan<- string) (SourceReader, 
 	case SourceTypeHTML:
 		r, err = HtmlReader{}.Read(f_path)
 	case SourceTypeEpub:
-		r, err = EpubReader{update_ch: update_ch}.Read(f_path)
+		r, err = EpubReader{updateCh: update_ch}.Read(f_path)
+	case SourceTypeAzw3:
+		r, err = NewMobiReader(SourceTypeAzw3, update_ch).Read(f_path)
+	case SourceTypeMobi:
+		r, err = NewMobiReader(SourceTypeMobi, update_ch).Read(f_path)
 	default:
 		return nil, fmt.Errorf("Provided file type is not supported by Narrative.")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving reader for data: %w", err)
+		return nil, fmt.Errorf("Error processing reader data: %w", err)
 	}
 	return r, nil
 }
