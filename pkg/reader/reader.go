@@ -99,5 +99,8 @@ func GetReaderForContent(f_path string, update_ch chan<- string) (SourceReader, 
 	if err != nil {
 		return nil, fmt.Errorf("Error processing reader data: %w", err)
 	}
+	if len(r.Data()) == 0 {
+		return nil, fmt.Errorf("File did not contain any useable text.")
+	}
 	return r, nil
 }
