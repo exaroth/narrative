@@ -14,27 +14,9 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-var excludedAtoms = []atom.Atom{
+var epubExcludedAtoms = []atom.Atom{
 	atom.Style, atom.Head,
 	atom.Header, atom.Footer,
-}
-
-type htmlParser struct {
-	tagStack  []atom.Atom
-	rowStack  [][]string
-	cellStack []strings.Builder
-
-	tokenizer *html.Tokenizer
-	newlines  int
-	writer    *sentenceWriter
-	basepath  string
-}
-
-func (p *htmlParser) ensureNewlines(n int) {
-	if p.newlines >= n {
-		return
-	}
-	p.newlines = n
 }
 
 type EpubProcessor struct {
@@ -162,7 +144,7 @@ func (r *EpubProcessor) handleText(token html.Token) error {
 	// Skip style tags
 
 	for _, t := range r.parser.tagStack {
-		if slices.Index(excludedAtoms, t) > -1 {
+		if slices.Index(epubExcludedAtoms, t) > -1 {
 			return nil
 		}
 	}
@@ -183,48 +165,4 @@ func (r *EpubProcessor) handleStartTag(token html.Token) (err error) {
 	}
 
 	return err
-}
-
-type sentenceWriter struct {
-	w      io.Writer
-	buffer strings.Builder
-}
-
-func newSentenceWriter(w io.Writer) *sentenceWriter {
-	return &sentenceWriter{
-		w: w,
-	}
-}
-
-func (w *sentenceWriter) Write(p []byte) (n int, err error) {
-	w.buffer.Write(p)
-	lines := strings.Split(w.buffer.String(), "\n")
-
-	for i, line := range lines {
-		if i == len(lines)-1 {
-			w.buffer.Reset()
-			w.buffer.WriteString(line)
-			break
-		}
-
-		nLine, err := w.w.Write([]byte(line + "\n"))
-		if err != nil {
-			return n, err
-		}
-		n += nLine
-	}
-
-	return len(p), nil
-}
-
-// Flush writes any lines remaining in the buffer.
-func (w *sentenceWriter) Flush() error {
-	if w.buffer.Len() > 0 {
-		_, err := w.w.Write([]byte(w.buffer.String()))
-		w.buffer.Reset()
-
-		return err
-	}
-
-	return nil
 }

@@ -20,7 +20,7 @@ type EpubReader struct {
 func (r EpubReader) Read(source string) (SourceReader, error) {
 	book_d, err := epub.OpenReader(source)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Error reading epub: %w", err)
 	}
 	if len(book_d.Rootfiles) == 0 {
 		return nil, fmt.Errorf("Book does not seem to contain any data.")
