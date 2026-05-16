@@ -13,6 +13,12 @@ var (
 	reTransformSpace   = regexp.MustCompile(" +")
 )
 
+var escapePattern = regexp.MustCompile(`(\[[a-zA-Z0-9_,;: \-\."#]+\[*)\]`)
+
+func Escape(text string) string {
+	return escapePattern.ReplaceAllString(text, "$1[]")
+}
+
 func processWhitespace(text string) string {
 	for _, fn := range []whitespaceFn{
 		wsRemoveSurroundLF,
