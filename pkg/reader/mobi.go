@@ -157,7 +157,12 @@ func (r *MobiReader) processMobi7Ebook(data_p string) (s []string, c []int, err 
 		err = fmt.Errorf("Could not find epub file for azw source")
 		return
 	}
-	proc, err := NewHTMLProcessor(book_p, SourceTypeMobi)
+	f, err := os.Open(book_p)
+	if err != nil {
+		err = fmt.Errorf("Error opening file: %w", err)
+		return
+	}
+	proc, err := NewHTMLProcessor(f, SourceTypeMobi)
 	if err != nil {
 		err = fmt.Errorf("Error initializing html processor: %w", err)
 		return

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"slices"
 	"strings"
@@ -18,11 +17,11 @@ var htmlExcludedAtoms = []atom.Atom{
 	atom.Style, atom.Head,
 	atom.Header, atom.Footer,
 	atom.Table, atom.Tbody, atom.Td,
-	atom.Tr,
+	atom.Tr, atom.Code,
 }
 
 type HTMLProcessor struct {
-	file      *os.File
+	source    io.Reader
 	sentences [][]string
 	parser    htmlParser
 	writer    *bytes.Buffer
@@ -30,14 +29,11 @@ type HTMLProcessor struct {
 	sourceT   SourceType
 }
 
-func NewHTMLProcessor(file_path string, t SourceType) (*HTMLProcessor, error) {
+func NewHTMLProcessor(source io.Reader, t SourceType) (*HTMLProcessor, error) {
 	var buf bytes.Buffer
-	f, err := os.Open(file_path)
-	if err != nil {
-		return nil, fmt.Errorf("Error opening file: %w", err)
-	}
+
 	return &HTMLProcessor{
-		file:      f,
+		source:    source,
 		writer:    &buf,
 		sentences: [][]string{},
 		sourceT:   t,
@@ -48,7 +44,7 @@ func NewHTMLProcessor(file_path string, t SourceType) (*HTMLProcessor, error) {
 func (r *HTMLProcessor) ProcessBookContents(updateCh chan<- string) ([]string, []int, error) {
 	r.updateCh = updateCh
 	r.parser = htmlParser{
-		tokenizer: html.NewTokenizer(r.file),
+		tokenizer: html.NewTokenizer(r.source),
 		writer:    newSentenceWriter(r.writer),
 		basepath:  path.Dir("/"),
 	}
