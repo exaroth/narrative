@@ -95,7 +95,7 @@ func (r *EpubProcessor) process(ctx context.Context) error {
 		if err := r.handleToken(); err == io.EOF {
 			r.parser.writer.Flush()
 			return nil
-		} else if err == io.EOF {
+		} else if err != nil {
 			return err
 		}
 	}

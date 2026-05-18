@@ -1,4 +1,4 @@
-package main
+package reader
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-var epubExcludedAtoms = []atom.Atom{
+var htmlExcludedAtoms = []atom.Atom{
 	atom.Style, atom.Head,
 	atom.Header, atom.Footer,
 }
@@ -24,6 +24,7 @@ type HTMLProcessor struct {
 	sentences [][]string
 	parser    htmlParser
 	writer    *bytes.Buffer
+	updateCh  chan<- string
 }
 
 func NewHTMLProcessor(file_path string) (*HTMLProcessor, error) {
@@ -41,6 +42,7 @@ func NewHTMLProcessor(file_path string) (*HTMLProcessor, error) {
 
 // Process all chapters of the html book, returning sentence list and chapter list.
 func (r *HTMLProcessor) ProcessBookContents(updateCh chan<- string) ([]string, []int, error) {
+	r.updateCh = updateCh
 	r.parser = htmlParser{
 		tokenizer: html.NewTokenizer(r.file),
 		writer:    newSentenceWriter(r.writer),
@@ -51,7 +53,6 @@ func (r *HTMLProcessor) ProcessBookContents(updateCh chan<- string) ([]string, [
 	if err != nil {
 		return nil, nil, err
 	}
-
 	r.sentences = append(r.sentences, Sentencize(r.writer.Bytes()))
 
 	if len(r.sentences) == 1 {
@@ -69,6 +70,7 @@ func (r *HTMLProcessor) ProcessBookContents(updateCh chan<- string) ([]string, [
 
 		}
 	}
+
 	return result, chapters, nil
 }
 
@@ -83,7 +85,7 @@ func (r *HTMLProcessor) process(ctx context.Context) error {
 		if err := r.handleToken(); err == io.EOF {
 			r.parser.writer.Flush()
 			return nil
-		} else if err == io.EOF {
+		} else if err != nil {
 			return err
 		}
 	}
@@ -129,7 +131,7 @@ func (r *HTMLProcessor) appendText(text string) error {
 
 func (r *HTMLProcessor) handleText(token html.Token) error {
 	for _, t := range r.parser.tagStack {
-		if slices.Index(epubExcludedAtoms, t) > -1 {
+		if slices.Index(htmlExcludedAtoms, t) > -1 {
 			return nil
 		}
 	}
@@ -154,6 +156,7 @@ func (r *HTMLProcessor) detectChapter(token html.Token) bool {
 
 // Write current chapter sentences and reset buffer.
 func (r *HTMLProcessor) updateChapter() {
+	r.updateCh <- fmt.Sprintf("Processing chapter %d", len(r.sentences)+1)
 	r.sentences = append(r.sentences, Sentencize(r.writer.Bytes()))
 	r.writer.Reset()
 }
