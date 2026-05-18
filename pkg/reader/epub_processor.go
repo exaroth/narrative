@@ -66,6 +66,7 @@ func (r *EpubProcessor) ProcessBookContents(updateCh chan<- string) (s []string,
 		sentences := Sentencize(buf.Bytes())
 		ch_l += len(sentences)
 		s = append(s, sentences...)
+		buf.Reset()
 	}
 	return
 }
