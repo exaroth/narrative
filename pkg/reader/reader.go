@@ -93,6 +93,8 @@ func GetReaderForContent(f_path string, update_ch chan<- string) (SourceReader, 
 		r, err = NewMobiReader(SourceTypeAzw3, update_ch).Read(f_path)
 	case SourceTypeMobi:
 		r, err = NewMobiReader(SourceTypeMobi, update_ch).Read(f_path)
+	case SourceTypeMarkdown:
+		r, err = MarkdownReader{}.Read(f_path)
 	default:
 		return nil, fmt.Errorf("Provided file type is not supported by Narrative.")
 	}
@@ -101,6 +103,12 @@ func GetReaderForContent(f_path string, update_ch chan<- string) (SourceReader, 
 	}
 	if len(r.Data()) == 0 {
 		return nil, fmt.Errorf("File did not contain any useable text.")
+	}
+	if r.Title() == "" {
+		return nil, fmt.Errorf("Missing title for file %s", f_path)
+	}
+	if r.Id() == "" {
+		return nil, fmt.Errorf("Missing id for file %s", f_path)
 	}
 	return r, nil
 }

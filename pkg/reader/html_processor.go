@@ -151,12 +151,19 @@ func (r *HTMLProcessor) detectChapter(token html.Token) bool {
 			}
 		}
 	}
+	if r.sourceT == SourceTypeMarkdown {
+		if token.DataAtom == atom.H1 || token.DataAtom == atom.H2 {
+			return true
+		}
+	}
 	return false
 }
 
 // Write current chapter sentences and reset buffer.
 func (r *HTMLProcessor) updateChapter() {
-	r.updateCh <- fmt.Sprintf("Processing chapter %d", len(r.sentences)+1)
+	if r.updateCh != nil {
+		r.updateCh <- fmt.Sprintf("Processing chapter %d", len(r.sentences)+1)
+	}
 	r.sentences = append(r.sentences, Sentencize(r.writer.Bytes()))
 	r.writer.Reset()
 }
