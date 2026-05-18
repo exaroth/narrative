@@ -157,7 +157,7 @@ func (r *MobiReader) processMobi7Ebook(data_p string) (s []string, c []int, err 
 		err = fmt.Errorf("Could not find epub file for azw source")
 		return
 	}
-	proc, err := NewHTMLProcessor(book_p)
+	proc, err := NewHTMLProcessor(book_p, SourceTypeMobi)
 	if err != nil {
 		err = fmt.Errorf("Error initializing html processor: %w", err)
 		return
@@ -185,7 +185,7 @@ func (r MobiReader) Id() string {
 }
 
 func (r MobiReader) Chapters() []int {
-	return []int{}
+	return r.chapters
 }
 
 func (r MobiReader) Metadata() string {
@@ -193,5 +193,5 @@ func (r MobiReader) Metadata() string {
 }
 
 func (r MobiReader) Type() SourceType {
-	return SourceTypeHTML
+	return r.t
 }
