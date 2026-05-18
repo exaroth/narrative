@@ -241,26 +241,30 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 	}
 	if key == "b" {
 		next := m.currentSource.GetNextBookmark()
-		if next > -1 {
+		if next > -1 && PSM.AllowsRewinding() {
+			PlaybackCh <- -1
 			FastForwardCh <- next
 		}
 	}
 	if key == "B" {
 		prev := m.currentSource.GetPrevBookmark()
-		if prev > -1 {
+		if prev > -1 && PSM.AllowsRewinding() {
+			PlaybackCh <- -1
 			FastForwardCh <- prev
 		}
 	}
 	if key == "c" {
 		next := m.currentSource.GetNextChapter()
-		if next > -1 {
-			FastForwardCh <- next
+		if next > -1 && PSM.AllowsRewinding() {
+			PlaybackCh <- -1
+			FastForwardCh <- next + 1
 		}
 	}
 	if key == "C" {
 		next := m.currentSource.GetPrevChapter()
-		if next > -1 {
-			FastForwardCh <- next
+		if next > -1 && PSM.AllowsRewinding() {
+			PlaybackCh <- -1
+			FastForwardCh <- next + 1
 		}
 	}
 	if key == "esc" {
