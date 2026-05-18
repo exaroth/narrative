@@ -17,7 +17,7 @@ var htmlExcludedAtoms = []atom.Atom{
 	atom.Style, atom.Head,
 	atom.Header, atom.Footer,
 	atom.Table, atom.Tbody, atom.Td,
-	atom.Tr, atom.Code,
+	atom.Tr, atom.Code, atom.Pre,
 }
 
 type HTMLProcessor struct {

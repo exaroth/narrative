@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
@@ -13,6 +15,7 @@ import (
 
 var MARKDOWN_EXTENSIONS = parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
 var MARKDOWN_HTML_FLAGS = html.CommonFlags | html.HrefTargetBlank
+var MARKDOWN_TITLE_RE = regexp.MustCompile(`(?m)^\s*#([^#].*?)$`)
 
 // Reader for markdown files.
 type MarkdownReader struct {
@@ -46,10 +49,15 @@ func (r MarkdownReader) Read(source string) (SourceReader, error) {
 	if err != nil {
 		return nil, err
 	}
+	title_match := MARKDOWN_TITLE_RE.FindStringSubmatch(string(data))
+	if len(title_match) > 1 {
+		r.title = strings.Trim(title_match[1], " ")
+	} else {
+		r.title = source
+	}
 	r.data = s
 	r.chapters = c
 	r.id = uuid.New().String()
-	r.title = "Test"
 	return &r, nil
 }
 
