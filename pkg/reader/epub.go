@@ -3,6 +3,7 @@ package reader
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/taylorskalyo/goreader/epub"
 )
 
@@ -42,6 +43,7 @@ func (r EpubReader) Read(source string) (SourceReader, error) {
 	}
 	r.data = s
 	r.chapters = c
+	r.id = uuid.New().String()
 
 	return &r, nil
 }
