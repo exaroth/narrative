@@ -235,3 +235,10 @@ type GoToPrevBookmarkCmd struct{}
 func GoToPrevBookmark() tea.Cmd {
 	return teaCmd(GoToPrevBookmarkCmd{})
 }
+
+// Command for setting chapters for given source.
+type SetChaptersCmd []float64
+
+func SetChapters(b []float64) tea.Cmd {
+	return teaCmd(SetChaptersCmd(b))
+}

@@ -303,6 +303,7 @@ func (c *NarrativeCtrl) Run() (string, error) {
 		})
 		if !c.currentSource.IsDummy() {
 			go c.program.Send(SetBookmarks(c.currentSource.BookmarksPerc()))
+			go c.program.Send(SetChapters(c.currentSource.ChaptersPerc()))
 		}
 	}
 	if _, err := c.program.Run(); err != nil {

@@ -17,8 +17,10 @@ type ColorPalette struct {
 
 // Predefined colors.
 var (
-	colorError = lipgloss.Color("#F25D94")
-	colorDim   = lipgloss.Color("#5C5C5C")
+	colorError    = lipgloss.Color("#F25D94")
+	colorDim      = lipgloss.Color("#5C5C5C")
+	colorBookmark = colorError
+	colorChapter  = lipgloss.Color("#0057E3")
 )
 
 var col = ColorPalette{
@@ -182,7 +184,8 @@ var (
 
 var progressBarFilledStyle = lipgloss.NewStyle().Foreground(col.Color2)
 var progressBarEmptyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#606060"))
-var progressBarBookmarkStyle = lipgloss.NewStyle().Foreground(colorError)
+var progressBarBookmarkStyle = lipgloss.NewStyle().Foreground(colorBookmark)
+var progressBarChapterStyle = lipgloss.NewStyle().Foreground(colorChapter)
 
 // Help panel
 // ==========

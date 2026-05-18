@@ -134,7 +134,10 @@ func (m *narrativeModel) mainUpdate(msg tea.Msg) tea.Cmd {
 		if err != nil {
 			ErrorCh <- err
 		}
-		cmds = append(cmds, SetBookmarks(m.ctrl.Source().BookmarksPerc()))
+		cmds = append(cmds,
+			SetBookmarks(m.ctrl.Source().BookmarksPerc()),
+			SetChapters(m.ctrl.Source().ChaptersPerc()),
+		)
 	case SetSourceCmd:
 		m.mainView, cmd = m.mainView.Update(UpdateSourceCmd{source: msg.source})
 		cmds = append(cmds, cmd)
