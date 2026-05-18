@@ -211,7 +211,12 @@ func (m narrativeModel) renderInfo() *lipgloss.Layer {
 		for _, b := range m.ctrl.Source().Bookmarks() {
 			bmarks = append(bmarks, strconv.Itoa(b))
 		}
-		builder.WriteString(fmt.Sprintf("  Bookmarks: %s", strings.Join(bmarks, ", ")))
+		chapters := []string{}
+		for _, c := range m.ctrl.Source().Chapters() {
+			chapters = append(chapters, strconv.Itoa(c))
+		}
+		builder.WriteString(fmt.Sprintf("  Bookmarks: %s\n", strings.Join(bmarks, ", ")))
+		builder.WriteString(fmt.Sprintf("  Chapters: %s\n", strings.Join(chapters, ", ")))
 	}
 
 	builder.WriteString("\n")
