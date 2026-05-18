@@ -222,20 +222,6 @@ func DeleteBookmark() tea.Cmd {
 	return teaCmd(DeleteBookmarkCmd{})
 }
 
-// Go to next bookmark.
-type GoToNextBookmarkCmd struct{}
-
-func GoToNextBookmark() tea.Cmd {
-	return teaCmd(GoToNextBookmarkCmd{})
-}
-
-// Rewind to previous bookmark.
-type GoToPrevBookmarkCmd struct{}
-
-func GoToPrevBookmark() tea.Cmd {
-	return teaCmd(GoToPrevBookmarkCmd{})
-}
-
 // Command for setting chapters for given source.
 type SetChaptersCmd []float64
 

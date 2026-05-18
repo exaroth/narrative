@@ -251,6 +251,18 @@ func (m *mainViewModel) handleKeys(key string) (cmds []tea.Cmd) {
 			FastForwardCh <- prev
 		}
 	}
+	if key == "c" {
+		next := m.currentSource.GetNextChapter()
+		if next > -1 {
+			FastForwardCh <- next
+		}
+	}
+	if key == "C" {
+		next := m.currentSource.GetPrevChapter()
+		if next > -1 {
+			FastForwardCh <- next
+		}
+	}
 	if key == "esc" {
 		if m.showHelp {
 			m.toggleHelp()
