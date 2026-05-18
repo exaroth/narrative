@@ -50,6 +50,36 @@ func (c ProgressMarks) AsMap() map[float64]*ProgressMark {
 	return result
 }
 
+// This is  generator function for retrieving progress marks used during rendering
+// of the progress bar.
+func updateMarkGen(marks []*ProgressMark, width int) func(int) (int, ProgressMarkType) {
+	mark := marks[0]
+	var mark_i int
+	p_m := int(math.Round((float64(width) * mark.perc)))
+
+	return func(offset int) (int, ProgressMarkType) {
+		var n_p_m int
+		for {
+			if mark_i+1 < len(marks) {
+				mark_i += 1
+				mark = marks[mark_i]
+				n_p_m = int(math.Round((float64(width) * mark.perc))) - offset
+				if n_p_m == p_m {
+					continue
+				} else {
+					p_m = n_p_m
+					break
+				}
+			} else {
+				p_m = -1
+				break
+			}
+		}
+		return p_m, mark.t
+	}
+
+}
+
 // Internal ID management. Used during animating to assure that frame messages
 // can only be received by progress components that sent them.
 var lastID int64
@@ -252,30 +282,19 @@ func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth in
 			Render(strings.Repeat(string(m.Empty), n)))
 	} else {
 		var barB strings.Builder
-		var mark = marks[0]
-		var mark_i int
-		p_m := int(math.Round((float64(tw) * marks[0].perc)))
 		temp_s := []rune{}
-		update_mark := func(offset int) {
-			if mark_i+1 < len(marks) {
-				mark_i += 1
-				mark = marks[mark_i]
-				p_m = int(math.Round((float64(tw) * marks[mark_i].perc))) - offset
-			} else {
-				p_m = 0
-			}
-		}
-
+		update_mark := updateMarkGen(marks, tw)
+		p_m, mark_t := update_mark(0)
 		for fw_i := 0; fw_i < fw; fw_i++ {
 			if fw_i == p_m {
 				barB.WriteString(progressBarFilledStyle.Render(string(temp_s)))
-				if mark.t == ProgressMarkTypeBookmark {
+				if mark_t == ProgressMarkTypeBookmark {
 					barB.WriteString(progressBarBookmarkStyle.Render(string(m.Full)))
 				} else {
 					barB.WriteString(progressBarChapterStyle.Render(string(m.Full)))
 				}
 				temp_s = []rune{}
-				update_mark(0)
+				p_m, mark_t = update_mark(0)
 			} else {
 				temp_s = append(temp_s, m.Full)
 			}
@@ -291,13 +310,13 @@ func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth in
 		for e_i := 0; e_i < empty_n; e_i++ {
 			if e_i == p_m {
 				barB.WriteString(progressBarEmptyStyle.Render(string(temp_s)))
-				if mark.t == ProgressMarkTypeBookmark {
+				if mark_t == ProgressMarkTypeBookmark {
 					barB.WriteString(progressBarBookmarkStyle.Render(string(m.Empty)))
 				} else {
 					barB.WriteString(progressBarChapterStyle.Render(string(m.Empty)))
 				}
 				temp_s = []rune{}
-				update_mark(fw)
+				p_m, mark_t = update_mark(fw)
 			} else {
 				temp_s = append(temp_s, m.Empty)
 			}
