@@ -33,6 +33,8 @@ type Source struct {
 	ttsClient  *kitten.Kitten
 	// Raw sentence data
 	data []string
+	// Chapters for given source (sentence n)
+	chapters []int
 	// Current sentence number
 	sentenceNum int
 	// Total number of sentences
@@ -71,6 +73,7 @@ func InitSource(
 		phonemizer:  phonemizer,
 		ttsClient:   ttsClient,
 		bookmarks:   bookmarks,
+		chapters:    data.Chapters,
 		sentenceNum: sentence_n,
 		length:      len(data.Data),
 		cache_buf:   NewBufferCacheLRU(max_buf_size),
@@ -259,6 +262,22 @@ func (s *Source) Bookmarks() []int {
 func (s *Source) BookmarksPerc() []float64 {
 	result := []float64{}
 	for _, b := range s.Bookmarks() {
+		result = append(result, float64(b)/float64(s.Length()))
+	}
+	return result
+}
+
+// Get list of source chapters as list of
+// integers corresponding to sentence numbers.
+func (s *Source) Chapters() []int {
+	return s.chapters
+}
+
+// Return list of bookmarks as percentage
+// of total length.
+func (s *Source) ChaptersPerc() []float64 {
+	result := []float64{}
+	for _, b := range s.Chapters() {
 		result = append(result, float64(b)/float64(s.Length()))
 	}
 	return result
