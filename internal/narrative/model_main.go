@@ -26,6 +26,7 @@ var statusHelp = [][2]string{
 	{"h/l", "seek"},
 	{"d", "delete"},
 	{"q", "quit"},
+	{"c", "next chapter"},
 	{"ctrl-b", "set bookmark"},
 	{"b", "go to bookmark"},
 }

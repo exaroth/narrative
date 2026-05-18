@@ -10,7 +10,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
+
+	"github.com/go-softwarelab/common/pkg/seq"
 )
 
 // Extract tar.gz archive into destination dir, unly supports
@@ -126,4 +129,50 @@ func InferFilenameFromUrl(url string) (string, error) {
 		return base + ext, nil
 	}
 	return r.URL.Host + ext, nil
+}
+
+// Retrieve next closest integer from the list
+// of integers, based on current position.
+func GetNextM(cur int, marks []int) int {
+	if len(marks) == 0 {
+		return -1
+	}
+	if len(marks) == 1 {
+		return marks[0]
+	}
+	cb := make([]int, len(marks))
+	copy(cb, marks)
+	cb = append(cb, cur)
+	cb = slices.Sorted(seq.Of(cb...))
+
+	s_i := slices.Index(cb, cur)
+	switch s_i {
+	case len(cb) - 1:
+		return marks[0]
+	default:
+		return cb[s_i+1]
+	}
+}
+
+// Retrieve previous mark relative
+// to current cursor.
+func GetPrevM(cur int, marks []int) int {
+	if len(marks) == 0 {
+		return -1
+	}
+	if len(marks) == 1 {
+		return marks[0]
+	}
+	cb := make([]int, len(marks))
+	copy(cb, marks)
+	cb = append(cb, cur)
+	cb = slices.Sorted(seq.Of(cb...))
+
+	s_i := slices.Index(cb, cur)
+	switch s_i {
+	case 0:
+		return marks[len(marks)-1]
+	default:
+		return cb[s_i-1]
+	}
 }

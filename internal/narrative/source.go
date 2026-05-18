@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"sync"
 
 	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/preprocessor"
-	"github.com/go-softwarelab/common/pkg/seq"
 	"github.com/sirupsen/logrus"
 )
 
@@ -287,49 +285,35 @@ func (s *Source) ChaptersPerc() []float64 {
 // Function is circular. Returns -1 if there are no
 // bookmarks saved.
 func (c *Source) GetNextBookmark() int {
-	if len(c.bookmarks) == 0 || c.id == dummySourceId {
+	if c.id == dummySourceId {
 		return -1
 	}
-	if len(c.bookmarks) == 1 {
-		return c.bookmarks[0]
-	}
-	sn := c.SNum()
-	cb := make([]int, len(c.bookmarks))
-	copy(cb, c.bookmarks)
-	cb = append(cb, sn)
-	cb = slices.Sorted(seq.Of(cb...))
-
-	s_i := slices.Index(cb, sn)
-	switch s_i {
-	case len(cb) - 1:
-		return c.bookmarks[0]
-	default:
-		return cb[s_i+1]
-	}
+	return GetNextM(c.SNum(), c.bookmarks)
 }
 
 // Retrieve previous bookmark relative
 // to current sentence cursor.
 func (c *Source) GetPrevBookmark() int {
-	if len(c.bookmarks) == 0 || c.id == dummySourceId {
+	if c.id == dummySourceId {
 		return -1
 	}
-	if len(c.bookmarks) == 1 {
-		return c.bookmarks[0]
-	}
-	sn := c.SNum()
-	cb := make([]int, len(c.bookmarks))
-	copy(cb, c.bookmarks)
-	cb = append(cb, sn)
-	cb = slices.Sorted(seq.Of(cb...))
+	return GetPrevM(c.SNum(), c.bookmarks)
+}
 
-	s_i := slices.Index(cb, sn)
-	switch s_i {
-	case 0:
-		return c.bookmarks[len(c.bookmarks)-1]
-	default:
-		return cb[s_i-1]
+// Get next chapter relative to current sentence.
+func (c *Source) GetNextChapter() int {
+	if c.id == dummySourceId {
+		return -1
 	}
+	return GetNextM(c.SNum(), c.chapters)
+}
+
+// Get previous chapter relative to cursor pos.
+func (c *Source) GetPrevChapter() int {
+	if c.id == dummySourceId {
+		return -1
+	}
+	return GetPrevM(c.SNum(), c.chapters)
 }
 
 // Get total number of sentences
