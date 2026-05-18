@@ -54,7 +54,7 @@ func (r MobiReader) Read(source string) (SourceReader, error) {
 		return nil, fmt.Errorf("Python 3 must be installed for mobi/azw file conversions.")
 	}
 
-	// defer os.RemoveAll(MOBI_TEMP_DIR_P)
+	defer os.RemoveAll(MOBI_TEMP_DIR_P)
 
 	if err := kindleunpack.Unzip(MOBI_TEMP_DIR_P); err != nil {
 		return nil, fmt.Errorf("Error decompressing kindle unpack lib.")

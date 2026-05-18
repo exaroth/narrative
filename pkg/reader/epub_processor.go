@@ -17,6 +17,8 @@ import (
 var epubExcludedAtoms = []atom.Atom{
 	atom.Style, atom.Head,
 	atom.Header, atom.Footer,
+	atom.Table, atom.Tbody, atom.Td,
+	atom.Tr,
 }
 
 type EpubProcessor struct {

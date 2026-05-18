@@ -17,6 +17,8 @@ import (
 var htmlExcludedAtoms = []atom.Atom{
 	atom.Style, atom.Head,
 	atom.Header, atom.Footer,
+	atom.Table, atom.Tbody, atom.Td,
+	atom.Tr,
 }
 
 type HTMLProcessor struct {
@@ -25,9 +27,10 @@ type HTMLProcessor struct {
 	parser    htmlParser
 	writer    *bytes.Buffer
 	updateCh  chan<- string
+	sourceT   SourceType
 }
 
-func NewHTMLProcessor(file_path string) (*HTMLProcessor, error) {
+func NewHTMLProcessor(file_path string, t SourceType) (*HTMLProcessor, error) {
 	var buf bytes.Buffer
 	f, err := os.Open(file_path)
 	if err != nil {
@@ -37,6 +40,7 @@ func NewHTMLProcessor(file_path string) (*HTMLProcessor, error) {
 		file:      f,
 		writer:    &buf,
 		sentences: [][]string{},
+		sourceT:   t,
 	}, nil
 }
 
@@ -143,7 +147,7 @@ func (r *HTMLProcessor) handleText(token html.Token) error {
 // Detect new chapter, these are arbitrary breakpoints, dependent
 // on type of html source.
 func (r *HTMLProcessor) detectChapter(token html.Token) bool {
-	if token.DataAtom == atom.A {
+	if r.sourceT == SourceTypeMobi && token.DataAtom == atom.A {
 		attrs := token.Attr
 		for _, a := range attrs {
 			if a.Key == "id" && strings.HasPrefix(a.Val, "filepos") {
