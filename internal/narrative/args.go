@@ -107,7 +107,11 @@ func (c *NarrativeCtrl) addNewSource() error {
 		return fmt.Errorf("Error initializing source reader: %w", err)
 	}
 
-	path, err := SaveTextSource(c.paths.SourcesPath, r.Id(), r.Data())
+	path, err := SaveTextSource(
+		c.paths.SourcesPath,
+		r.Id(), r.Data(),
+		r.Chapters(), r.Metadata(),
+	)
 	if err != nil {
 		return fmt.Errorf("Error creating source file: %w", err)
 	}

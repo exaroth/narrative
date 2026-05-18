@@ -346,16 +346,23 @@ func (s *Source) PercRead() float64 {
 
 // Representation of source as saved on disk.
 type SourceData struct {
-	Id   string
-	Data []string
+	Id       string
+	Data     []string
+	Chapters []int
+	Metadata string
 }
 
 // Save text source as gob file.
-func SaveTextSource(path, id string, data []string) (string, error) {
+func SaveTextSource(
+	path, id string, data []string,
+	chapters []int, metadata string,
+) (string, error) {
 	var buf bytes.Buffer
 	err := gob.NewEncoder(&buf).Encode(SourceData{
-		Data: data,
-		Id:   id,
+		Data:     data,
+		Id:       id,
+		Chapters: chapters,
+		Metadata: metadata,
 	})
 	if err != nil {
 		logrus.Error(err)
