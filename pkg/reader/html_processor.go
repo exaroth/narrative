@@ -1,0 +1,175 @@
+package main
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"path"
+	"slices"
+	"strings"
+
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
+)
+
+var epubExcludedAtoms = []atom.Atom{
+	atom.Style, atom.Head,
+	atom.Header, atom.Footer,
+}
+
+type HTMLProcessor struct {
+	file      *os.File
+	sentences [][]string
+	parser    htmlParser
+	writer    *bytes.Buffer
+}
+
+func NewHTMLProcessor(file_path string) (*HTMLProcessor, error) {
+	var buf bytes.Buffer
+	f, err := os.Open(file_path)
+	if err != nil {
+		return nil, fmt.Errorf("Error opening file: %w", err)
+	}
+	return &HTMLProcessor{
+		file:      f,
+		writer:    &buf,
+		sentences: [][]string{},
+	}, nil
+}
+
+// Process all chapters of the html book, returning sentence list and chapter list.
+func (r *HTMLProcessor) ProcessBookContents(updateCh chan<- string) ([]string, []int, error) {
+	r.parser = htmlParser{
+		tokenizer: html.NewTokenizer(r.file),
+		writer:    newSentenceWriter(r.writer),
+		basepath:  path.Dir("/"),
+	}
+
+	err := r.process(context.TODO())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	r.sentences = append(r.sentences, Sentencize(r.writer.Bytes()))
+
+	if len(r.sentences) == 1 {
+		return r.sentences[0], []int{}, nil
+	}
+
+	var cur_ch_offset int
+	chapters := []int{}
+	result := []string{}
+	for idx, chapter_sentences := range r.sentences {
+		result = append(result, chapter_sentences...)
+		if idx < len(r.sentences)-1 {
+			cur_ch_offset += len(chapter_sentences)
+			chapters = append(chapters, cur_ch_offset)
+
+		}
+	}
+	return result, chapters, nil
+}
+
+func (r *HTMLProcessor) process(ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
+
+		if err := r.handleToken(); err == io.EOF {
+			r.parser.writer.Flush()
+			return nil
+		} else if err == io.EOF {
+			return err
+		}
+	}
+}
+
+func (r *HTMLProcessor) handleToken() error {
+	tokenType := r.parser.tokenizer.Next()
+	token := r.parser.tokenizer.Token()
+	switch tokenType {
+	case html.ErrorToken:
+		return r.parser.tokenizer.Err()
+	case html.StartTagToken:
+		r.parser.tagStack = append(r.parser.tagStack, token.DataAtom)
+		return r.handleStartTag(token)
+	case html.SelfClosingTagToken:
+		return r.handleStartTag(token)
+	case html.TextToken:
+		return r.handleText(token)
+	case html.EndTagToken:
+		r.parser.tagStack = r.parser.tagStack[:len(r.parser.tagStack)-1]
+		return nil
+	}
+
+	return nil
+}
+
+// appendText appends text to the underlying writer.
+func (r *HTMLProcessor) appendText(text string) error {
+	if !hasText(text) {
+		return nil
+	}
+
+	text = Escape(text)
+	pendingLines := strings.Repeat("\n", r.parser.newlines)
+	text = fmt.Sprintf("%s%s", pendingLines, text)
+
+	r.parser.newlines = 0
+
+	_, err := io.WriteString(r.parser.writer, text)
+
+	return err
+}
+
+func (r *HTMLProcessor) handleText(token html.Token) error {
+	for _, t := range r.parser.tagStack {
+		if slices.Index(epubExcludedAtoms, t) > -1 {
+			return nil
+		}
+	}
+
+	text := processWhitespace(token.Data)
+	return r.appendText(string(text))
+}
+
+// Detect new chapter, these are arbitrary breakpoints, dependent
+// on type of html source.
+func (r *HTMLProcessor) detectChapter(token html.Token) bool {
+	if token.DataAtom == atom.A {
+		attrs := token.Attr
+		for _, a := range attrs {
+			if a.Key == "id" && strings.HasPrefix(a.Val, "filepos") {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// Write current chapter sentences and reset buffer.
+func (r *HTMLProcessor) updateChapter() {
+	r.sentences = append(r.sentences, Sentencize(r.writer.Bytes()))
+	r.writer.Reset()
+}
+
+func (r *HTMLProcessor) handleStartTag(token html.Token) (err error) {
+	if r.detectChapter(token) {
+		r.updateChapter()
+	}
+	switch token.DataAtom {
+	case atom.Br:
+		r.parser.newlines++
+	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6, atom.Div:
+		r.parser.ensureNewlines(2)
+	case atom.P:
+		r.parser.ensureNewlines(2)
+	}
+
+	return err
+}
