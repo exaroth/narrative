@@ -51,7 +51,10 @@ type mainViewModel struct {
 }
 
 // Initialize new narrative model.
-func NewMainViewModel(source_list common.Sources) *mainViewModel {
+func NewMainViewModel(
+	source_list common.Sources,
+	config *common.Config,
+) *mainViewModel {
 	source_l := source_list.ListItems()
 	l := list.New(source_l, NewDelegate(), 0, 0)
 	l.SetShowHelp(false)
@@ -59,14 +62,17 @@ func NewMainViewModel(source_list common.Sources) *mainViewModel {
 	l.Styles.Title = TitleStyle
 	l.KeyMap = ListKeymap()
 	return &mainViewModel{
-		sources:        source_list,
-		currentSource:  nil,
-		list:           l,
-		progress:       NewProgress(),
-		sourceList:     source_l,
-		perc:           &percRead{},
-		statusBar:      &statusBar{},
-		transcript:     &transcript{height: transcriptHeight},
+		sources:       source_list,
+		currentSource: nil,
+		list:          l,
+		progress:      NewProgress(),
+		sourceList:    source_l,
+		perc:          &percRead{},
+		statusBar:     &statusBar{},
+		transcript: &transcript{
+			height:      transcriptHeight,
+			showNumbers: config.ShowNumbersInTranscript,
+		},
 		showTranscript: true,
 	}
 }

@@ -162,6 +162,7 @@ func (f *fastForwarder) Tick(t time.Time) (int, bool) {
 }
 
 type transcript struct {
+	showNumbers   bool
 	width, height int
 }
 
@@ -179,11 +180,15 @@ func (t *transcript) Render(source *Source) string {
 		transcriptSeparatorStyle.Render("-------"))
 	builder.WriteString(sep)
 	builder.WriteString("\n")
+	text := source.getCurrentRawSentence()
+	if t.showNumbers {
+		text = fmt.Sprintf("%d. %s", source.SNum(), text)
+	}
 	contents := lipgloss.Place(
 		t.width, t.height,
 		lipgloss.Center,
 		lipgloss.Center,
-		source.getCurrentRawSentence(),
+		text,
 	)
 	builder.WriteString(transcriptStyle.Width(t.width).Height(t.height).Render(contents))
 	return builder.String()

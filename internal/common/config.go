@@ -43,6 +43,8 @@ type Config struct {
 	Voice string `yaml:"voice"`
 	// App theme.
 	Theme string `yaml:"theme"`
+	// If set to true will show line numbers in transcript
+	ShowNumbersInTranscript bool `yaml:"show_line_numbers_in_transcript"`
 }
 
 // Save config as yaml file.
@@ -106,6 +108,7 @@ func NewConfig(
 	max_buffer_size int,
 	voice_name string,
 	theme_name string,
+	show_numbers_in_transcript bool,
 ) *Config {
 
 	return &Config{
@@ -118,6 +121,7 @@ func NewConfig(
 		MaxBufferSize:                max_buffer_size,
 		Voice:                        voice_name,
 		Theme:                        theme_name,
+		ShowNumbersInTranscript:      show_numbers_in_transcript,
 	}
 }
 
@@ -133,5 +137,6 @@ func DefaultConfig() *Config {
 		DEFAULT_MAX_BUFFER_SIZE,
 		DEFAULT_VOICE_NAME,
 		DEFAULT_THEME_NAME,
+		false,
 	)
 }

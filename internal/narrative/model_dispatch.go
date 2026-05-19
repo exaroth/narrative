@@ -76,7 +76,7 @@ func InitNarrativeModel(ctrl *NarrativeCtrl) *narrativeModel {
 	return &narrativeModel{
 		ctrl:     ctrl,
 		mode:     modeDefault,
-		mainView: NewMainViewModel(ctrl.dataCfg.Sources),
+		mainView: NewMainViewModel(ctrl.dataCfg.Sources, ctrl.cfg),
 	}
 }
 
