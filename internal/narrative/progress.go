@@ -42,15 +42,19 @@ func NewProgressChapter(perc float64) *ProgressMark {
 
 type ProgressMarks []*ProgressMark
 
-func (c ProgressMarks) AsMap() map[float64]*ProgressMark {
-	result := make(map[float64]*ProgressMark)
-	for _, chap := range c {
-		result[chap.perc] = chap
+// Return map of marks where keys are the integer offset
+// based on the total weight of the bar.
+func (c ProgressMarks) AsWidthMap(width int) map[int]*ProgressMark {
+	result := make(map[int]*ProgressMark)
+	var pm int
+	for _, m := range c {
+		pm = int(math.Round((float64(width) * m.perc)))
+		result[pm] = m
 	}
 	return result
 }
 
-// This is  generator function for retrieving progress marks used during rendering
+// This is generator function for retrieving progress marks used during rendering
 // of the progress bar.
 func updateMarkGen(marks []*ProgressMark, width int) func(int) (int, ProgressMarkType) {
 	mark := marks[0]
@@ -252,17 +256,12 @@ func (m *ProgressModel) nextFrame() tea.Cmd {
 	})
 }
 
-func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth int) {
-	var (
-		tw = max(0, m.width-textWidth)                // total width
-		fw = int(math.Round((float64(tw) * percent))) // filled width
-	)
-	fw = max(0, min(tw, fw))
-
-	mark_map := m.chapters.AsMap()
-	for _, bmark := range m.bookmarks {
-		mark_map[bmark.perc] = bmark
-	}
+// Retrieve ordered marks - chapters and bookmarks for bar. Pass
+// total width of progress bar in argument. Marks width same position
+// will be coalesced.
+func (m *ProgressModel) getMarksForBar(tw int) []*ProgressMark {
+	mark_map := m.chapters.AsWidthMap(tw)
+	maps.Copy(mark_map, m.bookmarks.AsWidthMap(tw))
 	marks := slices.SortedFunc(maps.Values(mark_map), func(a, b *ProgressMark) int {
 		if a.perc < b.perc {
 			return -1
@@ -272,6 +271,18 @@ func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth in
 		}
 		return 0
 	})
+	return marks
+}
+
+// Render progress bar including bookmarks/chapters.
+func (m ProgressModel) barView(b *strings.Builder, percent float64, textWidth int) {
+	var (
+		tw = max(0, m.width-textWidth)                // total width
+		fw = int(math.Round((float64(tw) * percent))) // filled width
+	)
+
+	fw = max(0, min(tw, fw))
+	marks := m.getMarksForBar(tw)
 
 	if len(marks) == 0 {
 		b.WriteString(progressBarFilledStyle.
