@@ -11,7 +11,7 @@ import (
 	"charm.land/lipgloss/v2/list"
 )
 
-var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  <Arrows>:Scroll  q:Quit  ?:Help"
+var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  <Arrows>:Scroll  Q:Quit  ?:Help"
 
 // Commands
 
@@ -80,7 +80,7 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
+		if k := msg.String(); k == "ctrl+c" || k == "Q" {
 			return s, tea.Quit
 		}
 		if !s.continuousMode {
