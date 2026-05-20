@@ -333,10 +333,10 @@ func (s *sentenceList) selectSentence(n int, update bool) tea.Cmd {
 	h := s.list.Height()
 	if n < l_offset {
 		s.list.SetYOffset(max(0, n-h+2))
+	} else if n-h+2 > l_offset {
+		s.list.SetYOffset(min(len(s.ctrl.sentenceData), n+1))
 	}
-	if n-h+2 > l_offset {
-		s.list.SetYOffset(min(len(s.ctrl.sentenceData), n+h))
-	}
+
 	s.list.SetContent(s.renderList())
 	if update {
 		return s.updateMissingDict()
