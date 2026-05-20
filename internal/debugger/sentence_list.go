@@ -268,7 +268,7 @@ func (s sentenceList) renderList() string {
 // Render introspection panel below the list containing words and selectable phonemes.
 func (s *sentenceList) generateSentenceTranscription(use_phonemes bool) string {
 	var builder strings.Builder
-	s.selectSentence(s.currentSentence, false)
+	s.ctrl.getSentenceData(uint(s.currentSentence))
 	sentence_data := s.ctrl.sentenceData[s.currentSentence]
 	if sentence_data == nil {
 		panic("No opts found")
@@ -329,7 +329,14 @@ func (s *sentenceList) selectSentence(n int, update bool) tea.Cmd {
 	}
 	s.currentSentence = n
 	s.ctrl.getSentenceData(uint(n))
-
+	l_offset := s.list.YOffset()
+	h := s.list.Height()
+	if n < l_offset {
+		s.list.SetYOffset(max(0, n-h+2))
+	}
+	if n-h+2 > l_offset {
+		s.list.SetYOffset(min(len(s.ctrl.sentenceData), n+h))
+	}
 	s.list.SetContent(s.renderList())
 	if update {
 		return s.updateMissingDict()
