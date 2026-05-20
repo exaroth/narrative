@@ -42,6 +42,7 @@ type Debugger struct {
 	ttsClient       *kitten.Kitten
 	phonemizer      *phonemizer.Phonemizer
 	preprocessor    *preprocessor.Preprocessor
+	program         *tea.Program
 
 	player *player.Player
 	// whether we are plating sentence/phoneme sample atmj
@@ -170,11 +171,13 @@ func InitWithData(data []string, sentence_n int) (*Debugger, error) {
 
 func (d *Debugger) Deinit() {
 	d.ttsClient.Deinit()
+	d.program.Quit()
+
 }
 
 func (d *Debugger) Run() {
-	p := tea.NewProgram(d.model)
-	if _, err := p.Run(); err != nil {
+	d.program = tea.NewProgram(d.model)
+	if _, err := d.program.Run(); err != nil {
 		panic(err)
 	}
 

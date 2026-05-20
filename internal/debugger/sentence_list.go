@@ -318,6 +318,8 @@ func (s *sentenceList) selectNextSentence(update bool) tea.Cmd {
 	return s.selectSentence(s.currentSentence+1, update)
 }
 
+// Select sentence with number n, set update to true to update
+// dictionary with phonemes of a given sentence.
 func (s *sentenceList) selectSentence(n int, update bool) tea.Cmd {
 	if n < 0 {
 		n = 0

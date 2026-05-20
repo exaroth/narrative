@@ -8,11 +8,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func init() {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
+var debug string
 
-	log.SetLevel(log.WarnLevel)
+func init() {
+	debug = os.Getenv("DEBUG")
+	if len(debug) > 0 {
+		f, err := os.OpenFile("./narrative-debugger.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0655)
+		if err != nil {
+			panic(err)
+		}
+		log.SetOutput(f)
+		log.SetLevel(log.InfoLevel)
+	} else {
+		log.SetLevel(log.PanicLevel)
+	}
 }
 
 func main() {
@@ -26,5 +35,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer debugger.Deinit()
 	debugger.Run()
 }
