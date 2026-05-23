@@ -3,6 +3,8 @@ package preprocessor
 import (
 	"regexp"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -24,9 +26,14 @@ func (p *Preprocessor) ProcessSentence(input string) string {
 	var err error
 	var proc string
 	for _, f := range p.funcs {
+		// logrus.Info(runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name())
+		// logrus.Info(input)
+		if len(input) == 0 {
+			break
+		}
 		proc, err = f(input)
 		if err != nil {
-			// todo, log
+			logrus.Error(err)
 			continue
 		}
 		input = proc

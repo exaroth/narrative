@@ -151,6 +151,9 @@ func removeNonProsodicPunctuation(input string) (string, error) {
 // Trim wrapping quotes from the sentence,
 // as kittenTTS doesn't like it.
 func trimSentenceQuotes(input string) (string, error) {
+	if len(input) < 3 {
+		return input, nil
+	}
 	if input[0] == '"' && input[len(input)-1] == '"' {
 		return trimSentenceQuotes(strings.Trim(input, "\""))
 	}
