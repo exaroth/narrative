@@ -187,10 +187,10 @@ func (t *transcript) Render(source *Source) string {
 	contents := lipgloss.Place(
 		t.width, t.height,
 		lipgloss.Center,
-		lipgloss.Center,
+		lipgloss.Top,
 		text,
 	)
-	builder.WriteString(transcriptStyle.Width(t.width).MaxHeight(t.height).Height(t.height).Render(contents))
+	builder.WriteString(transcriptStyle.Width(t.width).MaxHeight(t.height).Render(contents))
 	return builder.String()
 }
 
