@@ -12,7 +12,7 @@ import (
 
 const (
 	appTitle         = "ℕarrative v0.1"
-	transcriptHeight = 4
+	transcriptHeight = 6
 	minPanelWidth    = 60
 	minPanelHeight   = 28
 )
@@ -195,7 +195,7 @@ func (m *mainViewModel) updateTermDimensions(width, height int) {
 	m.width = width
 	m.height = height
 	h, v := docStyle.GetFrameSize()
-	listWidth, listHeight := width-h, height-v-11 // 11 is progress
+	listWidth, listHeight := width-h, height-v-16 // 16 is progress/transcript
 	m.progress.SetWidth(width - 5)
 	m.transcript.SetWidth(width)
 	if m.showTranscript {
