@@ -1,6 +1,8 @@
 package debugger
 
 import (
+	"time"
+
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -21,6 +23,14 @@ type debugModel struct {
 	phonemePanel tea.Model
 }
 
+type UpdateTickMsg time.Time
+
+func UpdateTick() tea.Cmd {
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return UpdateTickMsg(t)
+	})
+}
+
 func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 	return &debugModel{
 		ctrl:         controller,
@@ -30,7 +40,10 @@ func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 }
 
 func (m debugModel) Init() tea.Cmd {
-	return m.sentenceList.Init()
+	return tea.Batch(
+		UpdateTick(),
+		m.sentenceList.Init(),
+	)
 }
 
 func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

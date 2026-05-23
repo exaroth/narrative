@@ -3,12 +3,15 @@ package debugger
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/list"
+	"github.com/sirupsen/logrus"
 )
 
 var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  <Arrows>:Scroll  Q:Quit  ?:Help"
@@ -48,6 +51,7 @@ type sentenceList struct {
 	height          int
 	width           int
 	continuousMode  bool
+	vimPassthrough  *VimPassthrough
 	// list of sentences marked for review
 	marks []int
 }
@@ -80,45 +84,57 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if k := msg.String(); k == "ctrl+c" || k == "Q" {
+		k := msg.String()
+		if k == "ctrl+c" || k == "Q" {
 			return s, tea.Quit
 		}
+		if s.vimPassthrough == nil {
+			if _, e := strconv.Atoi(k); e == nil {
+				s.vimPassthrough = NewVimPassthrough(k)
+			}
+		} else {
+			cmd = s.vimPassthrough.Update(k)
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+				s.vimPassthrough = nil
+			}
+		}
 		if !s.continuousMode {
-			if k := msg.String(); k == "tab" {
+			if k == "tab" {
 				cmds = append(cmds, s.selectNextSentence(true))
 				s.selectWord(0)
 				cmds = append(cmds, s.playCurrentSentence())
 			}
-			if k := msg.String(); k == "j" {
+			if k == "j" {
 				cmds = append(cmds, s.selectNextSentence(true))
 				s.selectWord(0)
 			}
-			if k := msg.String(); k == "k" {
+			if k == "k" {
 				cmds = append(cmds, s.selectPrevSentence(true))
 				s.selectWord(0)
 			}
-			if k := msg.String(); k == "l" {
+			if k == "l" {
 				s.selectNextWord()
 			}
-			if k := msg.String(); k == "h" {
+			if k == "h" {
 				s.selectPrevWord()
 			}
-			if k := msg.String(); k == "enter" {
+			if k == "enter" {
 				cmds = append(cmds, s.openPhonemePanel())
 			}
 		}
-		if k := msg.String(); k == "m" {
+		if k == "m" {
 			s.markForReview()
 		}
 
-		if k := msg.String(); k == "c" {
+		if k == "c" {
 			if s.continuousMode {
 				cmds = append(cmds, s.stopContinuousMode())
 			} else {
 				cmds = append(cmds, s.startContinuousPlay())
 			}
 		}
-		if k := msg.String(); k == "space" {
+		if k == "space" {
 			if s.continuousMode {
 				cmds = append(cmds, s.stopContinuousMode())
 			} else {
@@ -149,6 +165,20 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s.list.SetWidth(msg.Width)
 			s.list.SetHeight(msg.Height - verticalMarginHeight)
 		}
+	case UpdateTickMsg:
+		if s.vimPassthrough != nil {
+			expired := s.vimPassthrough.Tick(time.Time(msg))
+			if expired {
+				s.vimPassthrough = nil
+			}
+		}
+		cmds = append(cmds, UpdateTick())
+	case SelectSentenceCmd:
+		logrus.Info("Select sentence, ", msg)
+		cmds = append(cmds, s.selectSentence(int(msg), true))
+	case SelectWordCmd:
+		logrus.Info("Select word, ", msg)
+		s.selectWord(int(msg))
 	}
 
 	s.list, cmd = s.list.Update(msg)
