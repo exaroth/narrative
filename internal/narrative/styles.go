@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"charm.land/lipgloss/v2"
+	"github.com/exaroth/narrative/pkg/reader"
 )
 
 type ColorPalette struct {
@@ -38,6 +39,16 @@ var (
 	docStyle = lipgloss.NewStyle().Margin(1, 2)
 	errStyle = lipgloss.NewStyle().Foreground(colorError)
 )
+
+var sourceTypeStyleMap = map[reader.SourceType]color.Color{
+	reader.SourceTypeText:        colorDim,
+	reader.SourceTypeEpub:        lipgloss.Color("#FFC400"),
+	reader.SourceTypeMobi:        lipgloss.Color("#11A30F"),
+	reader.SourceTypeAzw3:        lipgloss.Color("#FF8400"),
+	reader.SourceTypeHTML:        lipgloss.Color("#0099FF"),
+	reader.SourceTypeMarkdown:    lipgloss.Color("#0FA374"),
+	reader.SourceTypeUnsupported: colorError,
+}
 
 // Modal styles.
 // ===============

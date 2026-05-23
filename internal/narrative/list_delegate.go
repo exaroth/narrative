@@ -11,6 +11,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/exaroth/narrative/internal/common"
+	"github.com/exaroth/narrative/pkg/reader"
 )
 
 const (
@@ -87,11 +88,12 @@ func (d SourceListDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 
 func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
 	var (
-		title, author, stype string
-		title_s, author_s    lipgloss.Style
-		matchedRunes         []int
-		s                    = &d.Styles
-		playing              bool
+		title, author     string
+		stype             reader.SourceType
+		title_s, author_s lipgloss.Style
+		matchedRunes      []int
+		s                 = &d.Styles
+		playing           bool
 	)
 
 	if m.Width() <= 0 {
@@ -104,7 +106,7 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	if i, ok := item.(*common.TextSource); ok {
 		title = i.Title
 		author = i.Author
-		stype = i.SourceType.String()
+		stype = i.SourceType
 		playing = i.Playing
 	} else {
 		// should not ever happen
@@ -158,11 +160,11 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	}
 
 	base = base.Width(m.Width())
-
-	stype = s.SourceTypeStyle.Render(strings.ToUpper(stype))
+	stypeC, _ := sourceTypeStyleMap[stype]
+	stypeS := s.SourceTypeStyle.Foreground(stypeC).Render(strings.ToUpper(stype.String()))
 	// get width of the title - length of the stype
 
-	title_row_l := textwidth - lipgloss.Width(stype) - 4 // padding
+	title_row_l := textwidth - lipgloss.Width(stypeS) - 4 // padding
 	title = ansi.Truncate(title, title_row_l, ellipsis)
 	author = ansi.Truncate(author, textwidth, ellipsis)
 
@@ -170,7 +172,7 @@ func (d SourceListDelegate) Render(w io.Writer, m list.Model, index int, item li
 	author = author_s.Render(author)
 	title_row := lipgloss.JoinHorizontal(lipgloss.Top,
 		title,
-		stype,
+		stypeS,
 	)
 	result := base.Render(lipgloss.Sprintf("%s\n%s", title_row, author))
 	fmt.Fprint(w, result)
