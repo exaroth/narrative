@@ -137,7 +137,9 @@ func (r *EpubProcessor) appendText(text string) error {
 	text = fmt.Sprintf("%s%s", pendingLines, text)
 
 	r.parser.newlines = 0
-
+	// Kindle unpack sometimes inserts garbage into xhtml
+	// so we ought to clean it
+	text = strings.ReplaceAll(text, "­", "")
 	_, err := io.WriteString(r.parser.writer, text)
 
 	return err
