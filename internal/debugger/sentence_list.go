@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var listHelpText = "<h/j/k/l>:Nav  <CR>:Select  <Space>:Play  <c>:Cont.Mode  <Arrows>:Scroll  Q:Quit  ?:Help"
+var listHelpText = "Q:Quit ?:Help <h/j/k/l>:Nav  <CR>:Select  <Space>:Play <c>:Cont.Mode  <Arrows>:Scroll"
 
 // Commands
 

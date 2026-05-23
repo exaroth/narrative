@@ -21,6 +21,7 @@ type debugModel struct {
 	ctrl         *Debugger
 	sentenceList tea.Model
 	phonemePanel tea.Model
+	helpPanel    *helpPanel
 }
 
 type UpdateTickMsg time.Time
@@ -36,6 +37,7 @@ func NewDebuggerModel(controller *Debugger, sentence_idx int) tea.Model {
 		ctrl:         controller,
 		mode:         listMode,
 		sentenceList: NewSentenceList(controller, sentence_idx),
+		helpPanel:    &helpPanel{},
 	}
 }
 
@@ -77,6 +79,10 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.reopen {
 			m.setPhonemeMode(msg.sentenceNum, msg.wordNum)
 		}
+	case tea.KeyPressMsg:
+		if k := msg.String(); k == "?" || k == "f1" {
+			m.toggleHelp()
+		}
 	case DeletePhonemeCmd:
 		m.deleteFromExtDict(msg.word, msg.sentenceNum)
 		m.setListMode()
@@ -105,6 +111,8 @@ func (m debugModel) View() tea.View {
 		v = m.sentenceList.View()
 	case phonemeMode:
 		v = m.phonemePanel.View()
+	case helpMode:
+		v.SetContent(m.helpPanel.Render())
 	}
 	return v
 }
@@ -124,6 +132,8 @@ func (m *debugModel) deleteFromExtDict(word string, sentence_n int) {
 func (m *debugModel) setTermDimensions(w int, h int) {
 	m.width = w
 	m.height = h
+	m.helpPanel.width = w
+	m.helpPanel.height = h
 }
 
 func (m *debugModel) setPhonemeMode(sentence_num, word_num int) {
@@ -134,4 +144,12 @@ func (m *debugModel) setPhonemeMode(sentence_num, word_num int) {
 func (m *debugModel) setListMode() {
 	m.mode = listMode
 	m.phonemePanel = nil
+}
+
+func (m *debugModel) toggleHelp() {
+	if m.mode == helpMode {
+		m.mode = listMode
+	} else {
+		m.mode = helpMode
+	}
 }

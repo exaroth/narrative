@@ -68,3 +68,11 @@ var (
 	statusBarRContentsStyle = lipgloss.NewStyle().Inherit(statusBarStyle).
 				Foreground(lipgloss.Color("#FF0000"))
 )
+
+// Help panel
+var (
+	helpPanelLogoStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("250")).Margin(1, 0)
+	helpPanelTextStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("228"))
+	helpPanelCommandStyle = lipgloss.NewStyle().Inherit(helpPanelTextStyle).Foreground(lipgloss.Color("230")).Bold(true)
+	helpPanelListStyle    = lipgloss.NewStyle().MarginLeft(1).PaddingLeft(1).Foreground(lipgloss.Color("228"))
+)
