@@ -24,3 +24,4 @@ dictionary.*
 .tts-playback.lock
 coverage.txt
 narrative.log
+narrative-debugger.log

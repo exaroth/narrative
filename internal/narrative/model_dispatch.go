@@ -284,6 +284,7 @@ func (m narrativeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		k := msg.String()
 		if k == "f2" && !m.ctrl.Source().IsDummy() {
+			m.ctrl.remote.Stop()
 			m.ctrl.runDebugger = true
 			return m, tea.Quit
 		}

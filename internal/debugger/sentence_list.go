@@ -143,6 +143,7 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 			s.list.KeyMap = GetSentenceListKeymap()
 			s.list.SetContent(s.renderList())
+			s.selectSentence(s.currentSentence, true)
 			s.ready = true
 		} else {
 			s.list.SetWidth(msg.Width)
@@ -334,7 +335,7 @@ func (s *sentenceList) selectSentence(n int, update bool) tea.Cmd {
 	if n < l_offset {
 		s.list.SetYOffset(max(0, n-h+2))
 	} else if n-h+2 > l_offset {
-		s.list.SetYOffset(min(len(s.ctrl.sentenceData), n+1))
+		s.list.SetYOffset(min(len(s.ctrl.source), n+1))
 	}
 
 	s.list.SetContent(s.renderList())
