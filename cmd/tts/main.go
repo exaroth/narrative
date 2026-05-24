@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/preprocessor"
@@ -22,6 +23,19 @@ func main() {
 
 	input := strings.Join(os.Args[1:], " ")
 
+	n_paths := common.InitDirectoryStructure()
+
+	data_cfg, err := common.LoadDataConfig(n_paths.DataConfigPath)
+	if err != nil {
+		panic(fmt.Errorf("Could not load data cfg: %w", err))
+	}
+
+	lib_path, err := data_cfg.GetLibPath(n_paths)
+
+	if err != nil {
+		panic(fmt.Errorf("Could not retrieve library path: %w", err))
+	}
+
 	repo := phonemizer.NewPhonemizerRepository("")
 
 	if err := repo.LoadLanguage(); err != nil {
@@ -34,7 +48,13 @@ func main() {
 	}
 	preprocessor := preprocessor.NewPreprocessor()
 
-	kitten := kitten.NewKitten(kitten.DefaultConfig())
+	kitten := kitten.InitKittenWithParams(
+		lib_path,
+		data_cfg.GetModelPath(n_paths),
+		data_cfg.GetVoicesPath(n_paths),
+		kitten.DEFAULT_VOICE,
+		1.0,
+	)
 	defer kitten.Deinit()
 
 	var waveform_data []float32
@@ -60,7 +80,7 @@ func main() {
 
 	for _, sample := range waveform_data {
 		var buf [8]byte
-		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
+		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(sample))
 		_, err := file.Write(buf[:])
 		if err != nil {
 			panic(err)
