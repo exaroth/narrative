@@ -126,11 +126,11 @@ func (c *NarrativeCtrl) updateVoice() (bool, string, error) {
 	var voice string
 	switch c.args.Voice {
 	case "random":
-		voice = all_voices[rand.Intn(len(all_voices)-1)]
+		voice = all_voices[rand.Intn(len(all_voices))]
 	case "male":
-		voice = kitten.MALE_VOICES[rand.Intn(len(kitten.MALE_VOICES)-1)]
+		voice = kitten.MALE_VOICES[rand.Intn(len(kitten.MALE_VOICES))]
 	case "female":
-		voice = kitten.FEMALE_VOICES[rand.Intn(len(kitten.FEMALE_VOICES)-1)]
+		voice = kitten.FEMALE_VOICES[rand.Intn(len(kitten.FEMALE_VOICES))]
 	default:
 		if slices.Index(all_voices, c.args.Voice) == -1 {
 			return false, "", fmt.Errorf(
