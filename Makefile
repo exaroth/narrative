@@ -14,8 +14,8 @@ run:
 # Setup test env
 .PHONY: test-setup
 test-setup:
-	go get github.com/kyoh86/richgo
-	go get github.com/jstemmer/go-junit-report
+	go install github.com/kyoh86/richgo@latest
+	go install github.com/jstemmer/go-junit-report@latest
 
 .PHONY: test
 test:

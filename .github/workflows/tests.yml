@@ -1,0 +1,34 @@
+name: Go Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install alsa-utils libudev-dev libasound2-dev
+        go install github.com/kyoh86/richgo@latest
+        go install github.com/jstemmer/go-junit-report@latest
+
+    - name: Run tests
+      run: make test
+
+    - name: Run tests with coverage
+      run: make test-cov
+
+    - name: Upload coverage report
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage.txt
