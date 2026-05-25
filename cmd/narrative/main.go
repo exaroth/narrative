@@ -75,19 +75,20 @@ func main() {
 func usage() string {
 	return `Usage: narrative [OPTIONS...] TEXT_SOURCE
 OPTIONS:
-	-v --voice <voice_name>   Set voice for playback.
-	--list-voices             List available voices.
-	--serve <port>            Start server running at <port>.
-	--list-models             List available KittenTTS model information.
-	--add-model <name>        Download and select KittenTTS model.
-	-m --select-model <name>  Run Narrative using given model.
-	--list-libs               List available ONNX library for OS/Arch.
-	--add-lib <lib>           Download and select ONNX lib with given name.
-	-l --select-lib <lib>     Run narrative with provided library.
-	-s --speed                Select playback speed.
-	--ext-dict                Use optional dictionary to override phonemes used
-							  by TTS client.
-	--help                    Print help.`
+	-c --convert <source_path>  Convert text source to mp3 file.
+	-v --voice <voice_name>     Set voice for playback.
+	--list-voices               List available voices.
+	--serve <port>              Start server running at <port>.
+	--list-models               List available KittenTTS model information.
+	--add-model <name>          Download and select KittenTTS model.
+	-m --select-model <name>    Run Narrative using given model.
+	--list-libs                 List available ONNX library for OS/Arch.
+	--add-lib <lib>             Download and select ONNX lib with given name.
+	-l --select-lib <lib>       Run narrative with provided library.
+	-s --speed                  Select playback speed.
+	--ext-dict                  Use optional dictionary to override phonemes used
+							    by TTS client.
+	--help                      Print help.`
 }
 
 func printVersion() string {

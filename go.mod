@@ -51,10 +51,12 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/neurlang/quaternary v0.2.4 // indirect
 	github.com/nlpodyssey/gopickle v0.3.0 // indirect
+	github.com/orcaman/writerseeker v0.0.0-20200621085525-1d3f536ff85e // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
+	github.com/viert/go-lame v0.0.0-20201108052322-bb552596b11d // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect

@@ -1,8 +1,12 @@
 package player
 
 import (
+	"fmt"
+	"io"
+
 	"github.com/gopxl/beep/v2"
 	"github.com/gopxl/beep/v2/speaker"
+	"github.com/gopxl/beep/v2/wav"
 )
 
 var (
@@ -16,7 +20,8 @@ var (
 // Thin wrapper over beep Speaker module
 // for handling sample playback.
 type Player struct {
-	ctrl *beep.Ctrl
+	ctrl   *beep.Ctrl
+	format *beep.Format
 }
 
 // Initialize new Player
@@ -24,6 +29,11 @@ func InitPlayer() *Player {
 	sr := beep.SampleRate(SampleRate)
 	speaker.Init(sr, BufferSize)
 	return &Player{
+		format: &beep.Format{
+			SampleRate:  sr,
+			NumChannels: 2,
+			Precision:   2,
+		},
 		ctrl: &beep.Ctrl{
 			Streamer: nil,
 			Paused:   true,
@@ -56,6 +66,13 @@ func (p *Player) Play(callback func()) {
 	speaker.Unlock()
 
 	speaker.Play(beep.Seq(sounds...))
+}
+
+func (p *Player) EncodeWav(w io.WriteSeeker) error {
+	if p.ctrl.Streamer == nil {
+		return fmt.Errorf("Attempting to encode nil streamer")
+	}
+	return wav.Encode(w, p.ctrl.Streamer, *p.format)
 }
 
 // Pause playback of current sample.

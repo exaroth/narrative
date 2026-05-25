@@ -8,6 +8,9 @@ f := ""
 run FILE=f:
 	go run ./cmd/narrative/main.go {{FILE}}
 
+convert FILE=f:
+	go run ./cmd/narrative/main.go --convert {{FILE}}
+
 debug FILE:
 	go run ./cmd/debugger/main.go {{FILE}}
 

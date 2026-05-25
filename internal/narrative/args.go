@@ -30,6 +30,7 @@ type NarrativeArgs struct {
 	ListLibs    bool    `arg:"--list-libs"`
 	Speed       float32 `arg:"-s,--speed"`
 	ExtDict     string  `arg:"--ext-dict"`
+	Convert     bool    `arg:"-c,--convert"`
 	Init        bool
 	Help        bool
 	Version     bool
@@ -44,6 +45,10 @@ func ParseArgs() (*NarrativeArgs, error) {
 
 // Process command line arguments.
 func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
+	if c.args.Convert {
+		msg, err := c.Convert()
+		return true, msg, err
+	}
 	if len(c.args.Source) > 0 {
 		return false, "", c.addNewSource()
 	}
