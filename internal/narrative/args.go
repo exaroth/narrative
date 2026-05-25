@@ -46,8 +46,7 @@ func ParseArgs() (*NarrativeArgs, error) {
 // Process command line arguments.
 func (c *NarrativeCtrl) handleArguments() (bool, string, error) {
 	if c.args.Convert {
-		msg, err := c.Convert()
-		return true, msg, err
+		return true, "File saved as " + ENCODER_OUTPUT_FILE, c.Convert()
 	}
 	if len(c.args.Source) > 0 {
 		return false, "", c.addNewSource()
