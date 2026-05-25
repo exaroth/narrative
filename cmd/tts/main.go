@@ -1,17 +1,16 @@
 package main
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strings"
 
 	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/phonemizer"
+	"github.com/exaroth/narrative/pkg/player"
 	"github.com/exaroth/narrative/pkg/preprocessor"
 )
 
@@ -75,16 +74,19 @@ func main() {
 		log.Fatalf("%+v", err)
 	}
 
-	fname := "out.bin"
-	file, _ := os.Create(fname)
+	// fname := "out.bin"
+	// file, _ := os.Create(fname)
+	// for _, sample := range waveform_data {
+	// 	var buf [8]byte
+	// 	binary.LittleEndian.PutUint32(buf[:], math.Float32bits(sample))
+	// 	_, err := file.Write(buf[:])
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// }
 
-	for _, sample := range waveform_data {
-		var buf [8]byte
-		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(sample))
-		_, err := file.Write(buf[:])
-		if err != nil {
-			panic(err)
-		}
-	}
+	speaker := player.InitPlayer()
+	speaker.AddSample(waveform_data)
+	speaker.Play(nil)
 
 }
