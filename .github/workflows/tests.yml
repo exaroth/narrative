@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install alsa-utils libudev-dev libasound2-dev
+        sudo apt-get install alsa-utils libudev-dev libasound2-dev libmp3lame-dev
         go install github.com/kyoh86/richgo@latest
         go install github.com/jstemmer/go-junit-report@latest
 
