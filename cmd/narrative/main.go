@@ -78,15 +78,15 @@ OPTIONS:
 	-c --convert <source_path>  Convert text source to mp3 file.
 	-v --voice <voice_name>     Set voice for playback.
 	--list-voices               List available voices.
-	--serve <port>              Start server running at <port>.
-	--list-models               List available KittenTTS model information.
-	--add-model <name>          Download and select KittenTTS model.
 	-m --select-model <name>    Run Narrative using given model.
-	--list-libs                 List available ONNX library for OS/Arch.
-	--add-lib <lib>             Download and select ONNX lib with given name.
+	--add-model <name>          Download and select KittenTTS model.
+	--list-models               List available KittenTTS model information.
 	-l --select-lib <lib>       Run narrative with provided library.
+	--add-lib <lib>             Download and select ONNX lib with given name.
+	--list-libs                 List available ONNX library for OS/Arch.
 	-s --speed                  Select playback speed.
 	--ext-dict                  Path to optional dictionary to override default phonemes.
+	--init                      Reinitialize Narrative configuration and models.
 	--help                      Print help.`
 }
 
