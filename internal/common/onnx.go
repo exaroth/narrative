@@ -17,6 +17,22 @@ var OnnxLibMap = map[string]map[string][]OnnxLib{
 				TarPath:  "onnxruntime-linux-x64-1.25.1/lib",
 				Filename: "libonnxruntime.so",
 			},
+			{
+				Remote:   "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-linux-x64-gpu_cuda13-1.25.1.tgz",
+				Os:       "linux",
+				Arch:     "amd64",
+				Name:     "onnx-linux-amd64-cuda",
+				TarPath:  "onnxruntime-linux-x64-gpu-1.25.1/lib",
+				Filename: "libonnxruntime.so",
+			},
+			{
+				Remote:   "https://github.com/microsoft/onnxruntime/releases/download/v1.25.1/onnxruntime-linux-x64-gpu-1.25.1.tgz",
+				Os:       "linux",
+				Arch:     "amd64",
+				Name:     "onnx-linux-amd64-gpu",
+				TarPath:  "onnxruntime-linux-x64-gpu-1.25.1/lib",
+				Filename: "libonnxruntime.so",
+			},
 		},
 		"arm64": []OnnxLib{
 			{

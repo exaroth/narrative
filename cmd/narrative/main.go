@@ -86,8 +86,7 @@ OPTIONS:
 	--add-lib <lib>             Download and select ONNX lib with given name.
 	-l --select-lib <lib>       Run narrative with provided library.
 	-s --speed                  Select playback speed.
-	--ext-dict                  Use optional dictionary to override phonemes used
-							    by TTS client.
+	--ext-dict                  Path to optional dictionary to override default phonemes.
 	--help                      Print help.`
 }
 
