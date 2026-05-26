@@ -4,14 +4,16 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/braheezy/shine-mp3/pkg/mp3"
 	"github.com/exaroth/narrative/pkg/kitten"
 	"github.com/exaroth/narrative/pkg/player"
+	"github.com/go-audio/wav"
 	"github.com/hyacinthus/mp3join"
 	"github.com/orcaman/writerseeker"
-	"github.com/viert/go-lame"
 )
 
 const (
@@ -53,7 +55,7 @@ func (c *NarrativeCtrl) Convert() (err error) {
 		err = fmt.Errorf("Error creating temp dir for encoder %w", err)
 		return
 	}
-	defer os.RemoveAll(ENCODER_TEMP_DIR)
+	// defer os.RemoveAll(ENCODER_TEMP_DIR)
 
 	var (
 		eos              bool
@@ -155,23 +157,21 @@ func processMp3FileChunk(chunk_path string, data *bytes.Reader, s *Source) error
 		return err
 	}
 	defer of.Close()
-	enc := getLameEncoder(of, s)
-	defer enc.Close()
-	_, err = data.WriteTo(enc)
-	return err
-}
 
-// Retrieve lame encoder set up with mp3 options.
-func getLameEncoder(f *os.File, s *Source) *lame.Encoder {
-	enc := lame.NewEncoder(f)
-	enc.SetInSamplerate(24000)
-	enc.SetNumChannels(2)
-	enc.SetLowPassFrequency(-1)
-	enc.SetQuality(5)
-	enc.ID3TagSetArtist(s.ts.Author)
-	enc.ID3TagSetTitle(s.ts.Title)
-	enc.ID3TagSetComment("Generated with Narrative - github.com/exaroth/narrative.")
-	// mono
-	enc.SetMode(3)
-	return enc
+	wavDecoder := wav.NewDecoder(data)
+	wavBuffer, err := wavDecoder.FullPCMBuffer()
+	if err != nil {
+		log.Fatalf("Error decoding WAV file: %v", err)
+	}
+
+	decodedData := make([]int16, len(wavBuffer.Data))
+	for i, val := range wavBuffer.Data {
+		decodedData[i] = int16(val)
+	}
+
+	mp3Encoder := mp3.NewEncoder(
+		wavBuffer.Format.SampleRate,
+		wavBuffer.Format.NumChannels,
+	)
+	return mp3Encoder.Write(of, decodedData)
 }
