@@ -8,46 +8,46 @@ import (
 )
 
 type ColorPalette struct {
-	Background color.Color
-	Foreground color.Color
-	Color1     color.Color
-	Color2     color.Color
-	Color3     color.Color
-	Color4     color.Color
+	Background    color.Color
+	Foreground    color.Color
+	Color1        color.Color
+	Color2        color.Color
+	Color3        color.Color
+	Color4        color.Color
+	ColorError    color.Color
+	ColorDim      color.Color
+	ColorBookmark color.Color
+	ColorChapter  color.Color
 }
 
-// Predefined colors.
-var (
-	colorError    = lipgloss.Color("#F25D94")
-	colorDim      = lipgloss.Color("#5C5C5C")
-	colorBookmark = colorError
-	colorChapter  = lipgloss.Color("#0057E3")
-)
-
 var col = ColorPalette{
-	Background: lipgloss.Color("#040C06"),
-	Foreground: lipgloss.Color("#EEFFCC"),
-	Color1:     lipgloss.Color("#BEDC7F"),
-	Color2:     lipgloss.Color("#4D8061"),
-	Color3:     lipgloss.Color("#305D42"),
-	Color4:     lipgloss.Color("#112318"),
+	Background:    lipgloss.Color("#040C06"),
+	Foreground:    lipgloss.Color("#EEFFCC"),
+	Color1:        lipgloss.Color("#BEDC7F"),
+	Color2:        lipgloss.Color("#4D8061"),
+	Color3:        lipgloss.Color("#305D42"),
+	Color4:        lipgloss.Color("#112318"),
+	ColorError:    lipgloss.Color("#F25D94"),
+	ColorDim:      lipgloss.Color("#5C5C5C"),
+	ColorBookmark: lipgloss.Color("#F25D94"),
+	ColorChapter:  lipgloss.Color("#0057E3"),
 }
 
 // Main list style
 // ===============
 var (
 	docStyle = lipgloss.NewStyle().Margin(1, 2)
-	errStyle = lipgloss.NewStyle().Foreground(colorError)
+	errStyle = lipgloss.NewStyle().Foreground(col.ColorError)
 )
 
 var sourceTypeStyleMap = map[reader.SourceType]color.Color{
-	reader.SourceTypeText:        colorDim,
+	reader.SourceTypeText:        col.ColorDim,
 	reader.SourceTypeEpub:        lipgloss.Color("#FFC400"),
 	reader.SourceTypeMobi:        lipgloss.Color("#11A30F"),
 	reader.SourceTypeAzw3:        lipgloss.Color("#FF8400"),
 	reader.SourceTypeHTML:        lipgloss.Color("#0099FF"),
 	reader.SourceTypeMarkdown:    lipgloss.Color("#0FA374"),
-	reader.SourceTypeUnsupported: colorError,
+	reader.SourceTypeUnsupported: col.ColorError,
 }
 
 // Modal styles.
@@ -65,8 +65,8 @@ var (
 
 	modalErrorStyle = lipgloss.NewStyle().
 			Inherit(modalStyle).
-			Foreground(colorError).
-			BorderForeground(colorError)
+			Foreground(col.ColorError).
+			BorderForeground(col.ColorError)
 )
 
 // Transcript styles
@@ -148,13 +148,13 @@ func NewListStyles(isDark bool) (s ListStyles) {
 		Foreground(col.Color2)
 
 	s.DimmedTitle = lipgloss.NewStyle().
-		Foreground(colorDim).
+		Foreground(col.ColorDim).
 		Padding(0, 0, 0, 1)
 
 	s.DimmedDesc = s.DimmedTitle.
-		Foreground(colorDim)
+		Foreground(col.ColorDim)
 
-	s.SourceTypeStyle = lipgloss.NewStyle().Foreground(colorDim).Bold(true)
+	s.SourceTypeStyle = lipgloss.NewStyle().Foreground(col.ColorDim).Bold(true)
 
 	s.FilterMatch = lipgloss.NewStyle().Underline(true)
 	return s
@@ -183,11 +183,11 @@ var (
 	statusBarStyle = lipgloss.NewStyle()
 
 	statusBarStatusStyle       = lipgloss.NewStyle().Width(9).Foreground(col.Color4).Bold(true)
-	statusBarStatusText        = lipgloss.NewStyle().Foreground(colorDim).Background(col.Color4)
+	statusBarStatusText        = lipgloss.NewStyle().Foreground(col.ColorDim).Background(col.Color4)
 	statusBarStatusTextCommand = lipgloss.NewStyle().Inherit(statusBarStatusText).Bold(true)
 	statusBarPromptTextStyle   = lipgloss.NewStyle().Foreground(col.Color2).Background(col.Color4)
 	statusBarPromptYStyle      = lipgloss.NewStyle().Foreground(col.Color1).Background(col.Color4)
-	statusBarPromptAccStyle    = lipgloss.NewStyle().Foreground(colorError).Background(col.Color4)
+	statusBarPromptAccStyle    = lipgloss.NewStyle().Foreground(col.ColorError).Background(col.Color4)
 )
 
 // Progress bar styles
@@ -195,14 +195,14 @@ var (
 
 var progressBarFilledStyle = lipgloss.NewStyle().Foreground(col.Color2)
 var progressBarEmptyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#606060"))
-var progressBarBookmarkStyle = lipgloss.NewStyle().Foreground(colorBookmark)
-var progressBarChapterStyle = lipgloss.NewStyle().Foreground(colorChapter)
+var progressBarBookmarkStyle = lipgloss.NewStyle().Foreground(col.ColorBookmark)
+var progressBarChapterStyle = lipgloss.NewStyle().Foreground(col.ColorChapter)
 
 // Help panel
 // ==========
 
 var (
-	helpPanelLogoStyle    = lipgloss.NewStyle().Foreground(colorDim)
+	helpPanelLogoStyle    = lipgloss.NewStyle().Foreground(col.ColorDim)
 	helpPanelTextStyle    = lipgloss.NewStyle().Foreground(col.Color2)
 	helpPanelCommandStyle = lipgloss.NewStyle().Inherit(helpPanelTextStyle).Foreground(col.Color1).Bold(true)
 	helpPanelListStyle    = lipgloss.NewStyle().MarginLeft(1).PaddingLeft(1).Foreground(col.Color2)
@@ -213,7 +213,7 @@ var (
 
 var welcomeScreenLogoStyle = lipgloss.NewStyle().Foreground(col.Color1)
 var welcomeScreenMessageStyle = lipgloss.NewStyle().Margin(1, 0)
-var welcomeScreenWarningStyleStyle = lipgloss.NewStyle().Foreground(colorError)
+var welcomeScreenWarningStyleStyle = lipgloss.NewStyle().Foreground(col.ColorError)
 var welcomeScreenModelDescriptionStyle = lipgloss.NewStyle().Foreground(col.Color3)
 var welcomeScreenModelNameStyle = lipgloss.NewStyle().Foreground(col.Color2)
 var welcomeScreenModelNameSelectedStyle = lipgloss.NewStyle().
