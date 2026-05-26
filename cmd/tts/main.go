@@ -74,19 +74,13 @@ func main() {
 		log.Fatalf("%+v", err)
 	}
 
-	// fname := "out.bin"
-	// file, _ := os.Create(fname)
-	// for _, sample := range waveform_data {
-	// 	var buf [8]byte
-	// 	binary.LittleEndian.PutUint32(buf[:], math.Float32bits(sample))
-	// 	_, err := file.Write(buf[:])
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// }
-
 	speaker := player.InitPlayer()
 	speaker.AddSample(waveform_data)
-	speaker.Play(nil)
+	done := make(chan bool)
+	onExit := func() {
+		done <- true
+	}
+	speaker.Play(onExit)
+	<-done
 
 }

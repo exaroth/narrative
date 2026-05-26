@@ -1,15 +1,15 @@
 package main
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strings"
 
+	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
+	"github.com/exaroth/narrative/pkg/player"
 )
 
 func main() {
@@ -20,29 +20,40 @@ func main() {
 
 	input := strings.Join(os.Args[1:], " ")
 
-	kitten := kitten.NewKitten(kitten.DefaultConfig())
+	n_paths := common.InitDirectoryStructure()
 
+	data_cfg, err := common.LoadDataConfig(n_paths.DataConfigPath)
+	if err != nil {
+		panic(fmt.Errorf("Could not load data cfg: %w", err))
+	}
+
+	lib_path, err := data_cfg.GetLibPath(n_paths)
+
+	if err != nil {
+		panic(fmt.Errorf("Could not retrieve library path: %w", err))
+	}
+
+	kitten := kitten.InitKittenWithParams(
+		lib_path,
+		data_cfg.GetModelPath(n_paths),
+		data_cfg.GetVoicesPath(n_paths),
+		kitten.DEFAULT_VOICE,
+		1.0,
+	)
 	defer kitten.Deinit()
 
 	var waveform_data []float32
-
-	fmt.Println("Input: ", input)
 
 	waveform_data, err = kitten.RunInference(input)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
-
-	fname := "out.bin"
-	file, _ := os.Create(fname)
-
-	for _, sample := range waveform_data {
-		var buf [8]byte
-		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
-		_, err := file.Write(buf[:])
-		if err != nil {
-			panic(err)
-		}
+	speaker := player.InitPlayer()
+	speaker.AddSample(waveform_data)
+	done := make(chan bool)
+	onExit := func() {
+		done <- true
 	}
-
+	speaker.Play(onExit)
+	<-done
 }

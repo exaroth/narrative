@@ -27,7 +27,7 @@ check-dict WORD:
     go run ./cmd/check-dict/main.go {{WORD}}
 
 tts WORD:
-    go run ./cmd/tts/main.go {{WORD}} && just play
+    go run ./cmd/tts/main.go {{WORD}}
 
 tts-raw PHONEME:
-    go run ./cmd/tts-raw/main.go {{PHONEME}} && just play
+    go run ./cmd/tts-raw/main.go {{PHONEME}}
