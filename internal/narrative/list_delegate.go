@@ -35,7 +35,7 @@ type SourceListDelegate struct {
 
 // Create new source list delegate.
 func NewDelegate() SourceListDelegate {
-	const defaultHeight = 2
+	const defaultHeight = 3
 	const defaultSpacing = 1
 	return SourceListDelegate{
 		Styles:  NewListStyles(true),
