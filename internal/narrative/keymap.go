@@ -18,11 +18,11 @@ func ListKeymap() list.KeyMap {
 			key.WithHelp("↓/j", "down"),
 		),
 		PrevPage: key.NewBinding(
-			key.WithKeys("left", "pgup", "b", "u"),
+			key.WithKeys("left", "pgup"),
 			key.WithHelp("←/pgup", "prev page"),
 		),
 		NextPage: key.NewBinding(
-			key.WithKeys("right", "pgdown", "f", "d"),
+			key.WithKeys("right", "pgdown"),
 			key.WithHelp("→/pgdn", "next page"),
 		),
 		GoToStart: key.NewBinding(
