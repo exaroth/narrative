@@ -55,7 +55,7 @@ func (c *NarrativeCtrl) Convert() (err error) {
 		err = fmt.Errorf("Error creating temp dir for encoder %w", err)
 		return
 	}
-	// defer os.RemoveAll(ENCODER_TEMP_DIR)
+	defer os.RemoveAll(ENCODER_TEMP_DIR)
 
 	var (
 		eos              bool
