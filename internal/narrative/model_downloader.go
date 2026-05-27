@@ -105,7 +105,7 @@ func DownloadAndQuit(id int, url, text, filename string, width int, forceDownloa
 }
 
 func (d *Downloader) getResponse(url string) (*http.Response, error) {
-	resp, err := http.Get(url)
+	resp, err := GetHttpClient().Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +116,7 @@ func (d *Downloader) getResponse(url string) (*http.Response, error) {
 }
 
 func (d *Downloader) InitDownload() error {
+
 	resp, err := d.getResponse(d.url)
 	if err != nil {
 		return err
