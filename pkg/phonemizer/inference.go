@@ -17,6 +17,10 @@ import (
 	dict "github.com/exaroth/narrative/dictionary"
 )
 
+// Parts of the code are based on the Goruut by neurlang
+// https://github.com/neurlang/goruut
+// MIT Licence
+
 // TODO: add to config
 const (
 	LANGUAGE_FILE_FNAME             = "language.json"

@@ -148,7 +148,10 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 						continue
 					}
 					prev_l := len((*opts.Tags)[i][phoneme])
-					if len(tags) > prev_l {
+					// This might seem counterintuitive but seems
+					// like phonemes with least number of tags are more often
+					// preferred.
+					if len(tags) < prev_l {
 						(*opts.DictOpts)[i] = &[2]string{orig, phoneme}
 					}
 				}

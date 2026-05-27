@@ -2,6 +2,10 @@ package phonemizer
 
 import "unicode"
 
+// Based on the Goruut implementation by neurlang
+// https://github.com/neurlang/goruut
+// MIT Licence
+
 // This struct contains all language settings for
 // goruut dictionaries.
 type language struct {
