@@ -71,7 +71,7 @@ var (
 		Name:   "micro",
 		Remote: "https://huggingface.co/KittenML/kitten-tts-micro-0.8/resolve/main",
 		Fname:  "kitten_tts_micro_v0_8.onnx",
-		Desc:   "(41 MB) Smallest model available, suitable for older laptops and Raspberry Pi.",
+		Desc:   "(41 MB) Smallest model, suitable for older laptops and Raspberry Pi, not recommended otherwise.",
 	}
 	TTSModelMini = TTSModel{
 		T:      KittenModelMini,

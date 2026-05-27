@@ -34,8 +34,8 @@ func getWelcomeScreenTTSModels() []list.Item {
 	var v []list.Item
 	tts_models := [3]*common.TTSModel{
 		common.GetKittenModel(common.KittenModelNano),
-		common.GetKittenModel(common.KittenModelMicro),
 		common.GetKittenModel(common.KittenModelMini),
+		common.GetKittenModel(common.KittenModelMicro),
 	}
 	for _, i := range tts_models {
 		v = append(v, i)
