@@ -1,5 +1,9 @@
 package phonemizer
 
+// Parts of the code are based on the Goruut by neurlang
+// https://github.com/neurlang/goruut
+// MIT Licence
+
 type PhonemizerToken struct {
 	// homograph = hash of written word == query
 	Homograph uint32

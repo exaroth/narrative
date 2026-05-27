@@ -16,6 +16,10 @@ import (
 	"github.com/neurlang/classifier/net/feedforward"
 )
 
+// Parts of the code are based on the Goruut by neurlang
+// https://github.com/neurlang/goruut
+// MIT Licence
+
 const HOMONYM_WEIGHTS_FNAME = "weights7.json.zlib"
 
 // Controller for handling phoneme selection,
