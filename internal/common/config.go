@@ -129,7 +129,7 @@ func NewConfig(
 func DefaultConfig() *Config {
 	return NewConfig(
 		false,
-		true,
+		false,
 		true,
 		DEFAULT_TTS_SPEED,
 		DEFAULT_TTS_PAUSE,

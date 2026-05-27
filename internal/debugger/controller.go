@@ -122,7 +122,10 @@ func InitWithData(data []string, sentence_n int) (*Debugger, error) {
 		return nil, fmt.Errorf("err initializing debugger dir: %w", err)
 	}
 
-	phonemizer, err := phonemizer.NewPhonemizer(paths[0])
+	phonemizer, err := phonemizer.NewPhonemizer(
+		paths[0],
+		*config.mainConfig.UsePhonemeSelectionInference,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("debugger init err; phonemizer init: %w", err)
 	}
@@ -222,7 +225,10 @@ func (d *Debugger) deleteFromExtDict(word string) error {
 // TODO fix reload dict funct
 // return d.phonemizer.ReloadDictionaries(phonemizer.ReloadRequestExt)
 func (d *Debugger) reloadPhonemizer() error {
-	phonemizer, err := phonemizer.NewPhonemizer(d.extDictPath)
+	phonemizer, err := phonemizer.NewPhonemizer(
+		d.extDictPath,
+		*d.config.mainConfig.UsePhonemeSelectionInference,
+	)
 	if err != nil {
 		return err
 	}

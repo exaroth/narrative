@@ -60,6 +60,10 @@ type Phonemizer struct {
 	selector *PhonemeSelector
 	// Cache for phoneme retrieval.
 	cache *WordCache
+	// If set will use inference to guess best phoneme for given
+	// word. This does not work very well at them moment and
+	// is disabled by default.
+	usePhonemeSelectionInference bool
 }
 
 // Phonemize given sentence. Will return sentence with all
@@ -160,7 +164,12 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 		input = append(input, inputmap)
 	}
 
-	var preferred = p.selector.Select(input)
+	var preferred [][3]uint32
+	if p.usePhonemeSelectionInference {
+		preferred = p.selector.Select(input)
+	} else {
+		preferred = [][3]uint32{}
+	}
 
 	for i, words := range sentence {
 		var last_preferred, hash_preferred uint32
@@ -281,7 +290,10 @@ func (p *Phonemizer) ReloadDictionaries(req DictionaryReloadRequest) error {
 }
 
 // Initialize new phonemizer controller.
-func NewPhonemizer(external_dict_path string) (*Phonemizer, error) {
+func NewPhonemizer(
+	external_dict_path string,
+	useSelectionInference bool,
+) (*Phonemizer, error) {
 	repo := NewPhonemizerRepository(external_dict_path)
 	pho := NewHashtronPhonemizer()
 	selector := NewPhonemeSelector()
@@ -301,9 +313,10 @@ func NewPhonemizer(external_dict_path string) (*Phonemizer, error) {
 		return nil, err
 	}
 	return &Phonemizer{
-		hashtron:   pho,
-		repository: repo,
-		selector:   selector,
-		cache:      cache,
+		hashtron:                     pho,
+		repository:                   repo,
+		selector:                     selector,
+		cache:                        cache,
+		usePhonemeSelectionInference: useSelectionInference,
 	}, nil
 }
