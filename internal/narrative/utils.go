@@ -84,7 +84,7 @@ func InferFilenameFromUrl(url string) (string, error) {
 	}
 	base = path.Base(r.URL.Path)
 	ext = filepath.Ext(strings.ToLower(base))
-	if ext != "" {
+	if base != "." && base != "/" && ext != "" {
 		return base, nil
 	}
 	res, err := GetHttpClient().Do(r)
