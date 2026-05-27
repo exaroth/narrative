@@ -175,9 +175,9 @@ func (r *HTMLProcessor) handleStartTag(token html.Token) (err error) {
 	switch token.DataAtom {
 	case atom.Br:
 		r.parser.newlines++
-	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6, atom.Div:
+	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6:
 		r.parser.ensureNewlines(2)
-	case atom.P:
+	case atom.P, atom.Div, atom.Li, atom.Ul, atom.Ol, atom.Blockquote:
 		r.parser.ensureNewlines(2)
 	}
 
