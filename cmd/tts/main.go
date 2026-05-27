@@ -41,7 +41,7 @@ func main() {
 		panic(err)
 	}
 
-	phonemizer, err := phonemizer.NewPhonemizer("")
+	phonemizer, err := phonemizer.NewPhonemizer("", false)
 	if err != nil {
 		panic(err)
 	}

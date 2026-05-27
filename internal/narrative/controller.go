@@ -72,12 +72,6 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 		}
 	}
 
-	ph, err = phonemizer.NewPhonemizer(args.ExtDict)
-	if err != nil {
-		return nil, fmt.Errorf("init err; phonemizer init: %w", err)
-	}
-
-	preproc = preprocessor.NewPreprocessor()
 	var cfg *common.Config
 	if _, err = os.Stat(paths.ConfigPath); err != nil {
 		cfg = common.DefaultConfig()
@@ -104,6 +98,16 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 		if err = data_cfg.Save(paths.DataConfigPath); err != nil {
 			return nil, fmt.Errorf("Error creating data cfg: %w", err)
 		}
+	}
+
+	preproc = preprocessor.NewPreprocessor()
+
+	ph, err = phonemizer.NewPhonemizer(
+		args.ExtDict,
+		*cfg.UsePhonemeSelectionInference,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("init err; phonemizer init: %w", err)
 	}
 
 	ctrl = &NarrativeCtrl{
