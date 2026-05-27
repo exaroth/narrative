@@ -17,7 +17,8 @@ type Config struct {
 }
 
 func DefaultConfig() *Config {
-	use_sel_inf := true
+	// TODO: we should load config here properly
+	use_sel_inf := false
 	remove_word_hyp := false
 	c := common.DefaultConfig()
 	c.UsePhonemeSelectionInference = &use_sel_inf
