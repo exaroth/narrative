@@ -1,11 +1,9 @@
 package reader
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-shiori/go-readability"
 	"github.com/google/uuid"
@@ -30,7 +28,6 @@ func (r HtmlReader) Read(source string) (SourceReader, error) {
 	parsed, err := readability.FromReader(f, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing html: %w", err)
-
 	}
 	if len(parsed.Title) > 0 {
 		r.title = parsed.Title
@@ -44,11 +41,7 @@ func (r HtmlReader) Read(source string) (SourceReader, error) {
 	}
 
 	r.id = uuid.New().String()
-	var result string
-	scanner := bufio.NewScanner(strings.NewReader(parsed.TextContent))
-	for scanner.Scan() {
-		result = fmt.Sprintf("%s %s", result, scanner.Text())
-	}
+	result := parsed.TextContent
 	r.data = Sentencize([]byte(result))
 	return &r, nil
 }
