@@ -147,11 +147,12 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 						(*opts.OverrideOpts)[i] = &[2]string{orig, phoneme}
 					}
 				} else {
-					if (*opts.DictOpts)[i] == nil {
+					prev_p := (*opts.DictOpts)[i]
+					if prev_p == nil {
 						(*opts.DictOpts)[i] = &[2]string{orig, phoneme}
 						continue
 					}
-					prev_l := len((*opts.Tags)[i][phoneme])
+					prev_l := len((*opts.Tags)[i][prev_p[1]])
 					// This might seem counterintuitive but seems
 					// like phonemes with least number of tags are more often
 					// preferred.
@@ -164,12 +165,7 @@ func (p *Phonemizer) GetPhonemeOptions(sentence []map[string]uint32) *PhonemeOpt
 		input = append(input, inputmap)
 	}
 
-	var preferred [][3]uint32
-	if p.usePhonemeSelectionInference {
-		preferred = p.selector.Select(input)
-	} else {
-		preferred = [][3]uint32{}
-	}
+	var preferred = p.selector.Select(input)
 
 	for i, words := range sentence {
 		var last_preferred, hash_preferred uint32
@@ -204,13 +200,12 @@ func (p *Phonemizer) SelectPhonemes(
 ) [][2]string {
 
 	result := [][2]string{}
-
 	for idx, words := range sentence {
 		if (*opts.OverrideOpts)[idx] != nil {
 			result = append(result, *(*opts.OverrideOpts)[idx])
 			continue
 		}
-		if (*opts.PrefOpts)[idx] != nil {
+		if (*opts.PrefOpts)[idx] != nil && p.usePhonemeSelectionInference {
 			result = append(result, *(*opts.PrefOpts)[idx])
 			continue
 		}
