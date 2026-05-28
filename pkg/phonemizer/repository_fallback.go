@@ -5,12 +5,36 @@ import (
 )
 
 var DICT_FALLBACK_PREFIXES = map[string]string{
-	"de": "dɪ",
+	"de":   "dɪ",
+	"un":   "ˌʌn",
+	"dis":  "dɪsˈ",
+	"mis":  "mˈɪs",
+	"be":   "bə",
+	"pre":  "pɹiː",
+	"im":   "ɪm",
+	"in":   "ɪnˈ",
+	"en":   "ənˈ",
+	"anti": "æntaɪ",
+	"a":    "ə",
 }
 
 var DICT_FALLBACK_SUFFIXES = map[string]string{
-	"ed": "ɪd",
-	"d":  "t",
+	"ed":     "ɪd",
+	"d":      "t",
+	"ly":     "li",
+	"y":      "i",
+	"s":      "z",
+	"es":     "ɪz",
+	"ing":    "ɪŋ",
+	"ish":    "ɪʃ",
+	"le":     "əl",
+	"ness":   "nəs",
+	"al":     "ɔl",
+	"ation":  "eɪʃən",
+	"ations": "eɪʃənz",
+	"less":   "lˈɛss",
+	"able":   "əbəl",
+	"ity":    "ˈɪti",
 }
 
 // Compact ps fallback result into repository result.

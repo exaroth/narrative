@@ -1,7 +1,6 @@
 package phonemizer
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 
@@ -257,7 +256,6 @@ func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 	}
 	ps_result := PrefixSuffixFallbackCheck(p.repository, word)
 	if ps_result != nil {
-		fmt.Println("Fallback found.")
 		p.cache.StoreWord(ps_result, hash)
 		// TODO: save to separate dict.
 		return ps_result, nil
