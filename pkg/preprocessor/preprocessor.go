@@ -59,6 +59,7 @@ func NewPreprocessor() *Preprocessor {
 	proc.RegisterFunc(processDashes)
 	proc.RegisterFunc(expandContractions)
 	proc.RegisterFunc(expandLeadingDecimals)
+	proc.RegisterFunc(expandRomanNumerals)
 	proc.RegisterFunc(expandCurrency)
 	proc.RegisterFunc(splitHyphenizedWords)
 	proc.RegisterFunc(removeTrailingApostrophes)
