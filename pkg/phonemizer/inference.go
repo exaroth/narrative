@@ -17,10 +17,6 @@ import (
 	dict "github.com/exaroth/narrative/dictionary"
 )
 
-// Parts of the code are based on the Goruut by neurlang
-// https://github.com/neurlang/goruut
-// MIT Licence
-
 // TODO: add to config
 const (
 	LANGUAGE_FILE_FNAME             = "language.json"
@@ -50,6 +46,9 @@ func NewHashtronPhonemizer() *HashtronPhonemizer {
 }
 
 // Initialize new inference network based on the weights file.
+// Parts of the code are based on the Goruut by neurlang
+// https://github.com/neurlang/goruut
+// MIT Licence
 func (r *HashtronPhonemizer) LoadLanguage() error {
 	r.mut.Lock()
 	defer r.mut.Unlock()

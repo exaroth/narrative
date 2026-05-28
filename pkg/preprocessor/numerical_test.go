@@ -236,3 +236,37 @@ func TestConvertingFloatsToStrings(t *testing.T) {
 		})
 	}
 }
+
+func TestConvertingRomanNumerals(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "Chapter II",
+			expected: "Chapter two",
+		},
+		{
+			input:    "he died during world war II",
+			expected: "he died during world war two",
+		},
+		{
+			input:    "I dont like V",
+			expected: "I dont like V",
+		},
+		{
+			input:    "vii is not VII",
+			expected: "vii is not seven",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("expanding roman numerals: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+
+			result, _ := expandRomanNumerals(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}

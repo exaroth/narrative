@@ -218,10 +218,9 @@ func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32
 	return
 }
 
-func (r *PhonemizerRepository) LookupTags(word1, word2 string) []string {
+func (r *PhonemizerRepository) LookupTags(orig, phoneme string) []string {
 	r.mut.RLock()
-	// Copy the result while holding the mutex
-	tagKey := (*r.wordTags)[[2]string{word1, word2}]
+	tagKey := (*r.wordTags)[[2]string{orig, phoneme}]
 	found := (*r.langTags)[tagKey]
 	r.mut.RUnlock()
 

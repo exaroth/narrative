@@ -22,9 +22,15 @@ func main() {
 	if err := repo.LoadLanguage(); err != nil {
 		panic(err)
 	}
-
-	repo_result := repo.LookupWords(word)
-
+	var repo_result []map[string]uint32
+	repo_result = repo.LookupWords(word)
+	if repo_result == nil {
+		fallback_result := phonemizer.PrefixSuffixFallbackCheck(repo, word)
+		if fallback_result != nil {
+			fmt.Println("PS Falback found!")
+		}
+		repo_result = append(repo_result, fallback_result)
+	}
 	var phonemes map[string]uint32
 	if len(repo_result) > 0 {
 		if len(repo_result) > 1 {

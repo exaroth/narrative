@@ -5,7 +5,7 @@ build:
 
 .PHONY: build-debugger
 build-debugger:
-	go build -o debugger ./cmd/debugger/main.go
+	go build -o debugger ./cmd-aux/debugger/main.go
 
 .PHONY: run
 run:

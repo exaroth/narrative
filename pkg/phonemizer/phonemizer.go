@@ -1,11 +1,11 @@
 package phonemizer
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 
 	"github.com/neurlang/classifier/hash"
+	"github.com/sirupsen/logrus"
 )
 
 // PhonemeOptions contains all phonemization
@@ -247,13 +247,18 @@ func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 
 	repo_result := p.repository.LookupWords(word)
 	if len(repo_result) > 0 {
-		// TODO
 		if len(repo_result) > 1 {
-			fmt.Printf("Repository returned more that one result for word %s: %v", word, repo_result)
+			logrus.Warningf("Repository returned more that one result for word %s: %v", word, repo_result)
 		}
 		r := repo_result[0]
 		p.cache.StoreWord(r, hash)
 		return r, nil
+	}
+	ps_result := PrefixSuffixFallbackCheck(p.repository, word)
+	if ps_result != nil {
+		p.cache.StoreWord(ps_result, hash)
+		// TODO: save to separate dict.
+		return ps_result, nil
 	}
 
 	p_result, err := p.hashtron.PhonemizeWord(word)
@@ -261,15 +266,13 @@ func (p *Phonemizer) PhonemizeWord(word string) (map[string]uint32, error) {
 		return nil, err
 	}
 	if len(p_result) == 0 {
-		// todo
-		fmt.Printf("No results returned from phonemizer for word %s", word)
+		logrus.Infof("No results inferred by phonemizer for word %s", word)
 		return nil, nil
 
 	}
 	if len(p_result) > 1 {
-		// todo
 		if len(repo_result) > 1 {
-			fmt.Printf("Phonemizer returned more that one result for word %s: %v", word, p_result)
+			logrus.Warningf("Phonemizer returned more that one result for word %s: %v", word, p_result)
 		}
 
 	}
