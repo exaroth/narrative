@@ -1,6 +1,8 @@
 package phonemizer
 
 import (
+	"maps"
+	"slices"
 	"strings"
 )
 
@@ -35,6 +37,18 @@ var DICT_FALLBACK_SUFFIXES = map[string]string{
 	"less":   "lˈɛss",
 	"able":   "əbəl",
 	"ity":    "ˈɪti",
+}
+
+var (
+	DICT_FALLBACK_PREFIXES_S = slices.SortedFunc(maps.Keys(DICT_FALLBACK_PREFIXES), _sortByL)
+	DICT_FALLBACK_SUFFIXES_S = slices.SortedFunc(maps.Keys(DICT_FALLBACK_SUFFIXES), _sortByL)
+)
+
+func _sortByL(a, b string) int {
+	if len(a) > len(b) {
+		return -1
+	}
+	return 1
 }
 
 // Compact ps fallback result into repository result.
@@ -83,13 +97,12 @@ func compactRepositoryFallbackResult(
 // Attempt to try fallback repository result by splitting common prefixes and suffixes
 // from the input word.
 func PrefixSuffixFallbackCheck(repo *PhonemizerRepository, word string) map[string]uint32 {
-
 	var prefix_a = [][2]string{}
 	var d_result_raw []map[string]uint32
 	var d_result map[string]uint32
 	var prefix, suffix, base_string string
 
-	for p := range DICT_FALLBACK_PREFIXES {
+	for _, p := range DICT_FALLBACK_PREFIXES_S {
 		if len(p) >= len(word)+1 {
 			continue
 		}
@@ -109,7 +122,7 @@ func PrefixSuffixFallbackCheck(repo *PhonemizerRepository, word string) map[stri
 		return compactRepositoryFallbackResult(repo, d_result, prefix, suffix, base_string)
 	}
 
-	for s := range DICT_FALLBACK_SUFFIXES {
+	for _, s := range DICT_FALLBACK_SUFFIXES_S {
 		if len(s) >= len(word)+1 {
 			continue
 		}
