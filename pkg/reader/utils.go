@@ -18,6 +18,7 @@ var escapePattern = regexp.MustCompile(`(\[[a-zA-Z0-9_,;: \-\."#]+\[*)\]`)
 func Escape(text string) string {
 	text = strings.ReplaceAll(text, "\u00a0", "")
 	text = strings.ReplaceAll(text, "\ufeff", "")
+	text = strings.ReplaceAll(text, "­", "")
 	return escapePattern.ReplaceAllString(text, "$1[]")
 }
 
