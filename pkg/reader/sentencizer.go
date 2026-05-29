@@ -32,6 +32,9 @@ func Sentencize(text []byte) []string {
 
 	t := string(text)
 	t = MULTISPACE_STRIP_RE.ReplaceAllString(t, " ")
+	// We want to expand abbreviations as soon as possible
+	// to avoid having issues with splitting sentences.
+	t = ExpandAbbreviations(t)
 
 	segmenter := sentencizer.NewSegmenter("en")
 	scanner := bufio.NewScanner(strings.NewReader(t))
@@ -48,15 +51,16 @@ func Sentencize(text []byte) []string {
 			if sentence == "" {
 				continue
 			}
-			if len(sentence) > 3 {
-				for _, c := range SENTENCE_WRAP_CHARS {
-					if string(sentence[0]) == c && string(sentence[len(sentence)-1]) == c {
-						t_s = sentence[1 : len(sentence)-1]
-						t_c = segmenter.Segment(t_s)
-						if len(t_c) > 1 {
-							chunks = append(chunks, t_c...)
-							continue outer
-						}
+			if len(sentence) < 3 {
+				continue
+			}
+			for _, c := range SENTENCE_WRAP_CHARS {
+				if string(sentence[0]) == c && string(sentence[len(sentence)-1]) == c {
+					t_s = sentence[1 : len(sentence)-1]
+					t_c = segmenter.Segment(t_s)
+					if len(t_c) > 1 {
+						chunks = append(chunks, t_c...)
+						continue outer
 					}
 				}
 			}
