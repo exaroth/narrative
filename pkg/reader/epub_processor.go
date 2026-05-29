@@ -63,9 +63,15 @@ func (r *EpubProcessor) ProcessBookContents(updateCh chan<- string) (s []string,
 			err = fmt.Errorf("Error processing chapter %d, %w", idx+1, err)
 			return
 		}
-		sentences := Sentencize(buf.Bytes())
-		ch_l += len(sentences)
-		s = append(s, sentences...)
+
+		paragraphs := strings.Split(string(buf.Bytes()), "\n")
+		for _, p := range paragraphs {
+			if len(p) > 0 {
+				sentences := Sentencize([]byte(p))
+				ch_l += len(sentences)
+				s = append(s, sentences...)
+			}
+		}
 		buf.Reset()
 	}
 	return
@@ -137,11 +143,7 @@ func (r *EpubProcessor) appendText(text string) error {
 	text = fmt.Sprintf("%s%s", pendingLines, text)
 
 	r.parser.newlines = 0
-	// Kindle unpack sometimes inserts garbage into xhtml
-	// so we ought to clean it
-	text = strings.ReplaceAll(text, "­", "")
 	_, err := io.WriteString(r.parser.writer, text+" ")
-
 	return err
 }
 
