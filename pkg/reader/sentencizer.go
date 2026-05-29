@@ -3,13 +3,14 @@ package reader
 import (
 	"bufio"
 	"bytes"
+	"regexp"
 	"slices"
 	"strings"
 
 	"github.com/sentencizer/sentencizer"
 )
 
-// TODO add to config
+var MULTISPACE_STRIP_RE = regexp.MustCompile(`\s\s+`)
 
 // max number of tokens that can be passed to KittenTTS model.
 // excludes spaces?
@@ -28,10 +29,16 @@ const (
 // Split input string into sentence slice.
 func Sentencize(text []byte) []string {
 	chunks := []string{}
+
+	t := string(text)
+	t = MULTISPACE_STRIP_RE.ReplaceAllString(t, " ")
+
 	segmenter := sentencizer.NewSegmenter("en")
-	scanner := bufio.NewScanner(strings.NewReader(string(text)))
-	var t_s string
-	var t_c []string
+	scanner := bufio.NewScanner(strings.NewReader(t))
+	var (
+		t_s string
+		t_c []string
+	)
 	for scanner.Scan() {
 		sentences := segmenter.Segment(scanner.Text())
 	outer:

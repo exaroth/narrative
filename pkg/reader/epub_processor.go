@@ -140,7 +140,7 @@ func (r *EpubProcessor) appendText(text string) error {
 	// Kindle unpack sometimes inserts garbage into xhtml
 	// so we ought to clean it
 	text = strings.ReplaceAll(text, "­", "")
-	_, err := io.WriteString(r.parser.writer, text)
+	_, err := io.WriteString(r.parser.writer, text+" ")
 
 	return err
 }
