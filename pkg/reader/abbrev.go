@@ -51,7 +51,7 @@ func ExpandAbbreviations(in string) string {
 			if abb, ok := ABBREV_MAP[strings.ToLower(g[1])]; ok {
 				in = strings.ReplaceAll(in, g[0], abb)
 			} else {
-				logrus.Warning("FIXME: Missing abbreviation %s", g[0])
+				logrus.Warning("FIXME: Missing abbreviation " + g[0])
 			}
 		}
 	}
@@ -59,7 +59,7 @@ func ExpandAbbreviations(in string) string {
 		if abb, ok := ABBREV_MAP[g[1]]; ok {
 			in = strings.ReplaceAll(in, g[1], abb)
 		} else {
-			logrus.Warning("FIXME: Missing abbreviation %s", g[1])
+			logrus.Warning("FIXME: Missing abbreviation " + g[1])
 		}
 	}
 	return in
