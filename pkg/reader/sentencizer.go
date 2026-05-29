@@ -41,6 +41,7 @@ func Sentencize(text []byte) []string {
 	var (
 		t_s string
 		t_c []string
+		s_a []rune
 	)
 	for scanner.Scan() {
 		sentences := segmenter.Segment(scanner.Text())
@@ -54,6 +55,8 @@ func Sentencize(text []byte) []string {
 			if len(sentence) < 3 {
 				continue
 			}
+			s_a = []rune(sentence)
+			sentence = strings.ToTitle(string(s_a[0])) + string(s_a[1:])
 			for _, c := range SENTENCE_WRAP_CHARS {
 				if string(sentence[0]) == c && string(sentence[len(sentence)-1]) == c {
 					t_s = sentence[1 : len(sentence)-1]
