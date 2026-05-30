@@ -95,3 +95,33 @@ func TestExpandingCurrency(t *testing.T) {
 		})
 	}
 }
+
+func TestExpandingDot(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "website is konrad.website",
+			expected: "website is konrad dot website",
+		},
+		{
+			input:    "site was feeds.website.co.uk",
+			expected: "site was feeds dot website dot co dot uk",
+		},
+
+		{
+			input:    "do .not replace. otherwise",
+			expected: "do .not replace. otherwise",
+		},
+	}
+	for idx, test := range tests {
+		testname := fmt.Sprintf("expanding dot: %d", idx)
+		t.Run(testname, func(t *testing.T) {
+			result, _ := expandDot(test.input)
+			if result != test.expected {
+				t.Errorf("got %s, want %s", result, test.expected)
+			}
+		})
+	}
+}

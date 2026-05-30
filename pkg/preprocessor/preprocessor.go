@@ -72,6 +72,7 @@ func NewPreprocessor() *Preprocessor {
 	proc.RegisterFunc(expandFractions)
 
 	proc.RegisterFunc(replaceNumbers)
+	proc.RegisterFunc(expandDot)
 
 	proc.RegisterFunc(removeNonProsodicPunctuation)
 	proc.RegisterFunc(normalizeWhitespace)

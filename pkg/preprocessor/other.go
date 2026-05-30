@@ -29,6 +29,7 @@ var (
 	PERCENT_RE  = regexp.MustCompile(`(-?[\d,]+(?:\.\d+)?)\s*%`)
 	UNIT_RE     = regexp.MustCompile(`(\d+(?:\.\d+)?)\s*(km|kg|mg|ml|GB|gb|MB|mb|KB|kb|TB|tb|hz|khz|mhz|ghz|mph|kph|°[cCfF]|[cCfF]°|ms|ns|µs)\b`)
 	CURRENCY_RE = regexp.MustCompile(`([$€£¥₹₩₿])\s*([\d,]+(?:\.\d+)?)\s*([KMBTkmbt])?`)
+	DOT_RE      = regexp.MustCompile(`(\w+)[.](\w+)`)
 )
 
 // Expand percentage values into words.
@@ -153,6 +154,23 @@ func expandCurrency(input string) (string, error) {
 				fmt.Sprintf("%s %s ", val, cur),
 			)
 		}
+	}
+	return input, nil
+}
+
+// Expand dot if found in between word.
+func expandDot(input string) (string, error) {
+	var repl string
+	var found bool
+	for _, g := range DOT_RE.FindAllStringSubmatch(input, -1) {
+		repl = fmt.Sprintf("%s dot %s", g[1], g[2])
+		input = strings.ReplaceAll(input, g[0], repl)
+		found = true
+	}
+	// Check recursively again
+	// as this will not expand a.b.c
+	if found {
+		return expandDot(input)
 	}
 	return input, nil
 }
