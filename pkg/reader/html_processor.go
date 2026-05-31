@@ -53,7 +53,14 @@ func (r *HTMLProcessor) ProcessBookContents(updateCh chan<- string) ([]string, [
 	if err != nil {
 		return nil, nil, err
 	}
-	r.sentences = append(r.sentences, Sentencize(r.writer.Bytes()))
+	// Append remaining data if any left.
+	paragraphs := strings.Split(r.writer.String(), "\n")
+	for _, p := range paragraphs {
+		if len(p) == 0 {
+			continue
+		}
+		r.sentences = append(r.sentences, Sentencize([]byte(p)))
+	}
 
 	if len(r.sentences) == 1 {
 		return r.sentences[0], []int{}, nil
@@ -70,7 +77,6 @@ func (r *HTMLProcessor) ProcessBookContents(updateCh chan<- string) ([]string, [
 
 		}
 	}
-
 	return result, chapters, nil
 }
 
@@ -120,7 +126,7 @@ func (r *HTMLProcessor) appendText(text string) error {
 
 	text = Escape(text)
 	pendingLines := strings.Repeat("\n", r.parser.newlines)
-	text = fmt.Sprintf("%s%s", pendingLines, text)
+	text = fmt.Sprintf("%s%s", text, pendingLines)
 
 	r.parser.newlines = 0
 
@@ -164,7 +170,13 @@ func (r *HTMLProcessor) updateChapter() {
 	if r.updateCh != nil {
 		r.updateCh <- fmt.Sprintf("Processing chapter %d", len(r.sentences)+1)
 	}
-	r.sentences = append(r.sentences, Sentencize(r.writer.Bytes()))
+	var this_s []string
+	for _, p := range strings.Split(r.writer.String(), "\n") {
+		if len(p) > 0 {
+			this_s = append(this_s, Sentencize([]byte(p))...)
+		}
+	}
+	r.sentences = append(r.sentences, this_s)
 	r.writer.Reset()
 }
 

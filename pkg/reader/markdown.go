@@ -39,10 +39,11 @@ func (r MarkdownReader) Read(source string) (SourceReader, error) {
 	renderer := html.NewRenderer(opts)
 
 	html_r := markdown.Render(html_ast, renderer)
-	html_b := bytes.NewReader(html_r)
-	proc, err := NewHTMLProcessor(html_b, SourceTypeMarkdown)
+	proc, err := NewHTMLProcessor(
+		bytes.NewReader(html_r),
+		SourceTypeMarkdown,
+	)
 	if err != nil {
-
 		return nil, fmt.Errorf("Error initializing html processor: %w", err)
 	}
 	s, c, err := proc.ProcessBookContents(nil)
