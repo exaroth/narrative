@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 type DictionaryReloadRequest int
@@ -72,7 +74,12 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 // Initialize auxiliary dictionary, be it built in or
 // external.
 func (r *PhonemizerRepository) loadAuxDict(ext bool) error {
+	if r.extDictR == nil && ext {
+		logrus.Warning("Skip loading ext dict.")
+		return nil
+	}
 	if r.auxDictR == nil && !ext {
+		logrus.Warning("Skip loading aux dict.")
 		return nil
 	}
 	var f_reader *bytes.Reader
