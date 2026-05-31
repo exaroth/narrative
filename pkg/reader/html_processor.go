@@ -126,7 +126,7 @@ func (r *HTMLProcessor) appendText(text string) error {
 
 	text = Escape(text)
 	pendingLines := strings.Repeat("\n", r.parser.newlines)
-	text = fmt.Sprintf("%s%s", text, pendingLines)
+	text = fmt.Sprintf("%s%s", pendingLines, text)
 
 	r.parser.newlines = 0
 
