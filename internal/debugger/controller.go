@@ -90,13 +90,12 @@ func initDebuggerDir(config *Config) ([]string, error) {
 // when running standalone debugger instance.
 func InitWithFile(input_fpath string, sentence_n int) (*Debugger, error) {
 
-	input, err := os.ReadFile(input_fpath)
+	r, err := reader.GetReaderForContent(input_fpath, nil)
 	if err != nil {
-		return nil, fmt.Errorf("debugger init err; invalid input %s: %w", input_fpath, err)
+		return nil, fmt.Errorf("Error initializing source reader: %w", err)
 	}
 
-	data := reader.Sentencize(input)
-	return InitWithData(data, sentence_n)
+	return InitWithData(r.Data(), sentence_n)
 
 }
 

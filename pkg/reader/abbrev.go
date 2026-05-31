@@ -30,7 +30,7 @@ var ABBREV_MAP = map[string]string{
 	"gen": "general", "hwy": "highway", "i.e": "that is", "ie": "that is", "inc": "incorporated",
 	"insp": "inspector", "jan": "January", "jr": "junior", "Jul": "July", "lt": "lieutenant",
 	"ltd": "limited", "maj": "major", "mar": "March", "mass": "massachusetts", "may": "may",
-	"md": "mediacal doctor", "max": "maximum", "min": "minimum", "mr": "mister", "mrs": "missus",
+	"md": "medical doctor", "max": "maximum", "min": "minimum", "mr": "mister", "mrs": "missus",
 	"ms": "miss", "msgr": "monsignor", "messrs": "misters", "mmes": "mesdames", "mses": "misses",
 	"miss": "miss", "nebr": "nebraska", "nev": "nevada", "no.": "number", "nos": "numbers",
 	"nr": "number", "oct": "October", "ok": "ok", "ph.d": "doctor of physics", "aug": "August",
