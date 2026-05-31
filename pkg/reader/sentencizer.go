@@ -31,10 +31,10 @@ func Sentencize(text []byte) []string {
 	chunks := []string{}
 
 	t := string(text)
-	t = MULTISPACE_STRIP_RE.ReplaceAllString(t, " ")
 	// We want to expand abbreviations as soon as possible
 	// to avoid having issues with splitting sentences.
 	t = ExpandAbbreviations(t)
+	t = MULTISPACE_STRIP_RE.ReplaceAllString(t, " ")
 
 	segmenter := sentencizer.NewSegmenter("en")
 	scanner := bufio.NewScanner(strings.NewReader(t))

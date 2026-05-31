@@ -10,11 +10,11 @@ import (
 var (
 	ABBREV_CASE_I = `(\s|^)(adj|asst|ave|bld|bldg|blvd|bros|btw|capt|cmdr|co|col|conn|corp|cpl|` +
 		`dec|dept|dr|drs|e[.]g|eg|feb|ft|esq|gov|hon|hosp|hr|hrs|hway|jun|` +
-		`gen|hwy|i[.]e|ie|inc|insp|jan|jr|jul|lt|ltd|maj|mar|mass|may|md|nov|` +
+		`gen|hwy|i[.]e|ie|inc|insp|jan|jr|jul|lt|ltd|maj|mar|mass|md|nov|` +
 		`max|min|mr|mrs|ms|msgr|messrs|mmes|mses|miss|nebr|nev|nos|apr|` +
 		`nr|oct|ok|ph[.]d|phd|ny|penn|pls|prof|n[.]y|pvt|ref|rev|rep|sec|sep|` +
 		`sept|sgt|sr|st|tenn|tex|univ|us|u[.]s|ver|vs|fig|brig|att|sen|adm|aug` +
-		`)\b([.]?)`
+		`)\b([.])`
 	ABBREV_CASE_I_RE = regexp.MustCompile(`(?i)` + ABBREV_CASE_I)
 
 	ABBREV_CASE_S_RE = regexp.MustCompile(`\s(c[.]|s[.]|p[.]|v[.]|no[.])(\s|$)`)
@@ -29,7 +29,7 @@ var ABBREV_MAP = map[string]string{
 	"hon": "honorable", "hosp": "hospital", "hr": "hour", "hrs": "hours", "hway": "highway",
 	"gen": "general", "hwy": "highway", "i.e": "that is", "ie": "that is", "inc": "incorporated",
 	"insp": "inspector", "jan": "January", "jr": "junior", "Jul": "July", "lt": "lieutenant",
-	"ltd": "limited", "maj": "major", "mar": "March", "mass": "massachusetts", "may": "may",
+	"ltd": "limited", "maj": "major", "mar": "March", "mass": "massachusetts",
 	"md": "medical doctor", "max": "maximum", "min": "minimum", "mr": "mister", "mrs": "missus",
 	"ms": "miss", "msgr": "monsignor", "messrs": "misters", "mmes": "mesdames", "mses": "misses",
 	"miss": "miss", "nebr": "nebraska", "nev": "nevada", "no.": "number", "nos": "numbers",
@@ -46,20 +46,23 @@ var ABBREV_MAP = map[string]string{
 // Expand common abbreviations in the input string, this is done early
 // as leaving those in might intefere with properly splitting sentences.
 func ExpandAbbreviations(in string) string {
-	for _, g := range ABBREV_CASE_I_RE.FindAllStringSubmatch(in, -1) {
-		if len(g[0]) > 0 {
-			if abb, ok := ABBREV_MAP[strings.ToLower(g[2])]; ok {
-				in = strings.ReplaceAll(in, g[0], g[1]+abb)
-			} else {
-				logrus.Warning("FIXME: Missing abbreviation " + g[0])
-			}
+	var key string
+	for _, m := range ABBREV_CASE_I_RE.FindAllStringIndex(in, 1) {
+		key = strings.ToLower(strings.Trim(in[m[0]:m[1]], ". "))
+		if abb, ok := ABBREV_MAP[key]; ok {
+			ns := in[:m[0]] + " " + abb + " " + in[m[1]:]
+			return ExpandAbbreviations(ns)
+		} else {
+			logrus.Warning("FIXME: Missing abbreviation " + key)
 		}
 	}
-	for _, g := range ABBREV_CASE_S_RE.FindAllStringSubmatch(in, -1) {
-		if abb, ok := ABBREV_MAP[g[1]]; ok {
-			in = strings.ReplaceAll(in, g[1], abb)
+	for _, m := range ABBREV_CASE_S_RE.FindAllStringIndex(in, 1) {
+		key = strings.Trim(in[m[0]:m[1]], " ")
+		if abb, ok := ABBREV_MAP[key]; ok {
+			ns := in[:m[0]] + " " + abb + " " + in[m[1]:]
+			return ExpandAbbreviations(ns)
 		} else {
-			logrus.Warning("FIXME: Missing abbreviation " + g[1])
+			logrus.Warning("FIXME: Missing abbreviation " + key)
 		}
 	}
 	return in

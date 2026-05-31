@@ -12,7 +12,7 @@ func TestExpandingAbbreviations(t *testing.T) {
 	}{
 		{
 			input:    "asst. to dr. Kleimer was Donald jr.",
-			expected: "assistant to doctor Kleimer was Donald junior",
+			expected: " assistant  to doctor  Kleimer was Donald junior ",
 		},
 		{
 			input:    "50 c. is not 50 C.",
@@ -20,7 +20,7 @@ func TestExpandingAbbreviations(t *testing.T) {
 		},
 		{
 			input:    "rev Johnson was born on first of jan.",
-			expected: "reverend Johnson was born on first of January",
+			expected: " reverend  Johnson was born on first of January ",
 		},
 		{
 			input:    "No, v. 1.2.3 was the last no. that mattered",
@@ -29,6 +29,10 @@ func TestExpandingAbbreviations(t *testing.T) {
 		{
 			input:    "Claude.md is located at ./cmd/claude.md",
 			expected: "Claude.md is located at ./cmd/claude.md",
+		},
+		{
+			input:    "claude co. is not a tesco.",
+			expected: "claude company  is not a tesco.",
 		},
 	}
 	for idx, test := range tests {
