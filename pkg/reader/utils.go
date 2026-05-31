@@ -64,3 +64,7 @@ func hasText(text string) bool {
 
 	return false
 }
+
+func isAlNum(c rune) bool {
+	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')
+}

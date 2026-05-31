@@ -55,6 +55,18 @@ func Sentencize(text []byte) []string {
 			if len(sentence) < 3 {
 				continue
 			}
+			// Remove lines which dont contain
+			// any readable characters.
+			var empty bool = true
+			for _, c := range sentence {
+				if isAlNum(c) {
+					empty = false
+					break
+				}
+			}
+			if empty {
+				continue
+			}
 			s_a = []rune(sentence)
 			sentence = strings.ToTitle(string(s_a[0])) + string(s_a[1:])
 			for _, c := range SENTENCE_WRAP_CHARS {
