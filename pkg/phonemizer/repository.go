@@ -9,11 +9,8 @@ import (
 	"io"
 	"maps"
 	"os"
-	"sort"
 	"strings"
 	"sync"
-
-	"github.com/neurlang/classifier/hash"
 )
 
 type DictionaryReloadRequest int
@@ -24,6 +21,7 @@ const (
 	ReloadRequestExt
 )
 
+// Main dictionary repository.
 type PhonemizerRepository struct {
 	langWords                     *map[string]map[string]uint32
 	langTags                      *map[uint32]string
@@ -71,49 +69,8 @@ func (r *PhonemizerRepository) LoadLanguage() error {
 	return err
 }
 
-// TODO: Fixme
-// DO not use: bugged.
-func (r *PhonemizerRepository) Reload(request DictionaryReloadRequest) error {
-
-	lang_words := make(map[string]map[string]uint32)
-	lang_tags := make(map[uint32]string)
-	word_tags := make(map[[2]string]uint32)
-	r.langWords = &lang_words
-	r.langTags = &lang_tags
-	r.wordTags = &word_tags
-
-	var dict_r, aux_r, ext_r bool
-	var err error
-	switch request {
-	case ReloadRequestDict:
-		dict_r = true
-	case ReloadRequestAux:
-		dict_r = true
-		aux_r = true
-	case ReloadRequestExt:
-		dict_r = true
-		aux_r = true
-		ext_r = true
-	}
-
-	if dict_r {
-		if err = r.loadMainDict(); err != nil {
-			return err
-		}
-	}
-	if aux_r {
-		if err = r.loadAuxDict(false); err != nil {
-			return err
-		}
-	}
-	if ext_r {
-		if err = r.loadAuxDict(true); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
+// Initialize auxiliary dictionary, be it built in or
+// external.
 func (r *PhonemizerRepository) loadAuxDict(ext bool) error {
 	if r.auxDictR == nil && !ext {
 		return nil
@@ -159,6 +116,7 @@ func (r *PhonemizerRepository) loadAuxDict(ext bool) error {
 	return nil
 }
 
+// Initialize main dictionary for the repository.
 func (r *PhonemizerRepository) loadMainDict() error {
 	if r.mainDictR == nil {
 		panic("No dictionary loaded")
@@ -229,6 +187,7 @@ func (r *PhonemizerRepository) loadMainDict() error {
 	return nil
 }
 
+// Retrieve phoneme options for given word.
 func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32) {
 
 	r.mut.RLock()
@@ -249,6 +208,7 @@ func (r *PhonemizerRepository) LookupWords(word string) (ret []map[string]uint32
 	return
 }
 
+// Retrieve tags for given word-phoneme pair.
 func (r *PhonemizerRepository) LookupTags(orig, phoneme string) []string {
 	r.mut.RLock()
 	tagKey := (*r.wordTags)[[2]string{orig, phoneme}]
@@ -268,47 +228,45 @@ func (r *PhonemizerRepository) LookupTags(orig, phoneme string) []string {
 	return json_tags
 }
 
-func addTags(bag map[uint32]string, tags ...string) map[uint32]string {
-	for _, v := range tags {
-		bag[hash.StringHash(0, v)] = v
-	}
-	return bag
-}
+// TODO: Fixme
+// DO not use: bugged.
+func (r *PhonemizerRepository) Reload(request DictionaryReloadRequest) error {
 
-func parseTags(cell string) (ret map[uint32]string) {
-	ret = make(map[uint32]string)
-	if cell == "" {
-		return
-	}
-	var tags []string
-	err := json.Unmarshal([]byte(cell), &tags)
-	if err != nil {
+	lang_words := make(map[string]map[string]uint32)
+	lang_tags := make(map[uint32]string)
+	word_tags := make(map[[2]string]uint32)
+	r.langWords = &lang_words
+	r.langTags = &lang_tags
+	r.wordTags = &word_tags
 
-		// todo
-		// fmt.Errorf("Cell tag: %s, Error: %v", cell, err)
-		fmt.Println(err)
+	var dict_r, aux_r, ext_r bool
+	var err error
+	switch request {
+	case ReloadRequestDict:
+		dict_r = true
+	case ReloadRequestAux:
+		dict_r = true
+		aux_r = true
+	case ReloadRequestExt:
+		dict_r = true
+		aux_r = true
+		ext_r = true
 	}
-	for _, v := range tags {
-		ret[hash.StringHash(0, v)] = v
-	}
-	return
-}
 
-func serializeTags(tags map[uint32]string) (key uint32, ret string, err error) {
-	var tagstrings = []string{}
-	for k, v := range tags {
-		key ^= k
-		tagstrings = append(tagstrings, v)
+	if dict_r {
+		if err = r.loadMainDict(); err != nil {
+			return err
+		}
 	}
-	sort.Strings(tagstrings)
-	data, err := json.Marshal(tagstrings)
-	if err != nil {
-		return 0, "", err
+	if aux_r {
+		if err = r.loadAuxDict(false); err != nil {
+			return err
+		}
 	}
-	if len(data) > 0 {
-		ret = string(data)
-	} else {
-		ret = "[]"
+	if ext_r {
+		if err = r.loadAuxDict(true); err != nil {
+			return err
+		}
 	}
-	return
+	return nil
 }
