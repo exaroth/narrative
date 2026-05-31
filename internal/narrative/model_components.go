@@ -9,6 +9,8 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+const HELP_TEXT_WIDTH = 44
+
 // Displays percent of source read.
 type percRead struct {
 	width int
@@ -235,21 +237,25 @@ func (h *helpPanel) Render() string {
 	)
 	logo = helpPanelLogoStyle.Render(logo)
 
-	var elem string
+	var elem, lc, rc, mc string
 	var elems []string
+
 	for _, c := range h.commands() {
+		lc = helpPanelCommandStyle.Render(c[0])
+		rc = helpPanelTextStyle.Render(c[1])
+		mc = strings.Repeat(".", HELP_TEXT_WIDTH-lipgloss.Width(lc)-lipgloss.Width(rc)-2)
+
 		elem = helpPanelListStyle.Render(
-			lipgloss.Sprintf("• %s - %s",
-				helpPanelCommandStyle.Render(c[0]),
-				helpPanelTextStyle.Render(c[1]),
+			lipgloss.Sprintf("%s %s %s",
+				lc, mc, rc,
 			),
 		)
 		elems = append(elems, elem)
 	}
 	contents := lipgloss.JoinVertical(
-		lipgloss.Left,
+		lipgloss.Center,
 		logo,
-		lipgloss.JoinVertical(lipgloss.Left, elems...))
+		lipgloss.JoinVertical(lipgloss.Center, elems...))
 	return contents
 }
 
