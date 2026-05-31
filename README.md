@@ -14,6 +14,9 @@ Narrative streams and converts English language e-books and other text sources f
 - Built in phoneme editor/debugger.
 - Proudly crafted without use of AI.
 
+## Installation
+
+TODO:
 
 ## Usage
 
@@ -46,6 +49,17 @@ By default Narrative will use CPU based ONNX library, if you want to use your PC
 
 Use `--add-model` to add/switch TTS model in use.
 
+## Packages
+
+Narrative incorporates set of packages that can be used independently from the main application:
+
+- **Kitten** - [https://github.com/exaroth/narrative/tree/main/pkg/kitten](https://github.com/exaroth/narrative/tree/main/pkg/kitten) - Used for direct interaction with KittenTTS models such as tokenization and inference.
+- **Preprocessor** - [https://github.com/exaroth/narrative/tree/main/pkg/preprocessor](https://github.com/exaroth/narrative/tree/main/pkg/preprocessor) - Prepares input string for phonemization, such as expansion of time/currency units and conversion of numerical values into human readable formats.
+- **Phonemizer** - [https://github.com/exaroth/narrative/tree/main/pkg/phonemizer](https://github.com/exaroth/narrative/tree/main/pkg/phonemizer) - Module for phonemizing inputs, it's based on the [Goruut](https://github.com/neurlang/goruut) library, involving dictionary lookups, phoneme inferrence, punctuation splitting etc.
+- **Reader** - [https://github.com/exaroth/narrative/tree/main/pkg/reader](https://github.com/exaroth/narrative/tree/main/pkg/reader) - Module used for reading and conversion of various text formats for usage within Narrative.
+
+
+
 ## Acknowledgments
 
 Narrative would not be possible without these projects:
@@ -53,3 +67,5 @@ Narrative would not be possible without these projects:
 - **KitenTTS** [https://github.com/KittenML/KittenTTS](https://github.com/KittenML/KittenTTS)
 - **Goruut** [https://github.com/neurlang/goruut](https://github.com/neurlang/goruut)
 - **KindleUnpack** [https://github.com/kevinhendricks/KindleUnpack](https://github.com/kevinhendricks/KindleUnpack)
+- **Bubbletea** [https://github.com/charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea)
+- **Beep** [https://github.com/faiface/beep](https://github.com/faiface/beep)
