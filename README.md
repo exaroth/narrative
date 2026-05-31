@@ -54,10 +54,20 @@ Use `--add-model` to add/switch TTS model in use.
 Narrative incorporates set of packages that can be used independently from the main application:
 
 - **Kitten** - [https://github.com/exaroth/narrative/tree/main/pkg/kitten](https://github.com/exaroth/narrative/tree/main/pkg/kitten) - Used for direct interaction with KittenTTS models such as tokenization and inference.
-- **Preprocessor** - [https://github.com/exaroth/narrative/tree/main/pkg/preprocessor](https://github.com/exaroth/narrative/tree/main/pkg/preprocessor) - Prepares input string for phonemization, such as expansion of time/currency units and conversion of numerical values into human readable formats.
+- **Preprocessor** - [https://github.com/exaroth/narrative/tree/main/pkg/preprocessor](https://github.com/exaroth/narrative/tree/main/pkg/preprocessor) - Prepares input strings for phonemization - eg. does time/currency unit expansion and conversion of numerical values into human readable formats, unicode normalization and a lot more.
 - **Phonemizer** - [https://github.com/exaroth/narrative/tree/main/pkg/phonemizer](https://github.com/exaroth/narrative/tree/main/pkg/phonemizer) - Module for phonemizing inputs, it's based on the [Goruut](https://github.com/neurlang/goruut) library, involving dictionary lookups, phoneme inferrence, punctuation splitting etc.
 - **Reader** - [https://github.com/exaroth/narrative/tree/main/pkg/reader](https://github.com/exaroth/narrative/tree/main/pkg/reader) - Module used for reading and conversion of various text formats for usage within Narrative.
 
+
+## Debugger
+
+// todo
+Narrative comes with debugger helpful for editing, modifying and adding phonemes used by Narrative. You can access it with F2 key from within main application or build standalone instance by executing `make build-debugger`. Running debugger will create new dir `narrative-debugger` in the current working directory, inside it  will create 2 files:
+
+- `aux_dict.csv` - Contains phoneme overrides, these will be used instead of phonemes found in default dictionary or inferred by Narrative. Phonemes edited/added by debugger will be automatically added here.
+- `missing_dict.csv` - Contains words that were missing in the built-in dictionary and were inferred by the Narrative.
+
+In order to add edited phonemes to default dictionary you can use `merge-dicts` utility (eg. by running `just merge-dicts` assuming you are running debugger from within Narrative repo).
 
 ## Acknowledgments
 
