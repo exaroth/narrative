@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 
+	dict "github.com/exaroth/narrative/dictionary"
+	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/phonemizer"
 )
 
@@ -17,7 +20,19 @@ func main() {
 
 	word := os.Args[1]
 
-	repo := phonemizer.NewPhonemizerRepository("")
+	main_dict, err := dict.Language.ReadFile(common.DICT_F_NAME)
+	if err != nil {
+		panic("Error reading main dict: " + err.Error())
+	}
+	aux_dict, err := dict.Language.ReadFile(common.AUX_DICT_F_NAME)
+	if err != nil {
+		panic("Error reading external dict: " + err.Error())
+	}
+
+	repo := phonemizer.NewPhonemizerRepository(
+		bytes.NewReader(main_dict),
+		bytes.NewReader(aux_dict),
+		"")
 
 	if err := repo.LoadLanguage(); err != nil {
 		panic(err)

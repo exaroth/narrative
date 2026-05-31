@@ -8,7 +8,7 @@ Narrative streams and converts English language e-books and other text sources f
 
 - Uses lightweight [KittenTTS](https://github.com/KittenML/KittenTTS) models for Text-to-Speech conversion, no need for GPU or AI account to run.
 - Supports multiple input formats including __EPUB__, __MOBI__, __AZW3__ , __HTML__, __Markdown__ and plain text.
-- Chapter Selection and Bookmarking support.
+- Chapter Selection, Bookmarking support and Playback controls included.
 - Built-in Text to MP3 converter.
 - Voice selection.
 - Built in phoneme editor/debugger.
@@ -57,7 +57,6 @@ Narrative incorporates set of packages that can be used independently from the m
 - **Preprocessor** - [https://github.com/exaroth/narrative/tree/main/pkg/preprocessor](https://github.com/exaroth/narrative/tree/main/pkg/preprocessor) - Prepares input string for phonemization, such as expansion of time/currency units and conversion of numerical values into human readable formats.
 - **Phonemizer** - [https://github.com/exaroth/narrative/tree/main/pkg/phonemizer](https://github.com/exaroth/narrative/tree/main/pkg/phonemizer) - Module for phonemizing inputs, it's based on the [Goruut](https://github.com/neurlang/goruut) library, involving dictionary lookups, phoneme inferrence, punctuation splitting etc.
 - **Reader** - [https://github.com/exaroth/narrative/tree/main/pkg/reader](https://github.com/exaroth/narrative/tree/main/pkg/reader) - Module used for reading and conversion of various text formats for usage within Narrative.
-
 
 
 ## Acknowledgments

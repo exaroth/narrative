@@ -9,7 +9,6 @@ import (
 
 	"github.com/exaroth/narrative/internal/common"
 	"github.com/exaroth/narrative/pkg/kitten"
-	"github.com/exaroth/narrative/pkg/phonemizer"
 	"github.com/exaroth/narrative/pkg/player"
 	"github.com/exaroth/narrative/pkg/preprocessor"
 )
@@ -35,13 +34,7 @@ func main() {
 		panic(fmt.Errorf("Could not retrieve library path: %w", err))
 	}
 
-	repo := phonemizer.NewPhonemizerRepository("")
-
-	if err := repo.LoadLanguage(); err != nil {
-		panic(err)
-	}
-
-	phonemizer, err := phonemizer.NewPhonemizer("", false)
+	phonemizer, err := common.NewPhonemizer("", false)
 	if err != nil {
 		panic(err)
 	}
