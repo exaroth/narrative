@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ABBREV_CASE_I = `\b(adj|asst|ave|bld|bldg|blvd|bros|btw|capt|cmdr|co|col|conn|corp|cpl|` +
+	ABBREV_CASE_I = `(\s|^)(adj|asst|ave|bld|bldg|blvd|bros|btw|capt|cmdr|co|col|conn|corp|cpl|` +
 		`dec|dept|dr|drs|e[.]g|eg|feb|ft|esq|gov|hon|hosp|hr|hrs|hway|jun|` +
 		`gen|hwy|i[.]e|ie|inc|insp|jan|jr|jul|lt|ltd|maj|mar|mass|may|md|nov|` +
 		`max|min|mr|mrs|ms|msgr|messrs|mmes|mses|miss|nebr|nev|nos|apr|` +
@@ -17,7 +17,7 @@ var (
 		`)\b([.]?)`
 	ABBREV_CASE_I_RE = regexp.MustCompile(`(?i)` + ABBREV_CASE_I)
 
-	ABBREV_CASE_S_RE = regexp.MustCompile(`\b(c[.]|s[.]|p[.]|v[.]|no[.])(\s|$)`)
+	ABBREV_CASE_S_RE = regexp.MustCompile(`\s(c[.]|s[.]|p[.]|v[.]|no[.])(\s|$)`)
 )
 
 var ABBREV_MAP = map[string]string{
@@ -48,8 +48,8 @@ var ABBREV_MAP = map[string]string{
 func ExpandAbbreviations(in string) string {
 	for _, g := range ABBREV_CASE_I_RE.FindAllStringSubmatch(in, -1) {
 		if len(g[0]) > 0 {
-			if abb, ok := ABBREV_MAP[strings.ToLower(g[1])]; ok {
-				in = strings.ReplaceAll(in, g[0], abb)
+			if abb, ok := ABBREV_MAP[strings.ToLower(g[2])]; ok {
+				in = strings.ReplaceAll(in, g[0], g[1]+abb)
 			} else {
 				logrus.Warning("FIXME: Missing abbreviation " + g[0])
 			}

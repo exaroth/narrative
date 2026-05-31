@@ -26,6 +26,10 @@ func TestExpandingAbbreviations(t *testing.T) {
 			input:    "No, v. 1.2.3 was the last no. that mattered",
 			expected: "No, version 1.2.3 was the last number that mattered",
 		},
+		{
+			input:    "Claude.md is located at ./cmd/claude.md",
+			expected: "Claude.md is located at ./cmd/claude.md",
+		},
 	}
 	for idx, test := range tests {
 		testname := fmt.Sprintf("expanding abbrev: %d", idx)
