@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-shiori/go-readability"
 	"github.com/google/uuid"
@@ -42,7 +43,9 @@ func (r HtmlReader) Read(source string) (SourceReader, error) {
 
 	r.id = uuid.New().String()
 	result := parsed.TextContent
-	r.data = Sentencize([]byte(result))
+	for _, par := range strings.Split(result, "\n") {
+		r.data = append(r.data, Sentencize([]byte(par))...)
+	}
 	return &r, nil
 }
 
