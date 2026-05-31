@@ -19,7 +19,7 @@ func TestExpandingAbbreviations(t *testing.T) {
 			expected: "50 cent is not 50 C.",
 		},
 		{
-			input:    "rev Johnson was born on first of jan.",
+			input:    "rev. Johnson was born on first of jan.",
 			expected: " reverend  Johnson was born on first of January ",
 		},
 		{
