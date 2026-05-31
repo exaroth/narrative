@@ -2,8 +2,6 @@ package phonemizer
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
 	"strings"
 	"sync"
 
@@ -13,14 +11,6 @@ import (
 	"github.com/neurlang/classifier/layer/sochastic"
 	"github.com/neurlang/classifier/layer/sum"
 	"github.com/neurlang/classifier/net/feedforward"
-
-	dict "github.com/exaroth/narrative/dictionary"
-)
-
-// TODO: add to config
-const (
-	LANGUAGE_FILE_FNAME             = "language.json"
-	PHONEME_INFERENCE_WEIGHTS_FNAME = "weights6.json.zlib"
 )
 
 // Return new integer based hash for given word.
@@ -30,18 +20,20 @@ func hashtronHash(str string) uint32 {
 
 // Controller for handling phonemization inferrence.
 type HashtronPhonemizer struct {
-	mut     *sync.RWMutex
-	lang    *language
-	network *feedforward.FeedforwardNetwork
+	mut      *sync.RWMutex
+	lang     *Language
+	network  *feedforward.FeedforwardNetwork
+	weightsR *bytes.Reader
 }
 
 // Initialize new phoneme inference controller.
-func NewHashtronPhonemizer() *HashtronPhonemizer {
+func NewHashtronPhonemizer(lang *Language, weights *bytes.Reader) *HashtronPhonemizer {
 
 	return &HashtronPhonemizer{
-		lang:    nil,
-		network: nil,
-		mut:     &sync.RWMutex{},
+		lang:     lang,
+		network:  nil,
+		mut:      &sync.RWMutex{},
+		weightsR: weights,
 	}
 }
 
@@ -50,32 +42,11 @@ func NewHashtronPhonemizer() *HashtronPhonemizer {
 // https://github.com/neurlang/goruut
 // MIT Licence
 func (r *HashtronPhonemizer) LoadLanguage() error {
+	if r.weightsR == nil {
+		panic("No weights file attached.")
+	}
 	r.mut.Lock()
 	defer r.mut.Unlock()
-
-	f_contents, err := dict.Language.ReadFile(LANGUAGE_FILE_FNAME)
-	if err != nil {
-		return err
-	}
-
-	var langone language
-	err = json.Unmarshal(f_contents, &langone)
-	if err != nil {
-		return fmt.Errorf("Error parsing JSON: %v\n", err)
-	}
-
-	langone.mapize()
-	langone.srcdst()
-	langone.letters()
-
-	r.lang = &langone
-
-	f_contents, err = dict.Language.ReadFile(PHONEME_INFERENCE_WEIGHTS_FNAME)
-	if err != nil {
-		return err
-	}
-
-	bytesReader := bytes.NewReader(f_contents)
 
 	const fanout1 = 24
 	const fanout2 = 1
@@ -96,9 +67,7 @@ func (r *HashtronPhonemizer) LoadLanguage() error {
 	net.NewLayer(1, 0)
 
 	r.network = &net
-	err = r.network.ReadZlibWeights(bytesReader)
-
-	return err
+	return r.network.ReadZlibWeights(r.weightsR)
 }
 
 // Run inferrence for a single word.

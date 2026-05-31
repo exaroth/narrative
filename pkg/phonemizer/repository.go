@@ -6,19 +6,15 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io/fs"
+	"io"
 	"maps"
 	"os"
 	"sort"
 	"strings"
 	"sync"
 
-	dict "github.com/exaroth/narrative/dictionary"
 	"github.com/neurlang/classifier/hash"
 )
-
-const DICT_F_NAME = "missing.all.zlib"
-const AUX_DICT_F_NAME = "aux_dict.csv"
 
 type DictionaryReloadRequest int
 
@@ -29,23 +25,54 @@ const (
 )
 
 type PhonemizerRepository struct {
-	langWords        *map[string]map[string]uint32
-	langTags         *map[uint32]string
-	wordTags         *map[[2]string]uint32
-	externalDictPath string
-	mut              *sync.RWMutex
+	langWords                     *map[string]map[string]uint32
+	langTags                      *map[uint32]string
+	wordTags                      *map[[2]string]uint32
+	externalDictPath              string
+	mainDictR, auxDictR, extDictR *bytes.Reader
+	mut                           *sync.RWMutex
+}
+
+// Initialize new phonemizer repository
+func NewPhonemizerRepository(
+	mainDict, auxDict *bytes.Reader,
+	external_dict_path string,
+) *PhonemizerRepository {
+	lang_words := make(map[string]map[string]uint32)
+	lang_tags := make(map[uint32]string)
+	word_tags := make(map[[2]string]uint32)
+
+	return &PhonemizerRepository{
+		langWords:        &lang_words,
+		langTags:         &lang_tags,
+		wordTags:         &word_tags,
+		externalDictPath: external_dict_path,
+		mainDictR:        mainDict,
+		auxDictR:         auxDict,
+		mut:              &sync.RWMutex{},
+	}
 }
 
 func (r *PhonemizerRepository) LoadLanguage() error {
 	err := r.loadMainDict()
-	err = r.loadAuxDict("")
+	err = r.loadAuxDict(false)
 	if r.externalDictPath != "" {
-		err = r.loadAuxDict(r.externalDictPath)
+		f_reader, err := os.Open(r.externalDictPath)
+		if err != nil {
+			return err
+		}
+		contents, err := io.ReadAll(f_reader)
+		if err != nil {
+			return err
+		}
+		r.extDictR = bytes.NewReader(contents)
+		err = r.loadAuxDict(true)
 	}
 	return err
 }
 
 // TODO: Fixme
+// DO not use: bugged.
 func (r *PhonemizerRepository) Reload(request DictionaryReloadRequest) error {
 
 	lang_words := make(map[string]map[string]uint32)
@@ -75,33 +102,37 @@ func (r *PhonemizerRepository) Reload(request DictionaryReloadRequest) error {
 		}
 	}
 	if aux_r {
-		if err = r.loadAuxDict(""); err != nil {
+		if err = r.loadAuxDict(false); err != nil {
 			return err
 		}
 	}
 	if ext_r {
-		if err = r.loadAuxDict(r.externalDictPath); err != nil {
+		if err = r.loadAuxDict(true); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *PhonemizerRepository) loadAuxDict(fpath string) error {
-	var f_reader fs.File
+func (r *PhonemizerRepository) loadAuxDict(ext bool) error {
+	if r.auxDictR == nil && !ext {
+		return nil
+	}
+	var f_reader *bytes.Reader
 	var err error
 	var tagkey uint32
 	var tagjson string
-	if len(fpath) > 0 {
+	if ext {
 		tagkey, tagjson, err = serializeTags(parseTags("[\"override-ext\"]"))
-		f_reader, err = os.Open(fpath)
+		f_reader = r.extDictR
 	} else {
 		tagkey, tagjson, err = serializeTags(parseTags("[\"override\"]"))
-		f_reader, err = dict.Language.Open(AUX_DICT_F_NAME)
+		f_reader = r.auxDictR
 	}
 	if err != nil {
 		return err
 	}
+
 	var reader = csv.NewReader(f_reader)
 	reader.Comma = ' '
 
@@ -129,18 +160,18 @@ func (r *PhonemizerRepository) loadAuxDict(fpath string) error {
 }
 
 func (r *PhonemizerRepository) loadMainDict() error {
+	if r.mainDictR == nil {
+		panic("No dictionary loaded")
+	}
 	r.mut.Lock()
 	defer r.mut.Unlock()
 
-	f_contents, err := dict.Language.ReadFile(DICT_F_NAME)
-	if err != nil {
-		return err
-	}
-	zlib_reader, err := zlib.NewReader(bytes.NewReader(f_contents))
+	zlib_reader, err := zlib.NewReader(r.mainDictR)
 
 	if err != nil {
 		return err
 	}
+
 	var reader = csv.NewReader(zlib_reader)
 
 	reader.Comma = '\t'
@@ -235,20 +266,6 @@ func (r *PhonemizerRepository) LookupTags(orig, phoneme string) []string {
 		panic(err)
 	}
 	return json_tags
-}
-
-func NewPhonemizerRepository(external_dict_path string) *PhonemizerRepository {
-	lang_words := make(map[string]map[string]uint32)
-	lang_tags := make(map[uint32]string)
-	word_tags := make(map[[2]string]uint32)
-
-	return &PhonemizerRepository{
-		langWords:        &lang_words,
-		langTags:         &lang_tags,
-		wordTags:         &word_tags,
-		externalDictPath: external_dict_path,
-		mut:              &sync.RWMutex{},
-	}
 }
 
 func addTags(bag map[uint32]string, tags ...string) map[uint32]string {

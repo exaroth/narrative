@@ -1,6 +1,9 @@
 package phonemizer
 
-import "unicode"
+import (
+	"encoding/json"
+	"unicode"
+)
 
 // Based on the Goruut implementation by neurlang
 // https://github.com/neurlang/goruut
@@ -8,7 +11,7 @@ import "unicode"
 
 // This struct contains all language settings for
 // goruut dictionaries.
-type language struct {
+type Language struct {
 	Mapping        map[string][]string `json:"Map"`
 	SrcMulti       []string            `json:"SrcMulti"`
 	DstMulti       []string            `json:"DstMulti"`
@@ -28,6 +31,18 @@ type language struct {
 	mapDropLast       map[string]struct{}
 }
 
+func NewLanguage(raw []byte) (*Language, error) {
+
+	var lang Language
+	if err := json.Unmarshal(raw, &lang); err != nil {
+		return nil, err
+	}
+	lang.mapize()
+	lang.srcdst()
+	lang.letters()
+	return &lang, nil
+}
+
 // Convert slize []T into map[T]struct{}.
 func mapize(arr []string) (out map[string]struct{}) {
 	out = make(map[string]struct{})
@@ -38,7 +53,7 @@ func mapize(arr []string) (out map[string]struct{}) {
 }
 
 // Convert language options into a map
-func (l *language) mapize() {
+func (l *Language) mapize() {
 	l.mapSrcMulti = mapize(l.SrcMulti)
 	l.mapDstMulti = mapize(l.DstMulti)
 	l.mapSrcMultiSuffix = mapize(l.SrcMultiSuffix)
@@ -51,7 +66,7 @@ func (l *language) mapize() {
 	l.DropLast = nil
 }
 
-func (l *language) srcdst() {
+func (l *Language) srcdst() {
 	for k, v := range l.Mapping {
 		if len(v) == 0 {
 			continue
@@ -77,7 +92,7 @@ func (l *language) srcdst() {
 	}
 }
 
-func (l *language) letters() {
+func (l *Language) letters() {
 	l.mapLetters = make(map[string]struct{})
 	for k := range l.Mapping {
 		addLetters(k, l.mapLetters)

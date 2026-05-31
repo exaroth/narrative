@@ -193,10 +193,12 @@ func (m narrativeModel) renderModal() *lipgloss.Layer {
 func (m narrativeModel) renderInfo() *lipgloss.Layer {
 	var builder strings.Builder
 	builder.WriteString("Stats for nerds:\n\n")
+	builder.WriteString(fmt.Sprintf("Window dim: %dx%d\n\n", m.width, m.height))
 	builder.WriteString("Source:\n")
 	if m.ctrl.Source().IsDummy() {
 		builder.WriteString(fmt.Sprintf("  N/A\n"))
 	} else {
+
 		builder.WriteString(fmt.Sprintf("  Title: %s\n", m.ctrl.Source().ts.Title))
 		builder.WriteString(fmt.Sprintf("  Author: %s\n", m.ctrl.Source().ts.Author))
 		builder.WriteString(fmt.Sprintf("  ID: %s\n", m.ctrl.Source().id))

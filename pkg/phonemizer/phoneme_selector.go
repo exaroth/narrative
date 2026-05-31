@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 
-	dict "github.com/exaroth/narrative/dictionary"
 	"github.com/neurlang/classifier/hash"
 	"github.com/neurlang/classifier/layer/crossattention"
 	"github.com/neurlang/classifier/layer/sochastic"
@@ -20,13 +19,22 @@ import (
 // https://github.com/neurlang/goruut
 // MIT Licence
 
-const HOMONYM_WEIGHTS_FNAME = "weights7.json.zlib"
-
 // Controller for handling phoneme selection,
 // uses goruut weights file for inference.
 type PhonemeSelector struct {
-	network *feedforward.FeedforwardNetwork
-	mut     *sync.RWMutex
+	network  *feedforward.FeedforwardNetwork
+	weightsR *bytes.Reader
+	mut      *sync.RWMutex
+}
+
+// Initialize new phoneme selector.
+func NewPhonemeSelector(weights *bytes.Reader) *PhonemeSelector {
+
+	return &PhonemeSelector{
+		mut:      &sync.RWMutex{},
+		weightsR: weights,
+		network:  nil,
+	}
 }
 
 // Select preferred phonemes for given sentence.
@@ -114,13 +122,6 @@ func (h *PhonemeSelector) Select(sentence []map[string][2]uint32) (ret [][3]uint
 // Load weights file and initialize inference network.
 func (h *PhonemeSelector) LoadLanguage() error {
 
-	f_contents, err := dict.Language.ReadFile(HOMONYM_WEIGHTS_FNAME)
-	if err != nil {
-		return err
-	}
-
-	bytesReader := bytes.NewReader(f_contents)
-
 	const fanout1 = 24
 	const fanout2 = 1
 	const fanout3 = 4
@@ -141,14 +142,5 @@ func (h *PhonemeSelector) LoadLanguage() error {
 
 	h.network = &net
 
-	return h.network.ReadZlibWeights(bytesReader)
-}
-
-// Initialize new phoneme selector.
-func NewPhonemeSelector() *PhonemeSelector {
-
-	return &PhonemeSelector{
-		mut:     &sync.RWMutex{},
-		network: nil,
-	}
+	return h.network.ReadZlibWeights(h.weightsR)
 }

@@ -288,13 +288,14 @@ func (p *Phonemizer) ReloadDictionaries(req DictionaryReloadRequest) error {
 }
 
 // Initialize new phonemizer controller.
-func NewPhonemizer(
-	external_dict_path string,
-	useSelectionInference bool,
-) (*Phonemizer, error) {
-	repo := NewPhonemizerRepository(external_dict_path)
-	pho := NewHashtronPhonemizer()
-	selector := NewPhonemeSelector()
+func NewPhonemizer(cfg *PhonemizerConfig) (*Phonemizer, error) {
+	repo := NewPhonemizerRepository(
+		cfg.Dictionary,
+		cfg.AuxDictionary,
+		cfg.ExternalDictPath,
+	)
+	pho := NewHashtronPhonemizer(cfg.Language, cfg.InferenceWeights)
+	selector := NewPhonemeSelector(cfg.HomonymWeights)
 
 	if err := repo.LoadLanguage(); err != nil {
 		return nil, err
@@ -315,6 +316,6 @@ func NewPhonemizer(
 		repository:                   repo,
 		selector:                     selector,
 		cache:                        cache,
-		usePhonemeSelectionInference: useSelectionInference,
+		usePhonemeSelectionInference: cfg.UseSelectionInference,
 	}, nil
 }

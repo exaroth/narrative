@@ -102,7 +102,7 @@ func NewCtrl(args *NarrativeArgs) (ctrl *NarrativeCtrl, err error) {
 
 	preproc = preprocessor.NewPreprocessor()
 
-	ph, err = phonemizer.NewPhonemizer(
+	ph, err = common.NewPhonemizer(
 		args.ExtDict,
 		*cfg.UsePhonemeSelectionInference,
 	)
