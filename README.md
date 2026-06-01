@@ -4,6 +4,8 @@
 Narrative
 </h2>
 
+https://github.com/user-attachments/assets/9f333e2d-d1eb-4d58-aa6e-77178ccbe425
+
 Narrative streams and converts English language e-books and other text sources for your listening pleasure.
 
 - Uses lightweight [KittenTTS](https://github.com/KittenML/KittenTTS) models for Text-to-Speech conversion, no need for GPU or AI account to run.
@@ -61,7 +63,7 @@ Narrative incorporates set of packages that can be used independently from the m
 
 ## Debugger
 
-// todo
+<img width="1072" height="725" alt="Image" src="https://github.com/user-attachments/assets/fe1947a4-0a8c-40c7-8257-650d823733fe" />
 Narrative comes with debugger helpful for editing, modifying and adding phonemes used by Narrative. You can access it with F2 key from within main application or build standalone instance by executing `make build-debugger`. Running debugger will create new dir `narrative-debugger` in the current working directory, inside it  will create 2 files:
 
 - `aux_dict.csv` - Contains phoneme overrides, these will be used instead of phonemes found in default dictionary or inferred by Narrative. Phonemes edited/added by debugger will be automatically added here.
