@@ -18,7 +18,20 @@ Narrative streams and converts English language e-books and other text sources f
 
 ## Installation
 
-TODO:
+- Go
+
+```
+go install github.com/exaroth/narrative/cmd/narrative@latest
+```
+
+- AUR
+
+```
+yay -S narrative
+```
+
+- Homebrew (MacOs)
+
 
 ## Usage
 

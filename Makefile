@@ -1,7 +1,6 @@
 .PHONY: build
 build:
-	# go build -o ./build/narrative ./cmd/narrative/main.go
-	go build -o narrative ./cmd/narrative/main.go
+	go build -o ./build/narrative ./cmd/narrative/main.go
 
 .PHONY: build-debugger
 build-debugger:
