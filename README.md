@@ -64,6 +64,8 @@ Narrative incorporates set of packages that can be used independently from the m
 ## Debugger
 
 <img width="1072" height="725" alt="Image" src="https://github.com/user-attachments/assets/fe1947a4-0a8c-40c7-8257-650d823733fe" />
+
+
 Narrative comes with debugger helpful for editing, modifying and adding phonemes used by Narrative. You can access it with F2 key from within main application or build standalone instance by executing `make build-debugger`. Running debugger will create new dir `narrative-debugger` in the current working directory, inside it  will create 2 files:
 
 - `aux_dict.csv` - Contains phoneme overrides, these will be used instead of phonemes found in default dictionary or inferred by Narrative. Phonemes edited/added by debugger will be automatically added here.

@@ -195,12 +195,13 @@ func (m *mainViewModel) updateTermDimensions(width, height int) {
 	m.width = width
 	m.height = height
 	h, v := docStyle.GetFrameSize()
-	listWidth, listHeight := width-h, height-v-14 // 14 is progress/transcript
+	listWidth := width - h
+	listHeight := height - v - 16
 	m.progress.SetWidth(width - 5)
 	m.transcript.SetWidth(width)
-	if m.showTranscript {
-		listHeight = listHeight - lipgloss.Height(m.transcript.Render(m.currentSource))
-	}
+	// if m.showTranscript {
+	// 	listHeight = listHeight - lipgloss.Height(m.transcript.Render(m.currentSource))
+	// }
 	m.list.SetSize(listWidth, listHeight)
 	m.perc = m.perc.SetWidth(width)
 	m.statusBar = m.statusBar.SetWidth(width)
