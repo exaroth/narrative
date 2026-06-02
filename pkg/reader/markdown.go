@@ -15,7 +15,7 @@ import (
 
 var MARKDOWN_EXTENSIONS = parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
 var MARKDOWN_HTML_FLAGS = html.CommonFlags | html.HrefTargetBlank
-var MARKDOWN_TITLE_RE = regexp.MustCompile(`(?m)^\s*#([^#].*?)$`)
+var MARKDOWN_TITLE_RE = regexp.MustCompile(`(?m)^\s*#[#]?([^#].*?)$`)
 
 // Reader for markdown files.
 type MarkdownReader struct {
