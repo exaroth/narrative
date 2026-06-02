@@ -1,0 +1,16 @@
+lang: en-US
+bg_color: dark
+theme_color: violet
+title: Narrative
+description: Narrative. Terminal TTS streamer for ebooks, websites and other text content.
+keywords: tts, ebook, streaming, terminal, cli
+
+remote_theme: devich/quick@0.0.1
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      layout: "default"
+plugins:
+  - jekyll-optional-front-matter
