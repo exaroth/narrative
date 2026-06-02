@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	appTitle         = "ℕarrative v0.1"
+	appTitle         = "ℕarrative v" + VERSION
 	transcriptHeight = 6
 	minPanelWidth    = 60
 	minPanelHeight   = 28
