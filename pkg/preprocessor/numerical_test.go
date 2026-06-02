@@ -258,6 +258,10 @@ func TestConvertingRomanNumerals(t *testing.T) {
 			input:    "vii is not VII",
 			expected: "vii is not seven",
 		},
+		{
+			input:    "Letter I",
+			expected: "Letter one",
+		},
 	}
 	for idx, test := range tests {
 		testname := fmt.Sprintf("expanding roman numerals: %d", idx)

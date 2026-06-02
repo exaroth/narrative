@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Show proper version of Narrative in the main view.
+### Added
+- Add letter to title words when processing roman numerals.
 ## [0.2.0] 2026-06-01
 ### Added
 - Initial version

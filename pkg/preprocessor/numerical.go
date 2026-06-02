@@ -41,7 +41,7 @@ var (
 	ROMAN_RE       = regexp.MustCompile(`\b(M{0,4})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})\b`)
 	TITLE_WORDS    = `(war|chapter|part|volume|act|scene|book|section|article|` +
 		`king|queen|pope|louis|henry|edward|george|william|james|` +
-		"phase|round|level|stage|class|type|version|episode|season)"
+		"phase|round|level|stage|class|type|version|episode|season|letter)"
 	TITLE_WORDS_RE = regexp.MustCompile(`(?i)` + TITLE_WORDS)
 )
 
