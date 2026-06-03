@@ -1,6 +1,7 @@
 <h2 align="center">
-<img align="center" width="70" height="70" src="https://github.com/user-attachments/assets/d4250f20-f0d2-4832-9415-b72e99aa3af7" alt="Narrative"><br/>
+<img align="center" width="70" height="70" src="https://github.com/exaroth/narrative/releases/download/0.2.0/logosmall.png" alt=""><br/>
 <br/>
+
 Narrative
 </h2>
 
@@ -80,8 +81,9 @@ Narrative incorporates set of packages that can be used independently from the m
 
 ## Debugger
 
-<img width="1072" height="725" alt="Image" src="https://github.com/user-attachments/assets/fe1947a4-0a8c-40c7-8257-650d823733fe" />
+<img width="1072" height="725" alt="" src="https://github.com/exaroth/narrative/releases/download/0.2.0/debugger.png" />
 
+</br>
 
 Narrative comes with debugger helpful for editing, modifying and adding phonemes used by Narrative. You can access it with F2 key from within main application or build standalone instance by executing `make build-debugger`. Running debugger will create new dir `narrative-debugger` in the current working directory, inside it  will create 2 files:
 
