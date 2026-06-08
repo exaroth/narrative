@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Remove processing of table of contents and links in epub/azw3 sources.
+- Remove lines containing only numerical values
 ## [0.2.1] 2026-06-02
 ### Fixed
 - Show proper version of Narrative in the main view.

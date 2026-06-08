@@ -59,7 +59,7 @@ func Sentencize(text []byte) []string {
 			// any readable characters.
 			var empty bool = true
 			for _, c := range sentence {
-				if isAlNum(c) {
+				if hasLetters(c) {
 					empty = false
 					break
 				}
