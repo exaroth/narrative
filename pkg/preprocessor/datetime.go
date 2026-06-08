@@ -16,7 +16,7 @@ var (
 	// todo ignore case
 	TIME_RE = regexp.MustCompile(`\b(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b`)
 
-	YEARS_RE_S = `(\s|^)(on|of|in|from|to|january|february|march|april|may|june|` +
+	YEARS_RE_S = `(\s|^)(on|of|in|from|by|to|january|february|march|april|may|june|` +
 		`july|august|september|october|november|december)\s(\d{4})\b`
 
 	YEARS_RE = regexp.MustCompile(`(?i)` + YEARS_RE_S)
