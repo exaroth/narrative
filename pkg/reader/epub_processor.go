@@ -14,11 +14,19 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+var AtomExcluded atom.Atom = 999999
+
 var epubExcludedAtoms = []atom.Atom{
 	atom.Style, atom.Head,
 	atom.Header, atom.Footer,
 	atom.Table, atom.Tbody, atom.Td,
-	atom.Tr,
+	atom.Tr, atom.A,
+}
+
+var epubExcludedAttrs = map[string]string{
+	"role":        "toc",
+	"aria-hidden": "true",
+	"class":       "para-crt",
 }
 
 type EpubProcessor struct {
@@ -117,7 +125,11 @@ func (r *EpubProcessor) handleToken() error {
 	case html.ErrorToken:
 		return r.parser.tokenizer.Err()
 	case html.StartTagToken:
-		r.parser.tagStack = append(r.parser.tagStack, token.DataAtom)
+		if r.checkIfExcluded(&token) {
+			r.parser.tagStack = append(r.parser.tagStack, AtomExcluded)
+		} else {
+			r.parser.tagStack = append(r.parser.tagStack, token.DataAtom)
+		}
 		return r.handleStartTag(token)
 	case html.SelfClosingTagToken:
 		return r.handleStartTag(token)
@@ -129,6 +141,19 @@ func (r *EpubProcessor) handleToken() error {
 	}
 
 	return nil
+}
+
+// Check if contents inside given html tag should be excluded.
+func (r *EpubProcessor) checkIfExcluded(token *html.Token) bool {
+	attrs := token.Attr
+	for _, a := range attrs {
+		for att, val := range epubExcludedAttrs {
+			if a.Key == att && strings.Contains(a.Val, val) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // appendText appends text to the underlying writer.
@@ -151,6 +176,9 @@ func (r *EpubProcessor) handleText(token html.Token) error {
 	// Skip style tags
 
 	for _, t := range r.parser.tagStack {
+		if t == AtomExcluded {
+			return nil
+		}
 		if slices.Index(epubExcludedAtoms, t) > -1 {
 			return nil
 		}
