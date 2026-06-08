@@ -186,15 +186,25 @@ func (d *Debugger) Run() {
 }
 
 func (d *Debugger) play(input, suffix string, callback func()) {
+	go d.program.Send(IsBufferingMsg(true))
 	s_data, err := d.ttsClient.RunInference(input + suffix)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
+	go d.program.Send(IsBufferingMsg(false))
+	go d.program.Send(SetPlaybackStatusMsg(true))
 	d.player.AddSample(s_data)
-	d.player.Play(callback)
+	if callback != nil {
+		d.player.Play(callback)
+	} else {
+		d.player.Play(func() {
+			go d.program.Send(SetPlaybackStatusMsg(false))
+		})
+	}
 }
 
 func (d *Debugger) stop() {
+	go d.program.Send(SetPlaybackStatusMsg(false))
 	d.player.Stop()
 }
 

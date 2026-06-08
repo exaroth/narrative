@@ -18,6 +18,7 @@ type debugModel struct {
 	mode         mode
 	width        int
 	height       int
+	isPlaying    bool
 	ctrl         *Debugger
 	sentenceList tea.Model
 	phonemePanel tea.Model
@@ -25,6 +26,8 @@ type debugModel struct {
 }
 
 type UpdateTickMsg time.Time
+
+type SetPlaybackStatusMsg bool
 
 func UpdateTick() tea.Cmd {
 	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
@@ -65,14 +68,19 @@ func (m debugModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ctrl.play(msg.sentence, "", func() {
 				playbackCh <- struct{}{}
 			})
-
 		} else {
-			m.ctrl.play(msg.sentence, "", nil)
+			if m.isPlaying {
+				m.ctrl.stop()
+			} else {
+				go m.ctrl.play(msg.sentence, "", nil)
+			}
 		}
 	case PlayPhonemeCmd:
 		m.ctrl.play(msg.phoneme, ".", nil)
 	case StopPlaybackCmd:
 		m.ctrl.stop()
+	case SetPlaybackStatusMsg:
+		m.isPlaying = bool(msg)
 	case UpdatePhonemeCmd:
 		m.updateExtDict(msg.word, msg.phoneme, msg.sentenceNum)
 		m.setListMode()

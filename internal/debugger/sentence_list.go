@@ -35,6 +35,7 @@ type (
 
 	StopPlaybackCmd struct{}
 	PlayNextCmd     struct{}
+	IsBufferingMsg  bool
 )
 
 // channel controlling when we should send next sentence
@@ -51,6 +52,7 @@ type sentenceList struct {
 	height          int
 	width           int
 	continuousMode  bool
+	isBuffering     bool
 	vimPassthrough  *VimPassthrough
 	// list of sentences marked for review
 	marks []int
@@ -138,7 +140,9 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if s.continuousMode {
 				cmds = append(cmds, s.stopContinuousMode())
 			} else {
-				cmds = append(cmds, s.playCurrentSentence())
+				if !s.isBuffering {
+					cmds = append(cmds, s.playCurrentSentence())
+				}
 			}
 		}
 
@@ -147,7 +151,8 @@ func (s sentenceList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds,
 			s.playNextSentence(),
 			waitForPlaybackEnd(playbackCh))
-
+	case IsBufferingMsg:
+		s.isBuffering = bool(msg)
 	case tea.WindowSizeMsg:
 		s.setTermDimensions(msg.Width, msg.Height)
 		// assume status bar is height 1
@@ -194,7 +199,10 @@ func (s sentenceList) View() tea.View {
 	} else {
 		var r_contents string
 		if s.continuousMode {
-			r_contents = "C"
+			r_contents += "C"
+		}
+		if s.isBuffering {
+			r_contents += "B"
 		}
 		v.SetContent(lipgloss.Sprintf("%s\n%s\n%s",
 			s.list.View(),
