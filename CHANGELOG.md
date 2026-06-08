@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove lines containing only numerical values
 ### Added
 - Add years expansion to preprocessor.
+- Add excerpt cleaner.
 ## [0.2.1] 2026-06-02
 ### Fixed
 - Show proper version of Narrative in the main view.

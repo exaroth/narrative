@@ -34,6 +34,7 @@ func Sentencize(text []byte) []string {
 	// We want to expand abbreviations as soon as possible
 	// to avoid having issues with splitting sentences.
 	t = ExpandAbbreviations(t)
+	t = cleanExcerpts(t)
 	t = MULTISPACE_STRIP_RE.ReplaceAllString(t, " ")
 
 	segmenter := sentencizer.NewSegmenter("en")
